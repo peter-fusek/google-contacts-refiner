@@ -27,6 +27,13 @@ fi
 
 cd "$PROJECT_DIR"
 
+# Load environment variables from .env if present
+if [ -f "$PROJECT_DIR/.env" ]; then
+    set -a
+    source "$PROJECT_DIR/.env"
+    set +a
+fi
+
 LOG_FILE="$LOG_DIR/run_${TIMESTAMP}.log"
 
 echo "=== Google Contacts Refiner — $(date) ===" >> "$LOG_FILE"

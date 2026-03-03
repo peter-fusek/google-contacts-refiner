@@ -1,6 +1,7 @@
 # Credentials and tokens (contain secrets / PII)
 credentials.json
 token.json
+.env
 
 # Data directory (backups, workplans, changelogs — large, contain PII)
 data/
