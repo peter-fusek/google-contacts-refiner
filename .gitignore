@@ -1,0 +1,36 @@
+# Credentials and tokens (contain secrets / PII)
+credentials.json
+token.json
+
+# Data directory (backups, workplans, changelogs — large, contain PII)
+data/
+
+# Machine-learned memory (user-specific, gitignored)
+memory.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
