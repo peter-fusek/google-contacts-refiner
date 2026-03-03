@@ -21,7 +21,7 @@ from pathlib import Path
 # Ensure project root is on path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from config import DATA_DIR
+from config import DATA_DIR, AI_ENABLED
 from auth import authenticate, test_connection
 from api_client import PeopleAPIClient
 from backup import create_backup, get_latest_backup, load_backup, list_backups
@@ -35,6 +35,20 @@ from changelog import ChangeLog, find_latest_changelog, load_changelog, summariz
 from recovery import RecoveryManager
 from batch_processor import process_batches
 from utils import get_resource_name
+
+
+def _get_ai_analyzer():
+    """Initialize AI analyzer if configured and available."""
+    if not AI_ENABLED:
+        return None
+    try:
+        from ai_analyzer import AIAnalyzer
+        ai = AIAnalyzer()
+        print("🤖 Claude AI aktívny")
+        return ai
+    except Exception as e:
+        print(f"ℹ️  AI nedostupné: {e}")
+        return None
 
 
 def cmd_auth():
@@ -88,15 +102,22 @@ def cmd_analyze():
     print(f"Celkom kontaktov: {len(contacts)}")
     print()
 
+    # ── Initialize AI (if configured) ──────────────────────────────
+    ai = _get_ai_analyzer()
+
     # ── Analyze contacts ──────────────────────────────────────────
     print("📊 Analyzujem kontakty...")
 
     def progress(done, total):
         print(f"\r   Analyzované: {done}/{total}  ", end="", flush=True)
 
-    results = analyze_all_contacts(contacts, progress_callback=progress)
+    results = analyze_all_contacts(contacts, progress_callback=progress, ai_analyzer=ai)
     print()
     print(f"   Kontakty s nálezmi: {len(results)}")
+
+    if ai:
+        stats = ai.get_usage_stats()
+        print(f"   🤖 AI: {stats['total_input_tokens'] + stats['total_output_tokens']} tokenov, ~${stats['estimated_cost_usd']:.3f}")
     print()
 
     # ── Find duplicates ───────────────────────────────────────────

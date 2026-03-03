@@ -13,7 +13,7 @@ from utils import get_display_name, get_resource_name
 from config import CONFIDENCE_HIGH, CONFIDENCE_MEDIUM
 
 
-def analyze_contact(person: dict) -> dict:
+def analyze_contact(person: dict, ai_analyzer=None) -> dict:
     """
     Analyze a single contact and collect all suggested changes.
 
@@ -58,6 +58,13 @@ def analyze_contact(person: dict) -> dict:
         if c.get("old") != c.get("new") and c.get("new") not in (None, "")
     ]
 
+    # AI enhancement pass (if available and needed)
+    if ai_analyzer and ai_analyzer.needs_ai_review(changes):
+        try:
+            changes = ai_analyzer.enhance_analysis(person, changes)
+        except Exception:
+            pass  # Fall back to rule-based changes silently
+
     # Filter out info-only markers
     actionable_changes = [
         c for c in changes
@@ -88,13 +95,14 @@ def analyze_contact(person: dict) -> dict:
     }
 
 
-def analyze_all_contacts(contacts: list[dict], progress_callback=None) -> list[dict]:
+def analyze_all_contacts(contacts: list[dict], progress_callback=None, ai_analyzer=None) -> list[dict]:
     """
     Analyze all contacts and return results for those with changes.
 
     Args:
         contacts: List of person resources from API.
         progress_callback: Called with (done, total).
+        ai_analyzer: Optional AIAnalyzer for AI-enhanced analysis.
 
     Returns:
         List of analysis results (only contacts with changes).
@@ -103,7 +111,7 @@ def analyze_all_contacts(contacts: list[dict], progress_callback=None) -> list[d
     total = len(contacts)
 
     for i, person in enumerate(contacts):
-        analysis = analyze_contact(person)
+        analysis = analyze_contact(person, ai_analyzer=ai_analyzer)
         if analysis["changes"] or analysis["info"]:
             results.append(analysis)
 

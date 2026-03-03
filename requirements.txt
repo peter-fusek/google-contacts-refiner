@@ -23,3 +23,6 @@ tqdm>=4.66.0
 
 # Rich terminal output
 rich>=13.7.0
+
+# Claude AI
+anthropic>=0.40.0
