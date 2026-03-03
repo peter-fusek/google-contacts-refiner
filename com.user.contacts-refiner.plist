@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.user.contacts-refiner</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/peterfusek1980gmail.com/Projects/Google Contacts Refiner/run.sh</string>
+    </array>
+
+    <!-- Daily at 9:00 AM. If Mac is asleep, fires on next wake. -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>9</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/Users/peterfusek1980gmail.com/Projects/Google Contacts Refiner/logs/launchd.stdout</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/peterfusek1980gmail.com/Projects/Google Contacts Refiner/logs/launchd.stderr</string>
+
+    <!-- Do not run on login, only on schedule -->
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
+        <!-- Set your Anthropic API key here -->
+        <key>ANTHROPIC_API_KEY</key>
+        <string>REPLACE_WITH_YOUR_KEY</string>
+    </dict>
+</dict>
+</plist>
