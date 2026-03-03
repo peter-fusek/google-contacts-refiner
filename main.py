@@ -160,9 +160,12 @@ def cmd_analyze():
     print(f"Pokračuj so 'python main.py fix' pre interaktívne opravy.")
 
 
-def cmd_fix():
-    """Apply fixes interactively with batch approval."""
-    print("🔧 Google Contacts Cleanup — Opravy")
+def cmd_fix(auto_mode=False, confidence_threshold=0.90, dry_run=False):
+    """Apply fixes interactively (or automatically in auto-mode)."""
+    if auto_mode:
+        print("🤖 Google Contacts Cleanup — Automatické opravy")
+    else:
+        print("🔧 Google Contacts Cleanup — Opravy")
     print("=" * 50)
     print()
 
@@ -177,17 +180,22 @@ def cmd_fix():
     print(format_workplan_summary(workplan))
     print()
 
-    # Confirm
-    print("Chceš pokračovať s opravami? [y/n]: ", end="")
-    try:
-        answer = input().strip().lower()
-    except (EOFError, KeyboardInterrupt):
-        print("\nZrušené.")
+    if dry_run:
+        print("ℹ️  DRY RUN — žiadne zmeny nebudú aplikované.")
         return
 
-    if answer not in ("y", "yes", "a", "ano"):
-        print("Zrušené.")
-        return
+    # Confirm (skip in auto mode)
+    if not auto_mode:
+        print("Chceš pokračovať s opravami? [y/n]: ", end="")
+        try:
+            answer = input().strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            print("\nZrušené.")
+            return
+
+        if answer not in ("y", "yes", "a", "ano"):
+            print("Zrušené.")
+            return
 
     # ── Setup ─────────────────────────────────────────────────────
     session_id = str(uuid.uuid4())
@@ -224,18 +232,51 @@ def cmd_fix():
 
     print(f"Session ID: {session_id}")
     print(f"Changelog:  {changelog.log_path}")
+    if auto_mode:
+        print(f"Režim:      automatický (confidence >= {confidence_threshold})")
     print()
 
     # ── Process batches ───────────────────────────────────────────
     mem = MemoryManager()
-    process_batches(
+    result = process_batches(
         workplan=workplan,
         contacts_lookup=contacts_lookup,
         client=client,
         changelog=changelog,
         recovery=recovery,
         memory=mem,
+        auto_mode=auto_mode,
+        auto_confidence_threshold=confidence_threshold,
     )
+
+    # In auto-mode, handle review file and notifications
+    if auto_mode and result:
+        from notifier import (
+            send_macos_notification,
+            generate_run_summary,
+            write_review_file,
+        )
+
+        skipped = result.get("skipped_for_review", [])
+        review_path = write_review_file(skipped)
+
+        summary = generate_run_summary(
+            changes_applied=result.get("success", 0),
+            changes_failed=result.get("failed", 0),
+            changes_skipped=result.get("skipped", 0),
+            skipped_for_review=skipped,
+        )
+        print()
+        print(summary)
+
+        if review_path:
+            print(f"\n📋 Review súbor: {review_path}")
+
+        # Send macOS notification
+        msg = f"✅ {result.get('success', 0)} zmien"
+        if skipped:
+            msg += f", 📋 {len(skipped)} na review"
+        send_macos_notification("Contacts Refiner", msg)
 
 
 def cmd_verify():
@@ -562,35 +603,55 @@ def cmd_info():
 
 def main():
     """Main entry point."""
-    if len(sys.argv) < 2:
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Google Contacts Refiner — čistenie a oprava kontaktov",
+        usage="python main.py <príkaz> [možnosti]",
+    )
+    parser.add_argument(
+        "command",
+        nargs="?",
+        choices=["auth", "backup", "analyze", "analyse", "fix", "verify", "rollback", "resume", "info"],
+        help="Príkaz na vykonanie",
+    )
+    parser.add_argument("--auto", action="store_true", help="Automatický režim (bez interakcie)")
+    parser.add_argument("--confidence", type=float, default=0.90, help="Min. confidence pre auto-apply (default: 0.90)")
+    parser.add_argument("--dry-run", action="store_true", help="Len analýza, žiadne zmeny")
+
+    args = parser.parse_args()
+
+    if not args.command:
         print(__doc__)
         sys.exit(0)
 
-    command = sys.argv[1].lower()
+    command = args.command.lower()
+    if command == "analyse":
+        command = "analyze"
 
-    commands = {
+    simple_commands = {
         "auth": cmd_auth,
         "backup": cmd_backup,
         "analyze": cmd_analyze,
-        "analyse": cmd_analyze,  # British spelling alias
-        "fix": cmd_fix,
         "verify": cmd_verify,
         "rollback": cmd_rollback,
         "resume": cmd_resume,
         "info": cmd_info,
     }
 
-    if command in ("help", "-h", "--help"):
-        print(__doc__)
-        sys.exit(0)
-
-    if command not in commands:
-        print(f"❌ Neznámy príkaz: {command}")
-        print(__doc__)
-        sys.exit(1)
-
     try:
-        commands[command]()
+        if command == "fix":
+            cmd_fix(
+                auto_mode=args.auto,
+                confidence_threshold=args.confidence,
+                dry_run=args.dry_run,
+            )
+        elif command in simple_commands:
+            simple_commands[command]()
+        else:
+            print(f"❌ Neznámy príkaz: {command}")
+            print(__doc__)
+            sys.exit(1)
     except KeyboardInterrupt:
         print("\n\n⏸  Prerušené používateľom.")
         sys.exit(130)

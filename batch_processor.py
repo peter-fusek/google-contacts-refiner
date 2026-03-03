@@ -188,6 +188,8 @@ def process_batches(
     recovery: RecoveryManager,
     start_from_batch: int = 1,
     memory=None,
+    auto_mode: bool = False,
+    auto_confidence_threshold: float = 0.90,
 ):
     """
     Process all batches interactively.
@@ -208,6 +210,7 @@ def process_batches(
     total_skipped = 0
 
     rejected = _load_rejected()
+    skipped_for_review = []  # For auto-mode: changes below threshold
 
     for batch in batches:
         batch_num = batch["batch_num"]
@@ -219,18 +222,44 @@ def process_batches(
         start_idx = total_processed + 1
         end_idx = total_processed + len(contacts_in_batch)
 
-        # Display batch
-        print(format_batch_header(batch_num, total_batches, start_idx, end_idx))
+        if auto_mode:
+            # Auto-mode: split changes by confidence threshold
+            action = "approve"
+            skip_indices = []
 
-        for i, result in enumerate(contacts_in_batch):
-            if result["changes"]:
-                print(format_contact_changes(result, start_idx + i))
-                print()
+            for i, result in enumerate(contacts_in_batch):
+                low_conf_changes = [
+                    c for c in result.get("changes", [])
+                    if c.get("confidence", 0) < auto_confidence_threshold
+                ]
+                if low_conf_changes:
+                    # Log low-confidence changes for review
+                    skipped_for_review.append({
+                        "resourceName": result["resourceName"],
+                        "displayName": result["displayName"],
+                        "skipped_changes": low_conf_changes,
+                    })
+                    # Keep only high-confidence changes
+                    result["changes"] = [
+                        c for c in result.get("changes", [])
+                        if c.get("confidence", 0) >= auto_confidence_threshold
+                    ]
 
-        print(format_batch_footer(batch["stats"]))
+            print(f"   🤖 Batch {batch_num}/{total_batches} (auto-mode)")
+        else:
+            # Interactive mode
+            # Display batch
+            print(format_batch_header(batch_num, total_batches, start_idx, end_idx))
 
-        # Get user approval
-        action, skip_indices = prompt_user_approval(batch_num)
+            for i, result in enumerate(contacts_in_batch):
+                if result["changes"]:
+                    print(format_contact_changes(result, start_idx + i))
+                    print()
+
+            print(format_batch_footer(batch["stats"]))
+
+            # Get user approval
+            action, skip_indices = prompt_user_approval(batch_num)
 
         if action == "quit":
             print("\n⏸  Ukončujem. Môžeš pokračovať cez 'python main.py resume'.")
@@ -350,7 +379,16 @@ def process_batches(
     print(f"  Úspešné:    {total_success}")
     print(f"  Zlyhané:    {total_failed}")
     print(f"  Preskočené: {total_skipped}")
+    if skipped_for_review:
+        print(f"  Na review:  {len(skipped_for_review)}")
     print("═══════════════════════════════════════════")
+
+    return {
+        "success": total_success,
+        "failed": total_failed,
+        "skipped": total_skipped,
+        "skipped_for_review": skipped_for_review,
+    }
 
 
 def _load_rejected() -> list:

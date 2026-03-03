@@ -56,6 +56,10 @@ AI_CONFIDENCE_REVIEW_THRESHOLD = 0.90  # Send to AI if below this
 AI_MAX_CONTACTS_PER_BATCH = 10         # Contacts per AI API call
 AI_COST_LIMIT_PER_SESSION = 1.00       # USD safety cap
 
+# ── Auto Mode ─────────────────────────────────────────────────────────
+AUTO_CONFIDENCE_THRESHOLD = 0.90       # Min confidence for auto-apply
+AUTO_MAX_CHANGES_PER_RUN = 200         # Safety limit for auto-mode
+
 # ── Phone Number Defaults ──────────────────────────────────────────────────
 DEFAULT_REGION = "SK"
 SUPPORTED_REGIONS = ["SK", "CZ"]
