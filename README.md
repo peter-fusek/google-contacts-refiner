@@ -1,99 +1,159 @@
 # Google Contacts Refiner
 
+Automated Google Contacts cleaner — SK/CZ diacritics, phone normalization, deduplication, AI-powered analysis (Claude), headless scheduling. Runs locally or as a Cloud Run Job.
+
 Automatizovaný nástroj na čistenie a opravu Google Kontaktov s dôrazom na slovenské a české mená, diakritiku, telefónne čísla a detekciu duplikátov.
 
-## Funkcie
+## Features
 
-- **Diakritika** — automatická oprava slovenských/českých mien (600+ slovníkových záznamov)
-- **Telefónne čísla** — normalizácia do medzinárodného formátu (+421, +420, ...)
-- **Emaily** — validácia a normalizácia (lowercase, formát)
-- **Adresy** — PSČ formátovanie, detekcia krajiny
-- **Organizácie** — zjednotenie názvov
-- **Duplikáty** — fuzzy detekcia podľa mena, telefónu a emailu
-- **Obohatenie** — extrakcia štruktúrovaných dát z poznámok a biografií
-- **Zálohy** — plný backup/restore pred akýmikoľvek zmenami
-- **Rollback** — možnosť vrátiť zmeny pomocou changelogu
+| Category | Description |
+|----------|-------------|
+| **Diacritics** | Auto-fix Slovak/Czech names (600+ dictionary entries) |
+| **Phone numbers** | Normalize to international format (+421, +420, ...) |
+| **Emails** | Validation, lowercase, format cleanup |
+| **Addresses** | ZIP code formatting, country detection |
+| **Organizations** | Name unification |
+| **Duplicates** | Fuzzy detection by name, phone, email |
+| **Enrichment** | Structured data extraction from notes/bios |
+| **AI Analysis** | Claude-powered smart suggestions (v1.1+) |
+| **Memory** | Cross-session learning from past decisions (v1.1+) |
+| **Headless mode** | `--auto` flag for unattended runs (v1.2+) |
+| **Cloud Run** | Docker-based daily job on GCP (v1.4+) |
+| **Safety** | Full backup/restore, changelog, rollback |
 
-## Inštalácia
+## Quick Start
 
 ```bash
-# Klonovanie repozitára
-git clone https://github.com/YOUR_USERNAME/google-contacts-refiner.git
+# Clone
+git clone https://github.com/peter-fusek/google-contacts-refiner.git
 cd google-contacts-refiner
 
-# Virtuálne prostredie
+# Virtual environment
 python3 -m venv .venv
 source .venv/bin/activate
 
-# Závislosti
+# Dependencies
 pip install -r requirements.txt
 ```
 
 ### Google API Credentials
 
-1. Choď na [Google Cloud Console](https://console.cloud.google.com/)
-2. Vytvor projekt a povol **People API**
-3. Vytvor OAuth 2.0 credentials (Desktop App)
-4. Stiahni `credentials.json` do koreňa projektu
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a project and enable **People API**
+3. Create OAuth 2.0 credentials (Desktop App)
+4. Download `credentials.json` to the project root
 
-## Použitie
-
-```bash
-python main.py auth         # Autentifikácia a test spojenia
-python main.py backup       # Vytvorenie zálohy kontaktov
-python main.py analyze      # Analýza kontaktov a generovanie plánu opráv
-python main.py fix          # Aplikovanie opráv (interaktívne schvaľovanie po dávkach)
-python main.py verify       # Overenie zmien oproti zálohe
-python main.py rollback     # Vrátenie zmien z changelogu
-python main.py resume       # Pokračovanie prerušenej relácie
-python main.py info         # Zobrazenie info o relácii/zálohe/pláne
-```
-
-### Typický workflow
+### Environment Variables
 
 ```bash
-python main.py auth         # 1. Prihlásenie
-python main.py backup       # 2. Záloha (vždy pred opravami!)
-python main.py analyze      # 3. Analýza — nájde problémy, vytvorí plán
-python main.py fix          # 4. Oprava — schvaľuješ po dávkach (~50 kontaktov)
-python main.py verify       # 5. Overenie — porovná so zálohou
+# .env (gitignored)
+ANTHROPIC_API_KEY=sk-ant-...   # Required for AI analysis
+ENVIRONMENT=local              # "local" (default) or "cloud"
 ```
 
-## Architektúra
+## Usage
 
-```
-main.py              CLI vstupný bod
-├── auth.py          OAuth2 autentifikácia
-├── api_client.py    Google People API wrapper (rate limiting, retry)
-├── backup.py        Záloha/obnova kontaktov
-├── analyzer.py      Orchestrácia analýzy
-│   ├── normalizer.py    Normalizácia polí (diakritika, telefóny, emaily, adresy)
-│   ├── enricher.py      Extrakcia dát z poznámok
-│   ├── deduplicator.py  Detekcia duplikátov
-│   └── labels_manager.py  Správa skupín/štítkov
-├── workplan.py      Generovanie dávok na schválenie
-├── batch_processor.py  Interaktívne spracovanie dávok
-├── changelog.py     Sledovanie zmien (append-only JSONL)
-├── recovery.py      Obnovenie po prerušení
-├── config.py        Konfigurácia a konštanty
-└── utils.py         Pomocné funkcie
+```bash
+python main.py auth         # Authenticate and test connection
+python main.py backup       # Create contacts backup
+python main.py analyze      # Analyze contacts, generate fix plan
+python main.py fix          # Apply fixes (interactive batch approval)
+python main.py fix --auto   # Apply high-confidence fixes automatically
+python main.py verify       # Verify changes against backup
+python main.py rollback     # Revert changes from changelog
+python main.py resume       # Continue interrupted session
+python main.py info         # Show session/backup/plan info
 ```
 
-## Systém dôveryhodnosti
+### Typical Workflow
 
-Každá navrhovaná zmena má skóre dôveryhodnosti:
-- **HIGH** (>= 0.90) — presné zhody, slovníkové vyhľadávanie
-- **MEDIUM** (>= 0.60) — vzorové zhody, fuzzy matching
-- **LOW** (< 0.60) — špekulatívne návrhy
+```bash
+python main.py auth         # 1. Login
+python main.py backup       # 2. Backup (always before fixes!)
+python main.py analyze      # 3. Analyze — finds issues, creates plan
+python main.py fix          # 4. Fix — approve in batches (~50 contacts)
+python main.py verify       # 5. Verify — compare with backup
+```
 
-## Dáta
+## Architecture
 
-Všetky runtime dáta sa ukladajú v `data/` (gitignored):
-- `backup_TIMESTAMP.json` — plná záloha kontaktov
-- `workplan_TIMESTAMP.json` — plán dávok na schválenie
-- `changelog_TIMESTAMP.jsonl` — audit trail zmien
-- `checkpoint.json` — stav aktuálnej relácie
+```
+main.py                  CLI entry point
+├── config.py            Configuration, environment detection (local/cloud)
+├── auth.py              OAuth2 auth (local token.json / cloud Secret Manager)
+├── api_client.py        Google People API wrapper (rate limiting, retry)
+├── backup.py            Backup/restore contacts
+├── analyzer.py          Analysis orchestration
+│   ├── normalizer.py    Field normalization (diacritics, phones, emails, addresses)
+│   ├── enricher.py      Data extraction from notes
+│   ├── deduplicator.py  Duplicate detection
+│   └── labels_manager.py Group/label management
+├── ai_analyzer.py       Claude AI integration (smart suggestions)
+├── memory.py            Cross-session learning (file-based)
+├── workplan.py          Batch generation for approval
+├── batch_processor.py   Interactive batch processing
+├── changelog.py         Change tracking (append-only JSONL)
+├── recovery.py          Session recovery after interruption
+├── notifier.py          Notifications (macOS / Cloud Logging)
+├── instructions.md      Human-editable rules (version controlled)
+└── utils.py             Helper functions
+```
 
-## Licencia
+## Cloud Deployment (v1.4)
 
-Súkromný projekt.
+The refiner runs as a **Cloud Run Job** on Google Cloud, triggered daily by Cloud Scheduler.
+
+```
+Cloud Scheduler ──(daily 9:00 CET)──▶ Cloud Run Job
+                                       │
+                    ┌──────────────────┼───────────┐
+                    │                  │           │
+               Secret Manager    GCS Bucket    Cloud Logging
+               (refresh token    (data/         (structured)
+                + API key)       backups)
+                    │                  │
+                    └───▶ Python app ◄─┘
+                          │         │
+                People API▼         ▼ Anthropic
+               (gmail.com)       (Claude AI)
+```
+
+**Infrastructure:**
+- **Project:** `contacts-refiner` (Google Cloud, instarea.sk org)
+- **Region:** `europe-west1` (Belgium)
+- **Storage:** GCS bucket `contacts-refiner-data` (volume-mounted at `/mnt/data`)
+- **Secrets:** Secret Manager (`anthropic-api-key`, `contacts-refresh-token`)
+- **CI/CD:** Cloud Build from GitHub → Artifact Registry → Cloud Run update
+- **Cost:** ~$0/month GCP (free tier) + ~$10-15 Anthropic API
+
+## Confidence Scoring
+
+Every proposed change has a confidence score:
+- **HIGH** (≥ 0.90) — exact matches, dictionary lookups
+- **MEDIUM** (≥ 0.60) — pattern matches, fuzzy matching
+- **LOW** (< 0.60) — speculative suggestions
+
+In `--auto` mode, only HIGH confidence changes are applied.
+
+## Data
+
+All runtime data is stored in `data/` (gitignored):
+- `backup_TIMESTAMP.json` — full contacts backup
+- `workplan_TIMESTAMP.json` — batch plan for approval
+- `changelog_TIMESTAMP.jsonl` — audit trail
+- `checkpoint.json` — current session state
+- `memory.json` — learned patterns from past sessions
+
+## Versioning
+
+| Version | Milestone | Description |
+|---------|-----------|-------------|
+| v1.0.0 | Initial release | Core refiner: normalization, deduplication, batch approval |
+| v1.1.0 | AI Integration | Claude AI analysis + file-based memory system |
+| v1.2.0 | Automation | Headless mode, macOS notifications, launchd scheduling |
+| v1.3.0 | Gmail/Calendar | *(planned)* Optional Gmail + Calendar API enrichment |
+| v1.4.0 | Cloud Migration | *(in progress)* Cloud Run Jobs, GCS, Secret Manager, CI/CD |
+
+## License
+
+Private project.
