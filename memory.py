@@ -10,11 +10,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from config import BASE_DIR
+from config import APP_DIR, DATA_DIR
 
 
-INSTRUCTIONS_PATH = BASE_DIR / "instructions.md"
-MEMORY_PATH = BASE_DIR / "memory.json"
+INSTRUCTIONS_PATH = APP_DIR / "instructions.md"  # Ships with code, not data
+MEMORY_PATH = DATA_DIR / "memory.json"            # Persisted data (GCS in cloud)
 
 # Default empty memory structure
 _DEFAULT_MEMORY = {

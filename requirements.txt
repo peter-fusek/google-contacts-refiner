@@ -26,3 +26,6 @@ rich>=13.7.0
 
 # Claude AI
 anthropic>=0.40.0
+
+# Cloud (Secret Manager — used in cloud mode only)
+google-cloud-secret-manager>=2.20.0

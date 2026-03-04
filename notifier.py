@@ -1,21 +1,36 @@
 """
 Notification system for headless runs.
 
-Supports macOS notifications and generates run summaries.
+Supports macOS notifications (local) and Cloud Logging (cloud).
 """
 import json
+import logging
 import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from config import DATA_DIR
+from config import DATA_DIR, ENVIRONMENT
+
+logger = logging.getLogger(__name__)
 
 
-def send_macos_notification(title: str, message: str):
+def send_notification(title: str, message: str):
+    """
+    Send a notification — platform-aware.
+
+    Cloud: logs to Cloud Logging (stdout → captured by Cloud Run).
+    Local (macOS): sends native notification via osascript.
+    """
+    if ENVIRONMENT == "cloud":
+        logger.info(f"[{title}] {message}")
+    else:
+        _send_macos_notification(title, message)
+
+
+def _send_macos_notification(title: str, message: str):
     """Send a macOS notification via osascript."""
     try:
-        # Escape double quotes in message
         safe_title = title.replace('"', '\\"')
         safe_message = message.replace('"', '\\"')
         subprocess.run(
@@ -28,6 +43,10 @@ def send_macos_notification(title: str, message: str):
         )
     except (subprocess.SubprocessError, FileNotFoundError):
         pass  # Silently fail if notifications aren't available
+
+
+# Backward compat alias
+send_macos_notification = send_notification
 
 
 def generate_run_summary(

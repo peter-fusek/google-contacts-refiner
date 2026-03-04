@@ -4,14 +4,26 @@ Configuration and constants for Google Contacts Cleanup tool.
 import os
 from pathlib import Path
 
+# ── Environment ──────────────────────────────────────────────────────────
+ENVIRONMENT = os.getenv("ENVIRONMENT", "local")  # "local" | "cloud"
+GCP_PROJECT = os.getenv("GCP_PROJECT", "contacts-refiner")
+
 # ── Paths ──────────────────────────────────────────────────────────────────
-BASE_DIR = Path(__file__).parent.resolve()
-DATA_DIR = BASE_DIR / "data"
-CREDENTIALS_FILE = BASE_DIR / "credentials.json"
-TOKEN_FILE = BASE_DIR / "token.json"
+APP_DIR = Path(__file__).parent.resolve()  # Always the code directory
+
+if ENVIRONMENT == "cloud":
+    BASE_DIR = Path(os.getenv("DATA_MOUNT", "/mnt/data"))
+    DATA_DIR = BASE_DIR / "data"
+    CREDENTIALS_FILE = None  # Not used in cloud — auth via Secret Manager
+    TOKEN_FILE = None        # Not used in cloud — token in Secret Manager
+else:
+    BASE_DIR = APP_DIR
+    DATA_DIR = BASE_DIR / "data"
+    CREDENTIALS_FILE = BASE_DIR / "credentials.json"
+    TOKEN_FILE = BASE_DIR / "token.json"
 
 # Ensure data directory exists
-DATA_DIR.mkdir(exist_ok=True)
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 # ── Google API ─────────────────────────────────────────────────────────────
 SCOPES = ["https://www.googleapis.com/auth/contacts"]

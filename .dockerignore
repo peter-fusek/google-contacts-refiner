@@ -1,0 +1,32 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Data (lives on GCS, not in image)
+data/
+logs/
+memory.json
+
+# Credentials (secrets live in Secret Manager)
+credentials.json
+token.json
+.env
+
+# Git
+.git/
+.gitignore
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+__pycache__/
+*.pyc
+
+# macOS-only files (not needed in cloud)
+com.user.contacts-refiner.plist
+run.sh
+
+# Claude Code
+.claude/

@@ -1,7 +1,10 @@
 """
 OAuth2 authentication for Google People API.
-Opens Chrome for the consent screen, saves token for reuse.
+
+Local: Opens Chrome for the consent screen, saves token for reuse.
+Cloud: Reads refresh token from Secret Manager.
 """
+import json
 import os
 import sys
 from pathlib import Path
@@ -10,16 +13,42 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 
-from config import SCOPES, CREDENTIALS_FILE, TOKEN_FILE
+from config import SCOPES, CREDENTIALS_FILE, TOKEN_FILE, ENVIRONMENT, GCP_PROJECT
+
+
+def _get_credentials_cloud() -> Credentials:
+    """
+    Load OAuth2 credentials from Secret Manager (cloud mode).
+
+    Reads the refresh token stored as JSON in the 'contacts-refresh-token' secret.
+    """
+    from google.cloud import secretmanager
+
+    client = secretmanager.SecretManagerServiceClient()
+    name = f"projects/{GCP_PROJECT}/secrets/contacts-refresh-token/versions/latest"
+
+    print("🔑 Načítavam token zo Secret Manager...")
+    response = client.access_secret_version(request={"name": name})
+    token_data = json.loads(response.payload.data.decode())
+    creds = Credentials.from_authorized_user_info(token_data, SCOPES)
+
+    # Refresh if expired
+    if creds.expired and creds.refresh_token:
+        print("🔄 Obnovujem token...")
+        creds.refresh(Request())
+
+    return creds
 
 
 def authenticate(force_new: bool = False) -> Credentials:
     """
     Authenticate with Google using OAuth2.
 
-    1. If token.json exists and is valid, reuse it.
-    2. If token is expired, refresh it.
-    3. Otherwise, open Chrome for consent screen.
+    Cloud mode: Load from Secret Manager (no browser flow).
+    Local mode:
+        1. If token.json exists and is valid, reuse it.
+        2. If token is expired, refresh it.
+        3. Otherwise, open Chrome for consent screen.
 
     Args:
         force_new: If True, ignore existing token and re-authenticate.
@@ -27,10 +56,13 @@ def authenticate(force_new: bool = False) -> Credentials:
     Returns:
         Valid Google OAuth2 Credentials.
     """
+    if ENVIRONMENT == "cloud":
+        return _get_credentials_cloud()
+
     creds = None
 
     # Try loading existing token
-    if not force_new and TOKEN_FILE.exists():
+    if not force_new and TOKEN_FILE and TOKEN_FILE.exists():
         creds = Credentials.from_authorized_user_file(str(TOKEN_FILE), SCOPES)
 
     # Refresh or re-authenticate
@@ -43,7 +75,7 @@ def authenticate(force_new: bool = False) -> Credentials:
             creds = None
 
     if not creds or not creds.valid:
-        if not CREDENTIALS_FILE.exists():
+        if not CREDENTIALS_FILE or not CREDENTIALS_FILE.exists():
             print(f"❌ Súbor {CREDENTIALS_FILE} neexistuje!")
             print()
             print("Postup na získanie credentials.json:")
