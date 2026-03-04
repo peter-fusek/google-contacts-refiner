@@ -21,6 +21,11 @@
 - Slovenské čísla: +421
 - České čísla: +420
 
+## Mazanie
+- NIKDY nemazať kontakty natrvalo — vždy len presunúť do koša (trash)
+- Používateľ chce 30 dní na kontrolu pred trvalým odstránením
+- Platí pre kontakty, duplikáty, aj všetky ostatné operácie
+
 ## Automatický režim
 - Minimálna istota pre automatické zmeny: 90%
 - Maximálny počet zmien za jeden beh: 200
