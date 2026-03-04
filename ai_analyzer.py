@@ -413,10 +413,20 @@ Pravidlá:
             return None
 
     def _estimate_cost(self, input_tokens: int, output_tokens: int) -> float:
-        """Estimate cost in USD based on model pricing (Sonnet rates)."""
-        # Sonnet pricing: $3/M input, $15/M output (approximate)
-        input_cost = (input_tokens / 1_000_000) * 3.0
-        output_cost = (output_tokens / 1_000_000) * 15.0
+        """Estimate cost in USD based on model pricing."""
+        # Detect model tier for pricing
+        model = self.model.lower()
+        if "haiku" in model:
+            # Haiku: $0.80/M input, $4/M output
+            input_rate, output_rate = 0.80, 4.0
+        elif "sonnet" in model:
+            # Sonnet: $3/M input, $15/M output
+            input_rate, output_rate = 3.0, 15.0
+        else:
+            # Opus or unknown: $15/M input, $75/M output
+            input_rate, output_rate = 15.0, 75.0
+        input_cost = (input_tokens / 1_000_000) * input_rate
+        output_cost = (output_tokens / 1_000_000) * output_rate
         return input_cost + output_cost
 
     def _is_cost_exceeded(self) -> bool:

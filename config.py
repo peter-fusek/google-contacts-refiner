@@ -75,6 +75,9 @@ AI_COST_LIMIT_PER_SESSION = 3.00       # USD safety cap per run ($3/day max)
 AUTO_CONFIDENCE_THRESHOLD = 0.90       # Min confidence for auto-apply
 AUTO_MAX_CHANGES_PER_RUN = 200         # Safety limit for auto-mode
 
+# ── AI Review (Phase 2) ──────────────────────────────────────────────
+AI_REVIEW_CHECKPOINT = DATA_DIR / "ai_review_checkpoint.json"
+
 # ── Phone Number Defaults ──────────────────────────────────────────────────
 DEFAULT_REGION = "SK"
 SUPPORTED_REGIONS = ["SK", "CZ"]

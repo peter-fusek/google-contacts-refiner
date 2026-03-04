@@ -12,6 +12,7 @@ Usage:
     python main.py resume       # Resume from last checkpoint
     python main.py info         # Show session/backup/workplan info
 """
+import os
 import sys
 import json
 import uuid
@@ -21,7 +22,7 @@ from pathlib import Path
 # Ensure project root is on path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from config import DATA_DIR, AI_ENABLED
+from config import DATA_DIR, AI_REVIEW_CHECKPOINT, AI_MAX_CONTACTS_PER_BATCH
 from auth import authenticate, test_connection
 from memory import MemoryManager
 from api_client import PeopleAPIClient
@@ -40,7 +41,8 @@ from utils import get_resource_name
 
 def _get_ai_analyzer():
     """Initialize AI analyzer if configured and available."""
-    if not AI_ENABLED:
+    # Check at runtime (env var may change between phases)
+    if os.getenv("AI_ENABLED", "true").lower() != "true":
         return None
     try:
         from ai_analyzer import AIAnalyzer
@@ -279,6 +281,164 @@ def cmd_fix(auto_mode=False, confidence_threshold=0.90, dry_run=False):
         send_macos_notification("Contacts Refiner", msg)
 
 
+def cmd_ai_review(resume=False):
+    """AI review of MEDIUM confidence changes — checkpointed, resumable."""
+    print("🤖 Google Contacts Cleanup — AI Review")
+    print("=" * 50)
+    print()
+
+    # Load checkpoint or start fresh
+    checkpoint = {}
+    if resume and AI_REVIEW_CHECKPOINT.exists():
+        checkpoint = json.loads(AI_REVIEW_CHECKPOINT.read_text(encoding="utf-8"))
+        print(f"Pokračujem od pozície {checkpoint.get('last_reviewed', 0)}")
+
+    # Load workplan
+    workplan_path = checkpoint.get("workplan_path")
+    if workplan_path:
+        workplan_path = Path(workplan_path)
+    else:
+        workplan_path = get_latest_workplan()
+
+    if not workplan_path or not workplan_path.exists():
+        print("❌ Žiadny workplan!")
+        return
+
+    workplan = load_workplan(workplan_path)
+    print(f"Workplan: {workplan_path.name}")
+
+    # Load backup for full contact data (AI needs context)
+    backup_path = get_latest_backup()
+    if not backup_path:
+        print("❌ Žiadna záloha!")
+        return
+
+    backup_data = load_backup(backup_path)
+    contacts_by_rn = {
+        c.get("resourceName", ""): c
+        for c in backup_data["contacts"]
+    }
+
+    # Collect contacts with MEDIUM confidence changes
+    medium_items = []  # (batch_idx, contact_idx, resourceName, changes)
+    for bi, batch in enumerate(workplan["batches"]):
+        for ci, contact in enumerate(batch["contacts"]):
+            medium_changes = [
+                ch for ch in contact.get("changes", [])
+                if 0.60 <= ch.get("confidence", 0) < 0.90
+            ]
+            if medium_changes:
+                medium_items.append((bi, ci, contact["resourceName"], medium_changes))
+
+    print(f"Kontakty s MEDIUM zmenami: {len(medium_items)}")
+
+    if not medium_items:
+        print("ℹ️  Žiadne MEDIUM zmeny na AI review.")
+        _cleanup_ai_checkpoint()
+        return
+
+    # Initialize AI
+    ai = _get_ai_analyzer()
+    if not ai:
+        print("❌ AI nie je dostupné!")
+        return
+
+    # Process in batches of AI_MAX_CONTACTS_PER_BATCH
+    start_from = checkpoint.get("last_reviewed", 0)
+    total = len(medium_items)
+    promoted = 0
+    demoted = 0
+
+    for i in range(start_from, total, AI_MAX_CONTACTS_PER_BATCH):
+        batch_items = medium_items[i:i + AI_MAX_CONTACTS_PER_BATCH]
+
+        # Prepare (contact, changes) tuples
+        contacts_with_changes = []
+        for bi, ci, rn, changes in batch_items:
+            person = contacts_by_rn.get(rn, {})
+            contacts_with_changes.append((person, changes))
+
+        # Call AI
+        try:
+            enhanced_list = ai.enhance_batch(contacts_with_changes)
+        except Exception as e:
+            print(f"   ⚠️  AI batch chyba: {e}")
+            enhanced_list = [ch for _, ch in contacts_with_changes]
+
+        # Update workplan with AI results
+        for j, (bi, ci, rn, orig_changes) in enumerate(batch_items):
+            if j < len(enhanced_list):
+                new_changes = enhanced_list[j]
+                # Replace MEDIUM changes in workplan contact
+                contact = workplan["batches"][bi]["contacts"][ci]
+                # Keep HIGH changes unchanged, replace MEDIUM with AI result
+                high_changes = [
+                    ch for ch in contact["changes"]
+                    if ch.get("confidence", 0) >= 0.90
+                ]
+                low_changes = [
+                    ch for ch in contact["changes"]
+                    if ch.get("confidence", 0) < 0.60
+                ]
+                contact["changes"] = high_changes + new_changes + low_changes
+
+                # Count promotions/demotions
+                for ch in new_changes:
+                    if ch.get("confidence", 0) >= 0.90:
+                        promoted += 1
+                    elif ch.get("confidence", 0) < 0.60:
+                        demoted += 1
+
+                # Recompute stats
+                all_ch = contact["changes"]
+                contact["stats"] = {
+                    "high": sum(1 for c in all_ch if c.get("confidence", 0) >= 0.90),
+                    "medium": sum(1 for c in all_ch if 0.60 <= c.get("confidence", 0) < 0.90),
+                    "low": sum(1 for c in all_ch if c.get("confidence", 0) < 0.60),
+                    "total": len(all_ch),
+                }
+
+        end_idx = min(i + AI_MAX_CONTACTS_PER_BATCH, total)
+        print(f"   AI reviewed: {end_idx}/{total}")
+
+        # Save checkpoint
+        AI_REVIEW_CHECKPOINT.write_text(json.dumps({
+            "status": "in_progress",
+            "workplan_path": str(workplan_path),
+            "last_reviewed": end_idx,
+            "total": total,
+            "promoted": promoted,
+            "demoted": demoted,
+        }, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    # Save updated workplan (overwrite)
+    with open(workplan_path, "w", encoding="utf-8") as f:
+        json.dump(workplan, f, ensure_ascii=False, indent=2)
+
+    # Print AI stats
+    stats = ai.get_usage_stats()
+    print()
+    print(f"🤖 AI review hotový:")
+    print(f"   Promoted (MEDIUM→HIGH): {promoted}")
+    print(f"   Demoted (MEDIUM→LOW):   {demoted}")
+    print(f"   Tokeny: {stats['total_input_tokens'] + stats['total_output_tokens']}")
+    print(f"   Cena:   ~${stats['estimated_cost_usd']:.3f}")
+
+    # Cleanup checkpoint
+    _cleanup_ai_checkpoint()
+
+    # Log AI learnings count
+    learnings = ai.get_new_learnings()
+    if learnings:
+        print(f"   Naučené vzory: {len(learnings)}")
+
+
+def _cleanup_ai_checkpoint():
+    """Remove AI review checkpoint file."""
+    if AI_REVIEW_CHECKPOINT.exists():
+        AI_REVIEW_CHECKPOINT.unlink()
+
+
 def cmd_verify():
     """Verify changes by comparing current state with backup."""
     print("✅ Google Contacts Cleanup — Verifikácia")
@@ -497,21 +657,24 @@ def cmd_resume():
     print(RecoveryManager.format_checkpoint_info(checkpoint))
     print()
 
-    print("Pokračovať od posledného checkpointu? [y/n/r pre restart]: ", end="")
-    try:
-        answer = input().strip().lower()
-    except (EOFError, KeyboardInterrupt):
-        print("\nZrušené.")
-        return
+    # In cloud environment, auto-approve resume
+    from config import ENVIRONMENT
+    if ENVIRONMENT != "cloud":
+        print("Pokračovať od posledného checkpointu? [y/n/r pre restart]: ", end="")
+        try:
+            answer = input().strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            print("\nZrušené.")
+            return
 
-    if answer in ("r", "restart"):
-        RecoveryManager.clear_checkpoint()
-        print("Checkpoint vymazaný. Spusti 'python main.py fix' pre nový štart.")
-        return
+        if answer in ("r", "restart"):
+            RecoveryManager.clear_checkpoint()
+            print("Checkpoint vymazaný. Spusti 'python main.py fix' pre nový štart.")
+            return
 
-    if answer not in ("y", "yes", "a", "ano"):
-        print("Zrušené.")
-        return
+        if answer not in ("y", "yes", "a", "ano"):
+            print("Zrušené.")
+            return
 
     # Resume
     workplan_path = checkpoint.get("workplan_path")
@@ -612,7 +775,7 @@ def main():
     parser.add_argument(
         "command",
         nargs="?",
-        choices=["auth", "backup", "analyze", "analyse", "fix", "verify", "rollback", "resume", "info"],
+        choices=["auth", "backup", "analyze", "analyse", "fix", "ai-review", "verify", "rollback", "resume", "info"],
         help="Príkaz na vykonanie",
     )
     parser.add_argument("--auto", action="store_true", help="Automatický režim (bez interakcie)")
@@ -633,6 +796,7 @@ def main():
         "auth": cmd_auth,
         "backup": cmd_backup,
         "analyze": cmd_analyze,
+        "ai-review": cmd_ai_review,
         "verify": cmd_verify,
         "rollback": cmd_rollback,
         "resume": cmd_resume,

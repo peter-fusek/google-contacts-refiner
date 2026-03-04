@@ -2,8 +2,14 @@
 """
 Cloud Run Job entry point for Google Contacts Refiner.
 
-Runs the full pipeline: backup → analyze → fix (auto mode).
-If a pending session exists (from a previous timeout), resumes from checkpoint.
+Two-phase pipeline:
+  Phase 1 (fast, ~5 min): backup → analyze (rule-based, NO AI) → auto-fix HIGH
+  Phase 2 (slow, checkpointed): AI review of MEDIUM changes → auto-fix promoted
+
+Resume logic (after timeout/crash):
+  - AI review checkpoint exists → resume Phase 2
+  - Fix checkpoint exists → resume fix
+  - Otherwise → fresh Phase 1
 """
 import logging
 import os
@@ -21,28 +27,46 @@ logger = logging.getLogger("contacts-refiner")
 
 
 def run():
-    """Execute the full contacts refiner pipeline."""
+    """Execute the contacts refiner pipeline."""
     start = datetime.now()
     dry_run = os.getenv("DRY_RUN", "").lower() in ("1", "true", "yes")
+    skip_ai = os.getenv("SKIP_AI_REVIEW", "").lower() in ("1", "true", "yes")
 
-    # Check for pending session (e.g. previous run timed out)
+    from config import AI_REVIEW_CHECKPOINT
     from recovery import RecoveryManager
+
+    # ── Resume routing ──────────────────────────────────────────────
+    # Priority 1: AI review checkpoint (Phase 2 was interrupted)
+    if AI_REVIEW_CHECKPOINT.exists():
+        logger.info("AI review checkpoint found — resuming Phase 2")
+        try:
+            from main import cmd_ai_review, cmd_fix
+            cmd_ai_review(resume=True)
+            # After AI review, apply promoted changes
+            logger.info("Phase 2: Auto-fix promoted changes")
+            cmd_fix(auto_mode=True, confidence_threshold=0.90, dry_run=dry_run)
+        except Exception as e:
+            logger.error(f"AI review resume failed: {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        _log_elapsed(start)
+        return
+
+    # Priority 2: Fix checkpoint (Phase 1 step 3 or Phase 2 fix was interrupted)
     if RecoveryManager.has_pending_session():
-        logger.info("Pending session found — resuming from checkpoint")
+        logger.info("Fix checkpoint found — resuming")
         try:
             from main import cmd_resume
             cmd_resume()
         except Exception as e:
-            logger.error(f"Resume failed: {e}")
+            logger.error(f"Fix resume failed: {e}")
             traceback.print_exc()
             sys.exit(1)
-
-        elapsed = datetime.now() - start
-        logger.info(f"Resume completed in {elapsed}")
+        _log_elapsed(start)
         return
 
-    # Fresh run: backup → analyze → fix
-    logger.info("Pipeline started (fresh run)")
+    # ── Phase 1: Fast mechanical pass ───────────────────────────────
+    logger.info("Phase 1: Fast mechanical pass (no AI)")
 
     # Step 1: Backup
     logger.info("Step 1/3: Backup")
@@ -54,8 +78,10 @@ def run():
         traceback.print_exc()
         sys.exit(1)
 
-    # Step 2: Analyze
-    logger.info("Step 2/3: Analyze")
+    # Step 2: Analyze (rule-based only — NO AI, fast ~2 min)
+    logger.info("Step 2/3: Analyze (rule-based)")
+    original_ai = os.environ.get("AI_ENABLED")
+    os.environ["AI_ENABLED"] = "false"
     try:
         from main import cmd_analyze
         cmd_analyze()
@@ -63,9 +89,15 @@ def run():
         logger.error(f"Analysis failed: {e}")
         traceback.print_exc()
         sys.exit(1)
+    finally:
+        # Restore AI_ENABLED for Phase 2
+        if original_ai is not None:
+            os.environ["AI_ENABLED"] = original_ai
+        else:
+            os.environ.pop("AI_ENABLED", None)
 
-    # Step 3: Auto-fix (high confidence only)
-    logger.info(f"Step 3/3: Auto-fix {'(DRY RUN)' if dry_run else ''}")
+    # Step 3: Auto-fix HIGH confidence changes (mechanical)
+    logger.info(f"Step 3/3: Auto-fix HIGH {'(DRY RUN)' if dry_run else ''}")
     try:
         from main import cmd_fix
         cmd_fix(auto_mode=True, confidence_threshold=0.90, dry_run=dry_run)
@@ -74,6 +106,37 @@ def run():
         traceback.print_exc()
         sys.exit(1)
 
+    phase1_elapsed = datetime.now() - start
+    logger.info(f"Phase 1 completed in {phase1_elapsed}")
+
+    # ── Phase 2: AI review (checkpointed) ───────────────────────────
+    if skip_ai:
+        logger.info("Phase 2 skipped (SKIP_AI_REVIEW=true)")
+        _log_elapsed(start)
+        return
+
+    logger.info("Phase 2: AI review of MEDIUM changes")
+    try:
+        from main import cmd_ai_review
+        cmd_ai_review()
+    except Exception as e:
+        logger.error(f"AI review failed: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    # Apply promoted changes
+    logger.info("Phase 2: Auto-fix promoted changes")
+    try:
+        cmd_fix(auto_mode=True, confidence_threshold=0.90, dry_run=dry_run)
+    except Exception as e:
+        logger.error(f"Promoted fix failed: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+
+    _log_elapsed(start)
+
+
+def _log_elapsed(start):
     elapsed = datetime.now() - start
     logger.info(f"Pipeline completed in {elapsed}")
 
