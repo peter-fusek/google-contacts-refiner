@@ -26,6 +26,15 @@
 - Používateľ chce 30 dní na kontrolu pred trvalým odstránením
 - Platí pre kontakty, duplikáty, aj všetky ostatné operácie
 
+## Labels / Skupiny kontaktov
+- Používateľ aktívne používa labels/skupiny (napr. SPSE, rodina)
+- NIKDY neodstraňovať kontakty z existujúcich skupín
+- NIKDY nemazať skupiny
+- Pri úpravách kontaktu zachovať všetky existujúce členstvá v skupinách
+- Učiť sa vzory labelovania: ak label obsahuje kontakty z rovnakej školy/firmy/rodiny, navrhnúť pridanie podobných kontaktov
+- Možné pridávať kontakty do existujúcich kategórií aj vytvárať nové zmysluplné skupiny
+- Nové skupiny vytvárať len s istotou >= 80% a pri >= 3 kontaktoch
+
 ## Automatický režim
 - Minimálna istota pre automatické zmeny: 90%
 - Maximálny počet zmien za jeden beh: 200
