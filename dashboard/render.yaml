@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: contacts-refiner-dashboard
+    runtime: node
+    region: frankfurt
+    plan: free
+    rootDir: dashboard
+    buildCommand: pnpm install && pnpm build
+    startCommand: node .output/server/index.mjs
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: GCS_SERVICE_ACCOUNT
+        sync: false
+      - key: GCS_BUCKET
+        value: contacts-refiner-data
