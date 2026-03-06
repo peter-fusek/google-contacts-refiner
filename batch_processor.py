@@ -74,6 +74,9 @@ def build_update_body(person: dict, changes: list[dict]) -> dict:
         for change in changes_group:
             field_path = change["field"]
             new_value = change["new"]
+            # AI may return dicts/lists instead of strings — coerce to string
+            if isinstance(new_value, (dict, list)):
+                new_value = str(new_value)
 
             # Parse field path: fieldName[index].subField
             match = re.match(r'(\w+)\[(\+|\d+)\](?:\.(\w+))?', field_path)
@@ -347,6 +350,9 @@ def process_batches(
             try:
                 # Build update body
                 body, update_fields = build_update_body(person, result["changes"])
+
+                if not update_fields:
+                    continue
 
                 # Log changes BEFORE applying
                 for change in result["changes"]:
