@@ -195,10 +195,22 @@ async function appendJsonl(path: string, entries: unknown[]): Promise<void> {
 // --- Review API ---
 
 export async function getLatestReviewFile(): Promise<{ path: string; data: unknown } | null> {
-  const path = await findLatestFile('data/review_', '.json')
-  if (!path) return null
-  const data = await readJson(path)
-  return data ? { path, data } : null
+  // Use specific prefix to avoid matching review_sessions/ and review_decisions_
+  try {
+    const [files] = await getBucket().getFiles({ prefix: 'data/review_' })
+    const matching = files
+      .filter(f => f.name.endsWith('.json'))
+      // Exclude subdirectories (review_sessions/) and decision files (review_decisions_)
+      .filter(f => !f.name.includes('/review_sessions/') && !f.name.includes('review_decisions_'))
+      .sort((a, b) => b.name.localeCompare(a.name))
+    const path = matching[0]?.name
+    if (!path) return null
+    const data = await readJson(path)
+    return data ? { path, data } : null
+  } catch (err) {
+    console.error('[GCS] getLatestReviewFile failed:', (err as Error).message)
+    return null
+  }
 }
 
 export async function getReviewSession(sessionId: string): Promise<ReviewSession | null> {
