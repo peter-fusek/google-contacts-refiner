@@ -153,11 +153,35 @@ _COMPANY_LEGAL_FORMS_RE = re.compile(
 )
 
 
+def _is_company_or_affiliation(text: str, org_names: set[str]) -> bool:
+    """Check if text looks like a company name or organizational affiliation."""
+    normalized = text.lower().replace('.', '').replace(',', '').replace(' ', '')
+    # LinkedIn junk patterns
+    if re.match(r'^\d+\+?\s*(connections?|kontaktov|kontakty)', text, re.IGNORECASE):
+        return True
+    # Matches an existing org
+    for org in org_names:
+        org_norm = org.replace('.', '').replace(',', '').replace(' ', '')
+        if normalized == org_norm or normalized in org_norm or org_norm in normalized:
+            return True
+    # Contains a legal form suffix
+    if _COMPANY_LEGAL_FORMS_RE.search(text):
+        return True
+    # Contains common org indicators
+    org_indicators = ['bank', 'group', 'universit', 'facult', 'ministerst', 'institut',
+                      'consulting', 'solution', 'technolog', 'software', 'school']
+    text_lower = text.lower()
+    if any(ind in text_lower for ind in org_indicators):
+        return True
+    return False
+
+
 def _detect_company_in_name(person: dict) -> Optional[dict]:
     """
     Detect company/org name stuck in name fields and suggest fixes.
 
     Common patterns:
+    D) displayName ends with "(Company)" — strip parenthesized part, re-parse name
     A) familyName in parentheses with company: "(ČPS.a.s.)" — real surname in middleName
     B) familyName is just a legal suffix: "S.r.o.)" — surname in displayName
     C) familyName matches an org name: "Instarea" — surname in displayName
@@ -173,10 +197,92 @@ def _detect_company_in_name(person: dict) -> Optional[dict]:
     family = n.get("familyName", "")
     middle = n.get("middleName", "")
     display = n.get("displayName", "")
+    unstructured = n.get("unstructuredName", "")
     orgs = person.get("organizations", [])
     org_names = {o.get("name", "").strip("() ").lower() for o in orgs if o.get("name")}
 
     changes = []
+
+    # ── Pattern D: displayName/unstructuredName ends with "(Company)" ─
+    # e.g. "Bocko Marek (DELL. a.s.)" → strip "(DELL. a.s.)" from name fields
+    # Strategy: don't re-parse the name, instead clean company junk from existing fields
+    source = unstructured or display
+    paren_end = re.search(r'\s*\(([^)]+)\)\s*$', source)
+    if paren_end:
+        paren_content = paren_end.group(1).strip()
+        clean_name = source[:paren_end.start()].strip().rstrip(',')
+
+        # Skip if parenthesized part looks like a maiden name (female surname)
+        is_maiden = bool(re.search(
+            r'(?i)^(ex\s+)?[A-ZÁ-Ž][a-zá-ž]+(ov[áa]|ín[áa]|sk[áa])$',
+            paren_content,
+        ))
+
+        if not is_maiden and clean_name and _is_company_or_affiliation(paren_content, org_names):
+            # Clean company junk from givenName (e.g. "Karbanová (Galileo" → "Karbanová")
+            clean_given = re.sub(r'\s*\(.*$', '', given).strip() if given else ""
+            # Clean company junk from familyName (e.g. "A.s.)" → extract real surname)
+            clean_family = family
+            family_has_junk = bool(re.search(r'[()]', family)) or _COMPANY_LEGAL_FORMS_RE.fullmatch(
+                re.sub(r'^[(\s]+|[)\s]+$', '', family)
+            ) if family else False
+            # Clean company junk from middleName (e.g. "Marek (DELL." → "Marek")
+            clean_middle = re.sub(r'\s*\(.*$', '', middle).strip() if middle else ""
+
+            if family_has_junk:
+                # familyName is broken — real surname is in middleName or clean_name
+                if clean_middle and clean_middle != clean_given:
+                    clean_family = clean_middle
+                    clean_middle = ""
+                else:
+                    # Extract surname from clean_name
+                    parts = clean_name.split()
+                    if len(parts) >= 2:
+                        clean_family = parts[-1]
+                    elif parts:
+                        clean_family = parts[0]
+                        clean_given = ""
+
+            # Emit changes for fields that differ
+            new_given = clean_given
+            new_family = clean_family
+            new_middle = clean_middle if clean_middle != new_family else ""
+
+            if new_given != given:
+                changes.append({
+                    "field": "names[0].givenName",
+                    "old": given,
+                    "new": new_given,
+                    "confidence": 0.90,
+                    "reason": "company_in_name: meno vyčistené po odstránení firmy (%s)" % paren_content,
+                })
+            if new_family != family:
+                changes.append({
+                    "field": "names[0].familyName",
+                    "old": family,
+                    "new": new_family,
+                    "confidence": 0.90,
+                    "reason": "company_in_name: priezvisko vyčistené po odstránení firmy (%s)" % paren_content,
+                })
+            if new_middle != middle:
+                changes.append({
+                    "field": "names[0].middleName",
+                    "old": middle,
+                    "new": new_middle,
+                    "confidence": 0.90,
+                    "reason": "company_in_name: vyčistenie middleName (obsahoval firmu)",
+                })
+            # Clear unstructuredName
+            if unstructured and re.search(r'\s*\([^)]+\)\s*$', unstructured):
+                changes.append({
+                    "field": "names[0].unstructuredName",
+                    "old": unstructured,
+                    "new": clean_name,
+                    "confidence": 0.90,
+                    "reason": "company_in_name: odstránenie firmy z mena (%s)" % paren_content,
+                })
+            if changes:
+                return {"changes": changes, "given": new_given, "family": new_family, "middle": new_middle}
 
     # ── Pattern A: familyName in parentheses ──────────────────────
     parens_match = re.match(r'^\((.+)\)$', family.strip())
