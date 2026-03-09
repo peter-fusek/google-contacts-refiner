@@ -14,8 +14,11 @@ const fieldFilter = ref('__all__')
 const categoryFilter = ref('__all__')
 const hideDecided = ref(false)
 
-// View mode
-const viewMode = ref<'contact' | 'rule'>('contact')
+// View mode — default to rule for faster bulk review
+const viewMode = ref<'contact' | 'rule'>('rule')
+
+// Expanded state for rule groups (collapsed by default — show 5 samples)
+const expandedRules = reactive<Record<string, boolean>>({})
 
 // Pagination
 const PAGE_SIZE = 30
@@ -136,6 +139,39 @@ const categoryOptions = computed(() => {
       .map(([k, v]) => ({ label: `${k} (${v})`, value: k })),
   ]
 })
+
+// Rule view helpers
+function ruleUndecided(changes: ReviewChange[]): number {
+  return changes.filter(c => !decisions.value[c.id]).length
+}
+
+function ruleDecidedCount(changes: ReviewChange[]): number {
+  return changes.filter(c => decisions.value[c.id]).length
+}
+
+function ruleApprovalRate(changes: ReviewChange[]): number | null {
+  const decided = changes.filter(c => decisions.value[c.id])
+  if (decided.length < 1) return null
+  const approved = decided.filter(c => {
+    const d = decisions.value[c.id]
+    return d?.decision === 'approved' || d?.decision === 'edited'
+  }).length
+  return Math.round((approved / decided.length) * 100)
+}
+
+function ruleSamples(changes: ReviewChange[]): ReviewChange[] {
+  // Show first 5 undecided, or first 5 overall if all decided
+  const undecided = changes.filter(c => !decisions.value[c.id])
+  return (undecided.length > 0 ? undecided : changes).slice(0, 5)
+}
+
+function formatFieldShort(field: string): string {
+  return field
+    .replace('phoneNumbers', 'phones')
+    .replace('emailAddresses', 'emails')
+    .replace('.value', '')
+    .replace('.formattedValue', '')
+}
 
 function formatFieldName(field: string): string {
   return field
@@ -267,7 +303,7 @@ async function exportDecisions() {
       method: 'POST',
       body: { sessionId: sessionId.value },
     })
-    exportMessage.value = `Exported ${result.exported} approved/edited decisions for pipeline processing.`
+    exportMessage.value = `Exported ${result.exported} decisions (${result.total} total incl. rejections) for pipeline processing.`
   } catch (err) {
     console.error('Export failed:', err)
   }
@@ -523,27 +559,81 @@ const progressPercent = computed(() => {
         >
           <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-800/50">
             <div class="flex items-center gap-2">
+              <UButton
+                size="xs" variant="ghost" color="neutral"
+                :icon="expandedRules[category] ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
+                @click="expandedRules[category] = !expandedRules[category]"
+              />
               <span class="text-sm font-medium text-neutral-200">{{ category }}</span>
-              <UBadge :label="`${changes.length} changes`" variant="subtle" size="xs" color="neutral" />
-              <span class="text-[10px] text-neutral-600">
-                {{ changes.filter(c => decisions[c.id]).length }} decided
+              <UBadge :label="`${ruleUndecided(changes)} pending`" variant="subtle" size="xs" :color="ruleUndecided(changes) === 0 ? 'success' : 'neutral'" />
+              <span v-if="ruleDecidedCount(changes) > 0" class="text-[10px] text-neutral-600">
+                {{ ruleDecidedCount(changes) }} decided
+                <span v-if="ruleApprovalRate(changes) !== null" class="text-neutral-500">
+                  ({{ ruleApprovalRate(changes) }}% approved)
+                </span>
               </span>
             </div>
             <div class="flex gap-1">
-              <UButton size="xs" variant="soft" color="success" label="Approve all" @click="changes.forEach(c => { if (!decisions[c.id]) decide(c.id, 'approved') })" />
-              <UButton size="xs" variant="soft" color="error" label="Reject all" @click="changes.forEach(c => { if (!decisions[c.id]) decide(c.id, 'rejected') })" />
+              <UButton
+                v-if="ruleUndecided(changes) > 0"
+                size="xs" variant="soft" color="success"
+                :label="`Approve ${ruleUndecided(changes)}`"
+                @click="changes.forEach(c => { if (!decisions[c.id]) decide(c.id, 'approved') })"
+              />
+              <UButton
+                v-if="ruleUndecided(changes) > 0"
+                size="xs" variant="soft" color="error"
+                :label="`Reject ${ruleUndecided(changes)}`"
+                @click="changes.forEach(c => { if (!decisions[c.id]) decide(c.id, 'rejected') })"
+              />
+              <UButton
+                v-if="ruleDecidedCount(changes) > 0"
+                size="xs" variant="ghost" color="neutral"
+                label="Undo all"
+                @click="changes.forEach(c => { if (decisions[c.id]) undoDecision(c.id) })"
+              />
             </div>
           </div>
 
-          <div class="divide-y divide-neutral-800/30 max-h-80 overflow-y-auto">
+          <!-- Sample preview (always visible: first 5 undecided) -->
+          <div v-if="!expandedRules[category]" class="divide-y divide-neutral-800/30">
             <div
-              v-for="change in changes"
+              v-for="change in ruleSamples(changes)"
               :key="change.id"
-              class="px-4 py-2 flex items-center gap-3"
+              class="px-4 py-1.5 flex items-center gap-3"
               :class="{ 'opacity-40': decisions[change.id] }"
             >
               <span class="text-xs text-neutral-400 w-32 shrink-0 truncate">{{ change.displayName }}</span>
-              <span class="text-xs font-mono text-neutral-500 w-28 shrink-0 truncate">{{ change.field.replace('phoneNumbers', 'phones').replace('emailAddresses', 'emails').replace('.value', '').replace('.formattedValue', '') }}</span>
+              <span class="text-xs font-mono text-neutral-500 w-28 shrink-0 truncate">{{ formatFieldShort(change.field) }}</span>
+              <div class="flex-1 min-w-0">
+                <DiffDisplay :old-value="change.old" :new-value="change.new" />
+              </div>
+              <span class="text-[10px] text-neutral-600 tabular-nums w-10 text-right shrink-0">{{ (change.confidence * 100).toFixed(0) }}%</span>
+              <div class="flex items-center gap-1 shrink-0">
+                <template v-if="decisions[change.id]">
+                  <UBadge :label="decisions[change.id].decision" :color="decisionColor(decisions[change.id].decision)" variant="subtle" size="xs" />
+                </template>
+                <template v-else>
+                  <UButton size="xs" variant="ghost" color="success" icon="i-lucide-check" @click.stop="decide(change.id, 'approved')" />
+                  <UButton size="xs" variant="ghost" color="error" icon="i-lucide-x" @click.stop="decide(change.id, 'rejected')" />
+                </template>
+              </div>
+            </div>
+            <div v-if="changes.length > 5" class="px-4 py-1.5 text-[10px] text-neutral-600 cursor-pointer hover:text-neutral-400" @click="expandedRules[category] = true">
+              + {{ changes.length - 5 }} more — click to expand
+            </div>
+          </div>
+
+          <!-- Full list (expanded) -->
+          <div v-else class="divide-y divide-neutral-800/30 max-h-96 overflow-y-auto">
+            <div
+              v-for="change in changes"
+              :key="change.id"
+              class="px-4 py-1.5 flex items-center gap-3"
+              :class="{ 'opacity-40': decisions[change.id] }"
+            >
+              <span class="text-xs text-neutral-400 w-32 shrink-0 truncate">{{ change.displayName }}</span>
+              <span class="text-xs font-mono text-neutral-500 w-28 shrink-0 truncate">{{ formatFieldShort(change.field) }}</span>
               <div class="flex-1 min-w-0">
                 <DiffDisplay :old-value="change.old" :new-value="change.new" />
               </div>

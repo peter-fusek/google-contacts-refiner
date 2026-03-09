@@ -20,6 +20,9 @@ const RULE_PATTERNS: [string, RegExp][] = [
   ['name_title', /extrakcia titul/i],
   ['company_in_name', /firma.*men|firmu/i],
   ['family_name_fix', /priezvisko/i],
+  ['x500_dn', /X\.500 DN/i],
+  ['org_from_email', /odhadnutá z email/i],
+  ['country_from_zip', /krajiny z PSČ|kódu krajiny/i],
 ]
 
 export function extractRuleCategory(reason: string): string {
