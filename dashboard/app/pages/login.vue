@@ -3,9 +3,9 @@ definePageMeta({ layout: false })
 
 const { loggedIn } = useUserSession()
 
-// If already logged in, redirect to home
+// If already logged in, redirect to dashboard
 if (loggedIn.value) {
-  navigateTo('/')
+  navigateTo('/dashboard')
 }
 </script>
 

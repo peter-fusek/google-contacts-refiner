@@ -3,7 +3,7 @@ const route = useRoute()
 const { user, clear: logout } = useUserSession()
 
 const navItems = [
-  { label: 'Status', icon: 'i-lucide-activity', to: '/' },
+  { label: 'Status', icon: 'i-lucide-activity', to: '/dashboard' },
   { label: 'Changelog', icon: 'i-lucide-file-diff', to: '/changelog' },
   { label: 'Analytics', icon: 'i-lucide-bar-chart-3', to: '/analytics' },
   { label: 'Review', icon: 'i-lucide-check-circle', to: '/review' },
@@ -11,7 +11,7 @@ const navItems = [
 ]
 
 function isActive(to: string) {
-  return to === '/' ? route.path === '/' : route.path.startsWith(to)
+  return to === '/dashboard' ? route.path === '/dashboard' : route.path.startsWith(to)
 }
 </script>
 

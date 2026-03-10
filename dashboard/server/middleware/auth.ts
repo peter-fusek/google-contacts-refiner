@@ -1,7 +1,7 @@
 export default defineEventHandler(async (event) => {
   // Skip auth for the OAuth callback route itself and the login page
   const path = getRequestURL(event).pathname
-  if (path.startsWith('/auth/') || path === '/login' || path.startsWith('/_nuxt/')) {
+  if (path === '/' || path.startsWith('/auth/') || path === '/login' || path.startsWith('/_nuxt/')) {
     return
   }
 
