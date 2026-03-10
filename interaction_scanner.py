@@ -19,6 +19,7 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
 from api_client import PeopleAPIClient, RateLimiter
+from code_tables import tables
 from config import (
     ACTIVITY_ACCOUNTS,
     ACTIVITY_LABEL_PREFIX,
@@ -82,7 +83,12 @@ class InteractionScanner:
         self._load_cache()
 
     def _build_email_index(self):
-        """Build mapping of email addresses to contact resourceNames."""
+        """Build mapping of email addresses to contact resourceNames.
+
+        Filters out generic/transactional emails (noreply@, info@, etc.)
+        to prevent them from corrupting interaction scoring.
+        """
+        generic_skipped = 0
         for contact in self.contacts:
             rn = contact.get("resourceName", "")
             if not rn:
@@ -91,9 +97,13 @@ class InteractionScanner:
             emails = set()
             for email_entry in contact.get("emailAddresses", []):
                 email = email_entry.get("value", "").strip().lower()
-                if email:
-                    emails.add(email)
-                    self._email_to_contacts[email].add(rn)
+                if not email:
+                    continue
+                if tables.is_generic_email(email):
+                    generic_skipped += 1
+                    continue
+                emails.add(email)
+                self._email_to_contacts[email].add(rn)
 
             if emails:
                 self._contact_emails[rn] = emails
@@ -103,6 +113,7 @@ class InteractionScanner:
         logger.info(
             f"Email index: {total_emails} unique emails "
             f"from {total_contacts_with_email} contacts"
+            + (f" ({generic_skipped} generic emails skipped)" if generic_skipped else "")
         )
 
     def _load_cache(self):
@@ -118,6 +129,7 @@ class InteractionScanner:
                         raw[key] = {"last_email": {"date": val, "subject": "", "snippet": ""}}
 
                 # Invalidate cached entries that match mass event patterns
+                # or have empty/no-subject entries (suspicious — force rescan)
                 invalidated = 0
                 for email_key, val in list(raw.items()):
                     if not isinstance(val, dict):
@@ -125,12 +137,17 @@ class InteractionScanner:
                     dirty = False
                     le = val.get("last_email", {})
                     lm = val.get("last_meeting", {})
-                    if le and le.get("subject") and _MASS_EVENT_RE.search(le["subject"]):
-                        val.pop("last_email", None)
-                        dirty = True
-                    if lm and lm.get("title") and _MASS_EVENT_RE.search(lm["title"]):
-                        val.pop("last_meeting", None)
-                        dirty = True
+                    if le:
+                        subj = le.get("subject", "")
+                        # Invalidate: mass event subject OR empty/no-subject (force rescan)
+                        if (subj and _MASS_EVENT_RE.search(subj)) or not subj or subj == "(no subject)":
+                            val.pop("last_email", None)
+                            dirty = True
+                    if lm:
+                        title = lm.get("title", "")
+                        if (title and _MASS_EVENT_RE.search(title)) or not title or title == "(no title)":
+                            val.pop("last_meeting", None)
+                            dirty = True
                     if dirty:
                         invalidated += 1
                         # Also clear last_noted so notes get refreshed
@@ -545,11 +562,10 @@ class InteractionScanner:
                         existing_note = bio.get("value", "")
                         break
 
-                clean_note = self._strip_interaction_block(existing_note)
-                if clean_note and not clean_note.endswith("\n"):
-                    clean_note += "\n"
+                clean_note = self._strip_interaction_block(existing_note).strip()
 
-                new_note = f"{clean_note}\n{note_text}" if clean_note else note_text
+                # Prepend interaction block at start of notes for visibility
+                new_note = f"{note_text}\n\n{clean_note}" if clean_note else note_text
 
                 # Update via People API
                 body = {

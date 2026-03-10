@@ -72,6 +72,12 @@ TABLES = {
         "refresh_url": None,
         "max_age_days": 365,
     },
+    "generic_emails": {
+        "seed": "generic_emails.json",
+        "type": "raw",  # Custom format: {prefixes: [...], exact: [...]}
+        "refresh_url": None,
+        "max_age_days": 365,
+    },
 }
 
 
@@ -103,7 +109,7 @@ class CodeTableManager:
         if cached_file.exists():
             try:
                 raw = json.loads(cached_file.read_text(encoding="utf-8"))
-                entries = raw.get("entries", raw)
+                entries = raw if table_type == "raw" else raw.get("entries", raw)
                 return self._coerce(entries, table_type)
             except Exception as e:
                 logger.warning("Failed to load cached %s: %s", name, e)
@@ -112,7 +118,7 @@ class CodeTableManager:
         seed_file = _SEED_DIR / spec["seed"]
         if seed_file.exists():
             raw = json.loads(seed_file.read_text(encoding="utf-8"))
-            entries = raw.get("entries", raw)
+            entries = raw if table_type == "raw" else raw.get("entries", raw)
             return self._coerce(entries, table_type)
 
         raise FileNotFoundError(f"No seed file for {name}: {seed_file}")
@@ -125,6 +131,8 @@ class CodeTableManager:
             return list(entries) if not isinstance(entries, list) else entries
         if table_type == "dict" or table_type == "dict_of_lists":
             return dict(entries) if not isinstance(entries, dict) else entries
+        if table_type == "raw":
+            return entries  # Return as-is (custom structure)
         return entries
 
     def refresh(self, name: str = None, force: bool = False) -> dict:
@@ -249,6 +257,23 @@ class CodeTableManager:
             if line and not line.startswith("#") and domain_re.match(line):
                 domains.append(line)
         return domains
+
+    def is_generic_email(self, email: str) -> bool:
+        """Check if an email address matches generic/transactional patterns."""
+        data = self.get("generic_emails")
+        email_lower = email.strip().lower()
+
+        # Exact match
+        if email_lower in data.get("exact", []):
+            return True
+
+        # Prefix match
+        local = email_lower.split("@")[0] + "@" if "@" in email_lower else ""
+        for prefix in data.get("prefixes", []):
+            if local == prefix:
+                return True
+
+        return False
 
     def info(self) -> dict:
         """Return status info for all tables."""
