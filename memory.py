@@ -42,6 +42,7 @@ RULE_CATEGORIES = {
     "event_from_note": r"udalosť z poznámky|dátum.*poznámky|from notes|extracted from notes",
     "owner_email": r"owner email",
     "corporate_url": r"corporate.*(?:LinkedIn|website|directory|social media)",
+    "shared_address": r"shared HQ|shared.*office.*address",
 }
 
 # Default empty memory structure

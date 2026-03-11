@@ -1222,6 +1222,97 @@ def normalize_urls(person: dict) -> list[dict]:
     return changes
 
 
+# ══════════════════════════════════════════════════════════════════════
+# SHARED ADDRESS DETECTION (cross-contact)
+# ══════════════════════════════════════════════════════════════════════
+
+def _normalize_address_key(addr: dict) -> str:
+    """Build a normalized key from address components for dedup comparison."""
+    parts = []
+    for field in ("streetAddress", "city", "postalCode"):
+        val = addr.get(field, "").strip().lower()
+        if val:
+            parts.append(re.sub(r'\s+', ' ', val))
+    # Fallback to formattedValue if no structured fields
+    if not parts:
+        fv = addr.get("formattedValue", "").strip().lower()
+        if fv:
+            parts.append(re.sub(r'\s+', ' ', fv))
+    return "|".join(parts) if parts else ""
+
+
+def build_shared_address_index(contacts: list[dict], min_count: int = 3) -> dict[str, int]:
+    """
+    Scan all contacts and find addresses shared by multiple contacts.
+
+    Returns:
+        {normalized_address_key: contact_count} for addresses with >= min_count contacts
+    """
+    from collections import Counter
+    address_counts: Counter = Counter()
+
+    for person in contacts:
+        seen_keys = set()  # Avoid counting same contact twice for same address
+        for addr in person.get("addresses", []):
+            key = _normalize_address_key(addr)
+            if key and key not in seen_keys:
+                address_counts[key] += 1
+                seen_keys.add(key)
+
+    return {k: v for k, v in address_counts.items() if v >= min_count}
+
+
+def detect_shared_addresses(person: dict, shared_index: dict[str, int]) -> list[dict]:
+    """
+    Flag addresses that appear on many contacts (likely HQ/office addresses).
+
+    Args:
+        person: Contact person dict.
+        shared_index: {normalized_address_key: count} from build_shared_address_index.
+
+    Returns:
+        List of change dicts flagging shared addresses for removal.
+    """
+    if not shared_index:
+        return []
+
+    changes = []
+    addresses = person.get("addresses", [])
+
+    for i, addr in enumerate(addresses):
+        key = _normalize_address_key(addr)
+        if not key:
+            continue
+
+        count = shared_index.get(key)
+        if count is None:
+            continue
+
+        # Build a readable address for the reason string
+        display_addr = (
+            addr.get("formattedValue")
+            or f"{addr.get('streetAddress', '')}, {addr.get('city', '')}".strip(", ")
+        )
+
+        # Higher confidence for addresses shared by more contacts
+        if count >= 10:
+            confidence = 0.90
+        elif count >= 5:
+            confidence = 0.80
+        else:  # 3-4
+            confidence = 0.70
+
+        changes.append({
+            "field": f"addresses[{i}]",
+            "old": display_addr,
+            "new": "",
+            "confidence": confidence,
+            "reason": f"shared HQ/office address (found on {count} contacts)",
+        })
+
+    return changes
+
+
 def _title_case_title(title: str) -> str:
     """Title case for job titles, preserving common acronyms."""
     words = title.split()

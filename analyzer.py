@@ -7,6 +7,7 @@ from typing import Optional
 from normalizer import (
     normalize_name, normalize_phones, normalize_emails,
     normalize_addresses, normalize_organizations, normalize_urls,
+    build_shared_address_index, detect_shared_addresses,
 )
 from enricher import enrich_contact
 from utils import get_display_name, get_resource_name
@@ -42,7 +43,7 @@ def _adjust_confidence(changes: list[dict]) -> list[dict]:
     return changes
 
 
-def analyze_contact(person: dict, ai_analyzer=None) -> dict:
+def analyze_contact(person: dict, ai_analyzer=None, shared_address_index: dict = None) -> dict:
     """
     Analyze a single contact and collect all suggested changes.
 
@@ -79,11 +80,15 @@ def analyze_contact(person: dict, ai_analyzer=None) -> dict:
     changes.extend(normalize_organizations(person))
     changes.extend(normalize_urls(person))
 
+    # Cross-contact: shared HQ/office address detection
+    if shared_address_index:
+        changes.extend(detect_shared_addresses(person, shared_address_index))
+
     # Run enrichment
     changes.extend(enrich_contact(person))
 
     # Remove changes where old == new (no-ops) or new is empty
-    # Allow empty new for: middleName clearing, URL removal, email removal
+    # Allow empty new for: middleName clearing, URL/email/address removal
     changes = [
         c for c in changes
         if c.get("old") != c.get("new") and (
@@ -91,6 +96,7 @@ def analyze_contact(person: dict, ai_analyzer=None) -> dict:
             or "middleName" in c.get("field", "")
             or c.get("field", "").startswith("urls[")
             or c.get("field", "").startswith("emailAddresses[")
+            or c.get("field", "").startswith("addresses[")
         )
     ]
 
@@ -149,8 +155,11 @@ def analyze_all_contacts(contacts: list[dict], progress_callback=None, ai_analyz
     results = []
     total = len(contacts)
 
+    # Pre-compute cross-contact shared address index
+    shared_address_index = build_shared_address_index(contacts)
+
     for i, person in enumerate(contacts):
-        analysis = analyze_contact(person, ai_analyzer=ai_analyzer)
+        analysis = analyze_contact(person, ai_analyzer=ai_analyzer, shared_address_index=shared_address_index)
         if analysis["changes"] or analysis["info"]:
             results.append(analysis)
 
