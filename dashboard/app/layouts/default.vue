@@ -1,6 +1,8 @@
 <script setup lang="ts">
 const route = useRoute()
-const { user, clear: logout } = useUserSession()
+const { user, loggedIn, clear: logout } = useUserSession()
+
+const isDemo = computed(() => !loggedIn.value)
 
 const navItems = [
   { label: 'Status', icon: 'i-lucide-activity', to: '/dashboard' },
@@ -67,6 +69,15 @@ function isActive(to: string) {
             <UIcon name="i-lucide-log-out" class="size-3.5" />
           </button>
         </div>
+        <div v-else class="px-1">
+          <a
+            href="/login"
+            class="flex items-center gap-2 text-xs text-primary-400 hover:text-primary-300 transition-colors"
+          >
+            <UIcon name="i-lucide-log-in" class="size-3.5" />
+            Sign in
+          </a>
+        </div>
         <div class="text-xs text-neutral-600 px-1">
           v{{ useRuntimeConfig().public.appVersion }}
         </div>
@@ -75,6 +86,20 @@ function isActive(to: string) {
 
     <!-- Main -->
     <main class="flex-1 overflow-y-auto">
+      <!-- Demo banner -->
+      <div v-if="isDemo" class="bg-amber-500/10 border-b border-amber-500/20 px-6 py-2.5 flex items-center justify-between">
+        <div class="flex items-center gap-2 text-sm text-amber-400">
+          <UIcon name="i-lucide-eye" class="size-4" />
+          <span class="font-medium">DEMO MODE</span>
+          <span class="text-amber-500/70">— Read-only view with masked personal data</span>
+        </div>
+        <a
+          href="/login"
+          class="text-xs px-3 py-1 rounded-lg border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 transition-colors"
+        >
+          Sign in
+        </a>
+      </div>
       <div class="max-w-7xl mx-auto p-6">
         <slot />
       </div>

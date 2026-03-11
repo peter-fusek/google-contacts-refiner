@@ -1,6 +1,7 @@
 import type { ReviewChange, ReviewSession } from '../../utils/types'
 import { getLatestReviewFile, getLatestReviewSession } from '../../utils/gcs'
 import { parseReviewFile } from '../../utils/review-helpers'
+import { isDemoMode, maskReviewChange } from '../../utils/demo'
 
 interface ReviewResponse {
   changes: ReviewChange[]
@@ -14,7 +15,8 @@ interface ReviewResponse {
   }
 }
 
-export default defineEventHandler(async (): Promise<ReviewResponse> => {
+export default defineEventHandler(async (event): Promise<ReviewResponse> => {
+  const demo = await isDemoMode(event)
   const reviewFile = await getLatestReviewFile()
   if (!reviewFile) {
     return {
@@ -45,8 +47,8 @@ export default defineEventHandler(async (): Promise<ReviewResponse> => {
   const activeSession = session?.reviewFilePath === reviewFile.path ? session : null
 
   return {
-    changes,
-    session: activeSession,
+    changes: demo ? changes.map(maskReviewChange) : changes,
+    session: demo ? null : activeSession, // Hide session data in demo
     reviewFilePath: reviewFile.path,
     stats: {
       total: changes.length,

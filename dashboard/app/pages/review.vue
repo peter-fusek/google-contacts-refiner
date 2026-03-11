@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { ReviewChange, ReviewDecision, ReviewSession } from '~/server/utils/types'
 
+const { loggedIn } = useUserSession()
+const isDemo = computed(() => !loggedIn.value)
+
 // Fetch review data
 const { data, status, refresh } = useFetch('/api/review')
 
@@ -311,6 +314,7 @@ async function exportDecisions() {
 
 // Keyboard shortcuts
 function handleKeydown(e: KeyboardEvent) {
+  if (isDemo.value) return
   if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
 
   const group = paginatedGroups.value[focusedIndex.value]
@@ -398,7 +402,7 @@ const progressPercent = computed(() => {
           {{ allChanges.length }} changes from {{ contactGroups.length }} contacts
         </p>
       </div>
-      <div class="flex items-center gap-3">
+      <div v-if="!isDemo" class="flex items-center gap-3">
         <span v-if="exportMessage" class="text-xs text-green-400">
           {{ exportMessage }}
         </span>
@@ -494,22 +498,24 @@ const progressPercent = computed(() => {
             />
           </UButtonGroup>
 
-          <UButton
-            v-if="filteredChanges.length"
-            size="xs"
-            variant="soft"
-            color="success"
-            :label="`Approve all (${filteredChanges.filter(c => !decisions[c.id]).length})`"
-            @click="bulkDecide('approved')"
-          />
-          <UButton
-            v-if="filteredChanges.length"
-            size="xs"
-            variant="soft"
-            color="error"
-            :label="`Reject all (${filteredChanges.filter(c => !decisions[c.id]).length})`"
-            @click="bulkDecide('rejected')"
-          />
+          <template v-if="!isDemo">
+            <UButton
+              v-if="filteredChanges.length"
+              size="xs"
+              variant="soft"
+              color="success"
+              :label="`Approve all (${filteredChanges.filter(c => !decisions[c.id]).length})`"
+              @click="bulkDecide('approved')"
+            />
+            <UButton
+              v-if="filteredChanges.length"
+              size="xs"
+              variant="soft"
+              color="error"
+              :label="`Reject all (${filteredChanges.filter(c => !decisions[c.id]).length})`"
+              @click="bulkDecide('rejected')"
+            />
+          </template>
         </div>
       </div>
 
@@ -573,7 +579,7 @@ const progressPercent = computed(() => {
                 </span>
               </span>
             </div>
-            <div class="flex gap-1">
+            <div v-if="!isDemo" class="flex gap-1">
               <UButton
                 v-if="ruleUndecided(changes) > 0"
                 size="xs" variant="soft" color="success"
@@ -609,7 +615,7 @@ const progressPercent = computed(() => {
                 <DiffDisplay :old-value="change.old" :new-value="change.new" />
               </div>
               <span class="text-[10px] text-neutral-600 tabular-nums w-10 text-right shrink-0">{{ (change.confidence * 100).toFixed(0) }}%</span>
-              <div class="flex items-center gap-1 shrink-0">
+              <div v-if="!isDemo" class="flex items-center gap-1 shrink-0">
                 <template v-if="decisions[change.id]">
                   <UBadge :label="decisions[change.id].decision" :color="decisionColor(decisions[change.id].decision)" variant="subtle" size="xs" />
                 </template>
@@ -638,7 +644,7 @@ const progressPercent = computed(() => {
                 <DiffDisplay :old-value="change.old" :new-value="change.new" />
               </div>
               <span class="text-[10px] text-neutral-600 tabular-nums w-10 text-right shrink-0">{{ (change.confidence * 100).toFixed(0) }}%</span>
-              <div class="flex items-center gap-1 shrink-0">
+              <div v-if="!isDemo" class="flex items-center gap-1 shrink-0">
                 <template v-if="decisions[change.id]">
                   <UBadge :label="decisions[change.id].decision" :color="decisionColor(decisions[change.id].decision)" variant="subtle" size="xs" />
                   <UButton size="xs" variant="ghost" icon="i-lucide-undo-2" color="neutral" @click.stop="undoDecision(change.id)" />
@@ -656,7 +662,7 @@ const progressPercent = computed(() => {
     </template>
 
     <!-- Keyboard help -->
-    <div class="text-[10px] text-neutral-700 flex gap-4 justify-center pt-2">
+    <div v-if="!isDemo" class="text-[10px] text-neutral-700 flex gap-4 justify-center pt-2">
       <span><kbd class="px-1 py-0.5 bg-neutral-800 rounded">a</kbd> approve</span>
       <span><kbd class="px-1 py-0.5 bg-neutral-800 rounded">r</kbd> reject</span>
       <span><kbd class="px-1 py-0.5 bg-neutral-800 rounded">e</kbd> edit</span>

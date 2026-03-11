@@ -5,6 +5,7 @@ import {
   getAIReviewCheckpoint,
   isBatchMarker,
 } from '../utils/gcs'
+import { isDemoMode, maskTopContact } from '../utils/demo'
 
 function fieldCategory(field: string): string {
   if (field.startsWith('names')) return 'names'
@@ -17,7 +18,8 @@ function fieldCategory(field: string): string {
   return 'other'
 }
 
-export default defineEventHandler(async (): Promise<AnalyticsResponse> => {
+export default defineEventHandler(async (event): Promise<AnalyticsResponse> => {
+  const demo = await isDemoMode(event)
   const [entries, fullLog, aiCheckpoint] = await Promise.all([
     getChangelog(),
     getChangelogWithMarkers(),
@@ -91,7 +93,7 @@ export default defineEventHandler(async (): Promise<AnalyticsResponse> => {
     totalChanges,
     totalFailed,
     dailyRuns,
-    topContacts,
+    topContacts: demo ? topContacts.map(maskTopContact) : topContacts,
     estimatedCost,
   }
 })

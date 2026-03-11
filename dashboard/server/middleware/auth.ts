@@ -10,13 +10,17 @@ export default defineEventHandler(async (event) => {
     return
   }
 
-  // All API routes and pages require auth
+  // Check session
   const session = await getUserSession(event)
   if (!session?.user) {
-    // API requests get 401, page requests redirect to login
-    if (path.startsWith('/api/')) {
+    // Write API routes require auth — no demo access
+    if (path.startsWith('/api/') && event.method !== 'GET') {
       throw createError({ statusCode: 401, message: 'Unauthorized' })
     }
-    return sendRedirect(event, '/login')
+
+    // Read-only API routes and pages: allow through for demo mode
+    // API handlers will check isDemoMode() and mask PII
+    // Page components will detect missing session and show demo banner
+    return
   }
 })

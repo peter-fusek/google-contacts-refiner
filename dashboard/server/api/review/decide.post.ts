@@ -1,5 +1,6 @@
 import type { ReviewDecision, ReviewSession, FeedbackEntry } from '../../utils/types'
 import { getReviewSession, saveReviewSession, appendFeedback } from '../../utils/gcs'
+import { isDemoMode } from '../../utils/demo'
 
 interface DecideRequest {
   sessionId: string
@@ -10,6 +11,10 @@ interface DecideRequest {
 }
 
 export default defineEventHandler(async (event) => {
+  if (await isDemoMode(event)) {
+    throw createError({ statusCode: 403, message: 'Read-only demo mode' })
+  }
+
   const body = await readBody<DecideRequest>(event)
   if (!body?.sessionId || !body?.decisions?.length) {
     throw createError({ statusCode: 400, message: 'Missing sessionId or decisions' })

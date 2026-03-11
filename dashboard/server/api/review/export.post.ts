@@ -1,11 +1,16 @@
 import { getReviewSession, getLatestReviewFile, saveReviewDecisions } from '../../utils/gcs'
 import { parseReviewFile } from '../../utils/review-helpers'
+import { isDemoMode } from '../../utils/demo'
 
 interface ExportRequest {
   sessionId: string
 }
 
 export default defineEventHandler(async (event) => {
+  if (await isDemoMode(event)) {
+    throw createError({ statusCode: 403, message: 'Read-only demo mode' })
+  }
+
   const body = await readBody<ExportRequest>(event)
   if (!body?.sessionId) {
     throw createError({ statusCode: 400, message: 'Missing sessionId' })

@@ -1,7 +1,9 @@
 import type { ChangelogResponse } from '../utils/types'
 import { getChangelog } from '../utils/gcs'
+import { isDemoMode, maskChangelogEntry } from '../utils/demo'
 
 export default defineEventHandler(async (event): Promise<ChangelogResponse> => {
+  const demo = await isDemoMode(event)
   const query = getQuery(event)
   const page = Math.max(1, Number(query.page) || 1)
   const pageSize = Math.min(100, Math.max(10, Number(query.pageSize) || 50))
@@ -40,5 +42,5 @@ export default defineEventHandler(async (event): Promise<ChangelogResponse> => {
   const offset = (page - 1) * pageSize
   const paged = entries.slice(offset, offset + pageSize)
 
-  return { entries: paged, total, page, pageSize }
+  return { entries: demo ? paged.map(maskChangelogEntry) : paged, total, page, pageSize }
 })

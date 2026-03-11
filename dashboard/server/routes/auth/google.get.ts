@@ -3,9 +3,11 @@ export default defineOAuthGoogleEventHandler({
     scope: ['openid', 'email', 'profile'],
   },
   async onSuccess(event, { user }) {
-    // Only allow the owner's email
-    const allowed = 'peterfusek1980@gmail.com'
-    if (user.email !== allowed) {
+    // Only allow configured owner emails (comma-separated env var)
+    const allowedEmails = (process.env.ALLOWED_EMAILS || 'peterfusek1980@gmail.com')
+      .split(',')
+      .map(e => e.trim().toLowerCase())
+    if (!allowedEmails.includes(user.email?.toLowerCase())) {
       throw createError({ statusCode: 403, message: 'Access denied' })
     }
 
