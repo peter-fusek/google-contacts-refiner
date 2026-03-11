@@ -906,6 +906,63 @@ def cmd_tag_activity(skip_scan=False, dry_run=False):
     print("═══════════════════════════════════════════")
 
 
+def cmd_linkedin_match(csv_path: str, dry_run: bool = False):
+    """Match LinkedIn connections to Google Contacts and enrich."""
+    from linkedin_matcher import (
+        parse_linkedin_csv, match_connections,
+        generate_enrichment_changes, format_match_report,
+    )
+
+    print("🔗 LinkedIn Connection Matching")
+    print("=" * 50)
+
+    # Parse LinkedIn export
+    print(f"📄 Parsing LinkedIn CSV: {csv_path}")
+    connections = parse_linkedin_csv(csv_path)
+    print(f"   Connections found: {len(connections)}")
+
+    if not connections:
+        print("❌ No connections found in CSV. Check the file format.")
+        return
+
+    # Load latest backup for contacts
+    backup_path = get_latest_backup()
+    if not backup_path:
+        print("❌ No backup found! Run 'python main.py backup' first.")
+        sys.exit(1)
+
+    backup_data = load_backup(backup_path)
+    contacts = backup_data["contacts"]
+    print(f"   Google Contacts: {len(contacts)}")
+    print()
+
+    # Match
+    print("🔍 Matching connections to contacts...")
+    matches = match_connections(connections, contacts)
+    print(f"   Matches: {len(matches)}")
+    print()
+
+    # Generate enrichment changes
+    results = generate_enrichment_changes(matches)
+
+    # Display report
+    print(format_match_report(matches, results))
+
+    if not results:
+        print("\n   No enrichment changes to apply.")
+        return
+
+    if dry_run:
+        print(f"\n   🔍 Dry run — {len(results)} contacts would be enriched.")
+        return
+
+    # Save as workplan for review/apply via normal fix pipeline
+    from workplan import generate_workplan_from_results, format_workplan_summary, load_workplan
+    workplan_path = generate_workplan_from_results(results, source="linkedin")
+    print(f"\n   📝 Workplan saved: {workplan_path}")
+    print("   Run 'python main.py fix' to review and apply changes.")
+
+
 def cmd_ltns(skip_scan=False, dry_run=False, no_prompts=False):
     """Identify LTNS (Long Time No See) contacts and generate reconnect prompts."""
     from config import ACTIVITY_ACCOUNTS, LTNS_TOP_N
@@ -1061,7 +1118,8 @@ def main():
         choices=[
             "auth", "backup", "analyze", "analyse", "fix", "ai-review",
             "verify", "rollback", "resume", "info",
-            "auth-activity", "tag-activity", "ltns", "refresh-tables",
+            "auth-activity", "tag-activity", "ltns", "linkedin-match",
+            "refresh-tables",
         ],
         help="Command to execute",
     )
@@ -1070,6 +1128,7 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="Analysis only, no changes")
     parser.add_argument("--skip-scan", action="store_true", help="Skip Gmail/Calendar scan, use cache")
     parser.add_argument("--no-prompts", action="store_true", help="Skip AI reconnect prompt generation (LTNS)")
+    parser.add_argument("--csv", type=str, help="Path to LinkedIn Connections.csv (for linkedin-match)")
 
     args = parser.parse_args()
 
@@ -1106,6 +1165,11 @@ def main():
                 skip_scan=args.skip_scan,
                 dry_run=args.dry_run,
             )
+        elif command == "linkedin-match":
+            if not args.csv:
+                print("❌ --csv required: python main.py linkedin-match --csv <path-to-Connections.csv>")
+                sys.exit(1)
+            cmd_linkedin_match(csv_path=args.csv, dry_run=args.dry_run)
         elif command == "ltns":
             cmd_ltns(
                 skip_scan=args.skip_scan,

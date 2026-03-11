@@ -79,6 +79,63 @@ def generate_workplan(
     return workplan_path
 
 
+def generate_workplan_from_results(results: list[dict], source: str = "custom") -> Path:
+    """
+    Generate a workplan from pre-formatted results (e.g., LinkedIn matcher).
+
+    Each result must have: resourceName, displayName, changes (list of change dicts).
+    """
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    workplan_path = DATA_DIR / f"workplan_{source}_{timestamp}.json"
+
+    # Add stats to each result if missing
+    for r in results:
+        if "stats" not in r:
+            changes = r.get("changes", [])
+            high = sum(1 for c in changes if c.get("confidence", 0) >= CONFIDENCE_HIGH)
+            medium = sum(1 for c in changes if CONFIDENCE_MEDIUM <= c.get("confidence", 0) < CONFIDENCE_HIGH)
+            low = sum(1 for c in changes if c.get("confidence", 0) < CONFIDENCE_MEDIUM)
+            r["stats"] = {"high": high, "medium": medium, "low": low, "total": len(changes)}
+
+    # Build batches
+    batches = []
+    for i in range(0, len(results), BATCH_SIZE):
+        batch_contacts = results[i:i + BATCH_SIZE]
+        batch_stats = {
+            "high": sum(c["stats"]["high"] for c in batch_contacts),
+            "medium": sum(c["stats"]["medium"] for c in batch_contacts),
+            "low": sum(c["stats"]["low"] for c in batch_contacts),
+            "total_changes": sum(c["stats"]["total"] for c in batch_contacts),
+            "contacts": len(batch_contacts),
+        }
+        batches.append({
+            "batch_num": len(batches) + 1,
+            "contacts": batch_contacts,
+            "stats": batch_stats,
+            "status": "pending",
+        })
+
+    workplan = {
+        "metadata": {
+            "created_at": datetime.now().isoformat(),
+            "version": "1.0",
+            "source": source,
+        },
+        "summary": {
+            "total_contacts_with_changes": len(results),
+            "total_changes": sum(r["stats"]["total"] for r in results),
+            "total_batches": len(batches),
+            "batch_size": BATCH_SIZE,
+        },
+        "batches": batches,
+    }
+
+    with open(workplan_path, "w", encoding="utf-8") as f:
+        json.dump(workplan, f, ensure_ascii=False, indent=2)
+
+    return workplan_path
+
+
 def load_workplan(path: Path) -> dict:
     """Load a workplan from file."""
     with open(path, "r", encoding="utf-8") as f:
