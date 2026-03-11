@@ -6,7 +6,7 @@ from typing import Optional
 
 from normalizer import (
     normalize_name, normalize_phones, normalize_emails,
-    normalize_addresses, normalize_organizations,
+    normalize_addresses, normalize_organizations, normalize_urls,
 )
 from enricher import enrich_contact
 from utils import get_display_name, get_resource_name
@@ -77,17 +77,20 @@ def analyze_contact(person: dict, ai_analyzer=None) -> dict:
     changes.extend(normalize_emails(person))
     changes.extend(normalize_addresses(person))
     changes.extend(normalize_organizations(person))
+    changes.extend(normalize_urls(person))
 
     # Run enrichment
     changes.extend(enrich_contact(person))
 
     # Remove changes where old == new (no-ops) or new is empty
-    # Allow empty new for middleName (clearing junk from name fields)
+    # Allow empty new for: middleName clearing, URL removal, email removal
     changes = [
         c for c in changes
         if c.get("old") != c.get("new") and (
             c.get("new") not in (None, "")
             or "middleName" in c.get("field", "")
+            or c.get("field", "").startswith("urls[")
+            or c.get("field", "").startswith("emailAddresses[")
         )
     ]
 
@@ -215,6 +218,9 @@ def summarize_analysis(results: list[dict]) -> dict:
                 summary["by_field_type"]["addresses"] += 1
             elif field.startswith("organizations"):
                 summary["by_field_type"]["organizations"] += 1
+            elif field.startswith("urls"):
+                summary["by_field_type"].setdefault("urls", 0)
+                summary["by_field_type"]["urls"] += 1
             elif "note" in change.get("reason", "").lower() or "poznámk" in change.get("reason", "").lower():
                 summary["by_field_type"]["enrichment_notes"] += 1
             elif "email" in change.get("reason", "").lower():

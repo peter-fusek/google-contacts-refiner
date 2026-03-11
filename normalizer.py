@@ -13,6 +13,8 @@ import phonenumbers
 from email_validator import validate_email, EmailNotValidError
 from unidecode import unidecode
 
+from urllib.parse import urlparse
+
 from config import (
     SK_CZ_NAMES_DIACRITICS, SURNAME_SUFFIX_PATTERNS,
     NAME_PREFIXES, DEFAULT_REGION, SUPPORTED_REGIONS,
@@ -1054,6 +1056,170 @@ _JOB_TITLE_ACRONYMS = {
     "HR", "IT", "PR", "QA", "PM", "BA",
     "MBA", "CPA", "CFA",
 }
+
+
+# ══════════════════════════════════════════════════════════════════════
+# URL NORMALIZATION — corporate URL detection
+# ══════════════════════════════════════════════════════════════════════
+
+# LinkedIn company page patterns (vs personal /in/ profiles)
+_LINKEDIN_COMPANY_PATHS = ("/company/", "/school/", "/showcase/")
+
+# Social media domains where we distinguish personal vs corporate pages
+_SOCIAL_DOMAINS = {
+    "linkedin.com", "www.linkedin.com",
+    "facebook.com", "www.facebook.com", "fb.com",
+    "twitter.com", "www.twitter.com", "x.com", "www.x.com",
+    "instagram.com", "www.instagram.com",
+    "youtube.com", "www.youtube.com",
+}
+
+# Business directory / corporate-only domains (never personal)
+_CORPORATE_ONLY_DOMAINS = {
+    "glassdoor.com", "www.glassdoor.com",
+    "crunchbase.com", "www.crunchbase.com",
+    "zoominfo.com", "www.zoominfo.com",
+    "dnb.com", "www.dnb.com",
+    "bloomberg.com", "www.bloomberg.com",
+}
+
+
+def _normalize_domain(domain: str) -> str:
+    """Strip www. prefix for comparison."""
+    return domain.lower().removeprefix("www.")
+
+
+def _org_matches_domain(org_names: set[str], domain: str) -> bool:
+    """Check if any org name matches the URL domain."""
+    # e.g. org "Instarea s.r.o." should match domain "instarea.sk"
+    domain_base = _normalize_domain(domain).split(".")[0]
+    if len(domain_base) < 3:
+        return False
+    for org in org_names:
+        org_clean = re.sub(r'\b(s\.?r\.?o\.?|a\.?s\.?|spol\.?|ltd\.?|inc\.?|gmbh|corp\.?)\b', '', org,
+                           flags=re.IGNORECASE).strip().strip("., ")
+        if org_clean.lower() == domain_base:
+            return True
+        # Also check if domain base is contained in multi-word org name
+        org_words = [w.lower() for w in org_clean.split() if len(w) > 2]
+        if domain_base in org_words:
+            return True
+    return False
+
+
+def normalize_urls(person: dict) -> list[dict]:
+    """
+    Detect and flag corporate URLs on personal contacts for removal.
+
+    Corporate URL types:
+    - LinkedIn company/school/showcase pages
+    - Company websites matching org name
+    - Business directory listings (Glassdoor, Crunchbase, etc.)
+    - Corporate social media pages
+
+    Personal URLs are kept:
+    - LinkedIn /in/ profiles
+    - Personal websites not matching any org
+    """
+    changes = []
+    urls = person.get("urls", [])
+    if not urls:
+        return changes
+
+    # Build set of org names for matching
+    org_names = {
+        o.get("name", "").strip()
+        for o in person.get("organizations", [])
+        if o.get("name", "").strip()
+    }
+
+    for i, url_entry in enumerate(urls):
+        value = url_entry.get("value", "").strip()
+        if not value:
+            continue
+
+        # Ensure URL has a scheme for parsing
+        parse_url = value if "://" in value else f"https://{value}"
+        try:
+            parsed = urlparse(parse_url)
+        except Exception:
+            continue
+
+        domain = (parsed.hostname or "").lower()
+        path = (parsed.path or "").lower().rstrip("/")
+
+        if not domain:
+            continue
+
+        # ── LinkedIn: company page vs personal profile ──
+        if _normalize_domain(domain) == "linkedin.com":
+            # Personal profile — keep
+            if path.startswith("/in/"):
+                continue
+            # Company/school/showcase page — remove
+            if any(path.startswith(p) for p in _LINKEDIN_COMPANY_PATHS):
+                changes.append({
+                    "field": f"urls[{i}]",
+                    "old": value,
+                    "new": "",
+                    "confidence": 0.95,
+                    "reason": "corporate LinkedIn page (not a personal profile)",
+                })
+                continue
+            # Ambiguous LinkedIn URL (no /in/ or /company/) — skip
+            continue
+
+        # ── Corporate-only domains (Glassdoor, Crunchbase, etc.) ──
+        if _normalize_domain(domain) in {_normalize_domain(d) for d in _CORPORATE_ONLY_DOMAINS}:
+            changes.append({
+                "field": f"urls[{i}]",
+                "old": value,
+                "new": "",
+                "confidence": 0.90,
+                "reason": f"corporate directory listing ({_normalize_domain(domain)})",
+            })
+            continue
+
+        # ── Social media: check if it's a company page ──
+        if _normalize_domain(domain) in {_normalize_domain(d) for d in _SOCIAL_DOMAINS}:
+            # If the URL path matches an org name, it's likely a corporate page
+            path_slug = path.strip("/").split("/")[0] if path.strip("/") else ""
+            if path_slug and _org_matches_domain(org_names, path_slug + ".com"):
+                changes.append({
+                    "field": f"urls[{i}]",
+                    "old": value,
+                    "new": "",
+                    "confidence": 0.80,
+                    "reason": "corporate social media page (matches organization name)",
+                })
+                continue
+            # Otherwise keep — could be personal social profile
+            continue
+
+        # ── Company website: domain matches an org name ──
+        if org_names and _org_matches_domain(org_names, domain):
+            # Check if it's a generic homepage (no deep path or just /)
+            is_homepage = not path or path == "/"
+            if is_homepage:
+                changes.append({
+                    "field": f"urls[{i}]",
+                    "old": value,
+                    "new": "",
+                    "confidence": 0.85,
+                    "reason": "corporate website homepage (matches organization)",
+                })
+            else:
+                # Deep link on company site — could be a personal profile page
+                changes.append({
+                    "field": f"urls[{i}]",
+                    "old": value,
+                    "new": "",
+                    "confidence": 0.65,
+                    "reason": "corporate website link (matches organization)",
+                })
+            continue
+
+    return changes
 
 
 def _title_case_title(title: str) -> str:
