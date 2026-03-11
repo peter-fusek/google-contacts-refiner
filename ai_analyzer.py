@@ -35,15 +35,15 @@ class AIAnalyzer:
             import anthropic
         except ImportError:
             raise RuntimeError(
-                "Anthropic SDK nie je nainštalovaný. "
-                "Spusti: pip install anthropic"
+                "Anthropic SDK is not installed. "
+                "Run: pip install anthropic"
             )
 
         self.api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
         if not self.api_key:
             raise RuntimeError(
-                "ANTHROPIC_API_KEY nie je nastavený. "
-                "Nastav premennú prostredia alebo odovzdaj api_key."
+                "ANTHROPIC_API_KEY is not set. "
+                "Set the environment variable or pass api_key."
             )
 
         self.model = model or AI_MODEL
@@ -193,21 +193,21 @@ class AIAnalyzer:
 
     def _build_system_prompt(self) -> str:
         parts = [
-            "Si asistent na čistenie Google kontaktov. Analyzuješ kontakty a navrhuješ opravy.",
-            "Špecializuješ sa na slovenské a české mená, diakritiku, telefónne čísla a detekciu duplikátov.",
+            "You are a Google Contacts cleanup assistant. You analyze contacts and suggest corrections.",
+            "You specialize in Slovak and Czech names, diacritics, phone numbers, and duplicate detection.",
             "",
-            "PRAVIDLÁ:",
-            "- Odpovedaj VŽDY v JSON formáte podľa špecifikovanej schémy",
-            "- Slovenské/české mená vždy s diakritikou (Štefan, nie Stefan)",
-            "- Pri neistote radšej ponechaj pôvodný tvar",
-            "- Confidence: 0.95+ pre isté zmeny, 0.70-0.90 pre pravdepodobné, pod 0.60 pre špekulatívne",
+            "RULES:",
+            "- ALWAYS respond in JSON format according to the specified schema",
+            "- Slovak/Czech names always with diacritics (Štefan, not Stefan)",
+            "- When uncertain, prefer keeping the original form",
+            "- Confidence: 0.95+ for certain changes, 0.70-0.90 for probable, below 0.60 for speculative",
         ]
 
         if self._instructions:
-            parts.extend(["", "POUŽÍVATEĽSKÉ PRAVIDLÁ:", self._instructions])
+            parts.extend(["", "USER RULES:", self._instructions])
 
         if self._memory:
-            parts.extend(["", "NAUČENÉ VZORY:", json.dumps(self._memory, ensure_ascii=False, indent=2)])
+            parts.extend(["", "LEARNED PATTERNS:", json.dumps(self._memory, ensure_ascii=False, indent=2)])
 
         return "\n".join(parts)
 
@@ -215,41 +215,41 @@ class AIAnalyzer:
         contact_summary = self._summarize_contact(contact)
         changes_json = json.dumps(rule_changes, ensure_ascii=False, indent=2)
 
-        return f"""Analyzuj tento kontakt a jeho navrhované zmeny. Uprav confidence alebo pridaj nové zmeny.
+        return f"""Analyze this contact and its proposed changes. Adjust confidence or add new changes.
 
-KONTAKT:
+CONTACT:
 {contact_summary}
 
-NAVRHOVANÉ ZMENY (z rule-based analýzy):
+PROPOSED CHANGES (from rule-based analysis):
 {changes_json}
 
-Odpovedz v JSON:
+Respond in JSON:
 {{
   "changes": [
     {{
       "field": "names[0].givenName",
-      "old": "povodna hodnota",
-      "new": "nova hodnota",
+      "old": "original value",
+      "new": "new value",
       "confidence": 0.95,
-      "reason": "dovod zmeny",
+      "reason": "reason for change",
       "source": "ai"
     }}
   ],
   "learnings": [
     {{
       "type": "diacritics_pattern",
-      "key": "ascii_tvar",
-      "value": "spravny_tvar",
+      "key": "ascii_form",
+      "value": "correct_form",
       "confidence": 0.95
     }}
   ]
 }}
 
-Pravidlá:
-- Zahrň VŠETKY zmeny (aj pôvodné rule-based, prípadne s upraveným confidence)
-- Pridaj nové zmeny len ak si istý (confidence >= 0.70)
-- Pre zmeny so source "ai" vždy uveď dôvod
-- Learnings pridaj len pre nové vzory, nie pre slovníkové zhody"""
+Rules:
+- Include ALL changes (including original rule-based, with adjusted confidence if needed)
+- Add new changes only if certain (confidence >= 0.70)
+- For changes with source "ai", always provide a reason
+- Add learnings only for new patterns, not for dictionary matches"""
 
     def _build_batch_prompt(
         self, contacts_with_changes: list[tuple[dict, list[dict]]]
@@ -262,12 +262,12 @@ Pravidlá:
                 "rule_changes": changes,
             })
 
-        return f"""Analyzuj tieto kontakty a ich navrhované zmeny. Pre každý kontakt uprav confidence alebo pridaj nové zmeny.
+        return f"""Analyze these contacts and their proposed changes. For each contact, adjust confidence or add new changes.
 
-KONTAKTY:
+CONTACTS:
 {json.dumps(contacts_json, ensure_ascii=False, indent=2)}
 
-Odpovedz v JSON (pole s výsledkami pre každý kontakt v rovnakom poradí):
+Respond in JSON (array with results for each contact in the same order):
 [
   {{
     "index": 0,
@@ -277,7 +277,7 @@ Odpovedz v JSON (pole s výsledkami pre každý kontakt v rovnakom poradí):
   ...
 ]
 
-Rovnaké pravidlá ako pre jednotlivé kontakty — zahrň všetky zmeny, pridávaj len isté nové."""
+Same rules as for individual contacts — include all changes, only add new ones if certain."""
 
     def _build_duplicates_prompt(
         self, dup_groups: list[dict], contacts_lookup: dict
@@ -295,26 +295,26 @@ Rovnaké pravidlá ako pre jednotlivé kontakty — zahrň všetky zmeny, pridá
                 "contacts": group_contacts,
             })
 
-        return f"""Zhodnoť tieto skupiny potenciálnych duplikátov a navrhni stratégiu.
+        return f"""Evaluate these groups of potential duplicates and suggest a strategy.
 
-SKUPINY:
+GROUPS:
 {json.dumps(groups_data, ensure_ascii=False, indent=2)}
 
-Odpovedz v JSON:
+Respond in JSON:
 {{
   "groups": [
     {{
-      "recommendation": "merge" alebo "skip" alebo "review",
+      "recommendation": "merge" or "skip" or "review",
       "confidence": 0.90,
-      "reason": "dôvod odporúčania"
+      "reason": "reason for recommendation"
     }}
   ]
 }}
 
-Pravidlá:
-- "merge" len ak si istý že ide o rovnakú osobu
-- "skip" ak sú to rôzne osoby (napr. iná organizácia)
-- "review" ak treba manuálne posúdenie"""
+Rules:
+- "merge" only if certain they are the same person
+- "skip" if they are different people (e.g. different organization)
+- "review" if manual review is needed"""
 
     # ── Contact summarization ─────────────────────────────────────
 

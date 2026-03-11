@@ -69,14 +69,14 @@ class PeopleAPIClient:
                 # Rate limit exceeded
                 if status == 429:
                     delay = RETRY_BASE_DELAY * (2 ** (attempt - 1))
-                    print(f"  ⏳ Rate limit, čakám {delay:.0f}s (pokus {attempt}/{RETRY_MAX_ATTEMPTS})")
+                    print(f"  ⏳ Rate limit, waiting {delay:.0f}s (attempt {attempt}/{RETRY_MAX_ATTEMPTS})")
                     time.sleep(delay)
                     continue
 
                 # Server error — retry
                 if status >= 500:
                     delay = RETRY_BASE_DELAY * (2 ** (attempt - 1))
-                    print(f"  ⚠️  Server error {status}, retry za {delay:.0f}s (pokus {attempt}/{RETRY_MAX_ATTEMPTS})")
+                    print(f"  ⚠️  Server error {status}, retry in {delay:.0f}s (attempt {attempt}/{RETRY_MAX_ATTEMPTS})")
                     time.sleep(delay)
                     continue
 
@@ -86,12 +86,12 @@ class PeopleAPIClient:
             except Exception as e:
                 if attempt < RETRY_MAX_ATTEMPTS:
                     delay = RETRY_BASE_DELAY * (2 ** (attempt - 1))
-                    print(f"  ⚠️  Chyba: {e}, retry za {delay:.0f}s (pokus {attempt}/{RETRY_MAX_ATTEMPTS})")
+                    print(f"  ⚠️  Error: {e}, retry in {delay:.0f}s (attempt {attempt}/{RETRY_MAX_ATTEMPTS})")
                     time.sleep(delay)
                 else:
                     raise
 
-        raise RuntimeError(f"Zlyhalo po {RETRY_MAX_ATTEMPTS} pokusoch")
+        raise RuntimeError(f"Failed after {RETRY_MAX_ATTEMPTS} attempts")
 
     # ── Read Operations ────────────────────────────────────────────────
 

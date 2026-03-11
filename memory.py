@@ -19,27 +19,27 @@ MEMORY_PATH = DATA_DIR / "memory.json"            # Persisted data (GCS in cloud
 
 # Rule category extraction from reason strings
 RULE_CATEGORIES = {
-    "diacritics": r"diakritik",
-    "title_case": r"veľkosti písmen|Title Case",
-    "phone_format": r"tel\. čísla|normalizácia tel",
-    "phone_type": r"typu tel",
-    "phone_duplicate": r"duplicitné tel",
-    "email_normalize": r"normalizácia email",
-    "email_invalid": r"nevalidný.*email",
-    "email_duplicate": r"duplicitný email",
-    "address_zip": r"PSČ",
-    "address_country": r"krajin",
-    "address_parse": r"parsovanie adres",
-    "org_case": r"organizáci",
-    "name_extract": r"extrakcia.*mena|extrakcia.*Name",
-    "name_split": r"rozdelenie",
-    "name_title": r"extrakcia titul",
-    "company_in_name": r"firma.*men|firmu",
-    "family_name_fix": r"priezvisko",
+    "diacritics": r"diakritik|diacritics",
+    "title_case": r"veľkosti písmen|Title Case|letter casing",
+    "phone_format": r"tel\. čísla|normalizácia tel|phone.*normalization|international format",
+    "phone_type": r"typu tel|phone.*type",
+    "phone_duplicate": r"duplicitné tel|duplicate phone",
+    "email_normalize": r"normalizácia email|email.*normalization",
+    "email_invalid": r"nevalidný.*email|invalid.*email",
+    "email_duplicate": r"duplicitný email|duplicate email",
+    "address_zip": r"PSČ|postal code",
+    "address_country": r"krajin|country",
+    "address_parse": r"parsovanie adres|address.*pars",
+    "org_case": r"organizáci|organization",
+    "name_extract": r"extrakcia.*mena|extrakcia.*Name|name.*extract|inferred.*name",
+    "name_split": r"rozdelenie|name.*split",
+    "name_title": r"extrakcia titul|title.*extract",
+    "company_in_name": r"firma.*men|firmu|company.*name|strip.*company",
+    "family_name_fix": r"priezvisko|family.*name",
     "x500_dn": r"X\.500 DN",
-    "org_from_email": r"odhadnutá z email",
+    "org_from_email": r"odhadnutá z email|inferred from email|organization.*email",
     "domain_case": r"domain|domén|doména",
-    "event_from_note": r"udalosť z poznámky|dátum.*poznámky",
+    "event_from_note": r"udalosť z poznámky|dátum.*poznámky|from notes|extracted from notes",
 }
 
 # Default empty memory structure
@@ -76,7 +76,7 @@ class MemoryManager:
         parts = []
 
         if self.instructions:
-            parts.append("=== PRAVIDLÁ (instructions.md) ===")
+            parts.append("=== RULES (instructions.md) ===")
             parts.append(self.instructions)
 
         diacritics = self.memory.get("diacritics_corrections", {})
@@ -87,18 +87,18 @@ class MemoryManager:
                 if v.get("times_approved", 0) > v.get("times_rejected", 0)
             }
             if learned:
-                parts.append("\n=== NAUČENÉ DIAKRITICKÉ VZORY ===")
+                parts.append("\n=== LEARNED DIACRITICS PATTERNS ===")
                 parts.append(json.dumps(learned, ensure_ascii=False))
 
         rejected = self.memory.get("rejected_changes", [])
         if rejected:
             recent = rejected[-20:]  # Last 20 rejections
-            parts.append("\n=== NAPOSLEDY ZAMIETNUTÉ ZMENY ===")
+            parts.append("\n=== RECENTLY REJECTED CHANGES ===")
             for r in recent:
                 parts.append(
                     f"- {r.get('field', '?')}: "
-                    f"\"{r.get('rejected_value', '')}\" zamietnuté, "
-                    f"ponechané \"{r.get('kept_value', '')}\""
+                    f"\"{r.get('rejected_value', '')}\" rejected, "
+                    f"kept \"{r.get('kept_value', '')}\""
                 )
 
         return "\n".join(parts) if parts else ""
@@ -128,14 +128,14 @@ class MemoryManager:
         reason = change.get("reason", "")
 
         # Track diacritics approvals
-        if "diakritik" in reason.lower():
+        if "diakritik" in reason.lower() or "diacritics" in reason.lower():
             old_val = change.get("old", "")
             new_val = change.get("new", "")
             if old_val and new_val and old_val != new_val:
                 self._record_diacritics(old_val, new_val, approved=True)
 
         # Track domain-to-org mappings from enrichment
-        if "organizáci" in reason.lower() or "email" in reason.lower():
+        if "organizáci" in reason.lower() or "organization" in reason.lower() or "email" in reason.lower():
             extra = change.get("extra", {})
             if extra.get("domain") and change.get("new"):
                 patterns = self.memory.setdefault("enrichment_patterns", {})
@@ -149,7 +149,7 @@ class MemoryManager:
         reason = change.get("reason", "")
 
         # Track diacritics rejections
-        if "diakritik" in reason.lower():
+        if "diakritik" in reason.lower() or "diacritics" in reason.lower():
             old_val = change.get("old", "")
             new_val = change.get("new", "")
             if old_val and new_val:

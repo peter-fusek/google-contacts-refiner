@@ -70,7 +70,7 @@ def enrich_from_notes(person: dict) -> list[dict]:
                 "old": "",
                 "new": normalized,
                 "confidence": 0.70,
-                "reason": f"tel. číslo nájdené v poznámke",
+                "reason": "phone number found in notes",
                 "extra": {"type": ptype if ptype != "unknown" else "other"},
             })
             existing_phones.add(digits)
@@ -85,7 +85,7 @@ def enrich_from_notes(person: dict) -> list[dict]:
                 "old": "",
                 "new": norm,
                 "confidence": 0.70,
-                "reason": "email nájdený v poznámke",
+                "reason": "email found in notes",
                 "extra": {"type": "other"},
             })
             existing_emails.add(norm.lower())
@@ -100,7 +100,7 @@ def enrich_from_notes(person: dict) -> list[dict]:
                 "old": "",
                 "new": url,
                 "confidence": 0.75,
-                "reason": "URL nájdené v poznámke",
+                "reason": "URL found in notes",
                 "extra": {"type": "other"},
             })
             existing_urls.add(clean_url)
@@ -123,7 +123,7 @@ def enrich_from_notes(person: dict) -> list[dict]:
                     "old": "",
                     "new": parsed,
                     "confidence": 0.60,
-                    "reason": f"dátum narodenia z poznámky ({date_info['raw']})",
+                    "reason": f"birthday extracted from notes ({date_info['raw']})",
                     "extra": {
                         "date": {
                             "year": int(parts[0]),
@@ -138,7 +138,7 @@ def enrich_from_notes(person: dict) -> list[dict]:
                 "old": "",
                 "new": parsed,
                 "confidence": 0.55,
-                "reason": f"udalosť z poznámky ({context}: {date_info['raw']})",
+                "reason": f"event extracted from notes ({context}: {date_info['raw']})",
                 "extra": {"type": context},
             })
 
@@ -158,7 +158,7 @@ def enrich_from_notes(person: dict) -> list[dict]:
                 "old": "",
                 "new": ico,
                 "confidence": 0.92,
-                "reason": "IČO nájdené v poznámke",
+                "reason": "company ID (IČO) found in notes",
                 "extra": {"key": "IČO", "value": ico},
             })
 
@@ -172,7 +172,7 @@ def enrich_from_notes(person: dict) -> list[dict]:
                 "old": "",
                 "new": dic,
                 "confidence": 0.92,
-                "reason": "DIČ nájdené v poznámke",
+                "reason": "tax ID (DIČ) found in notes",
                 "extra": {"key": "DIČ", "value": dic},
             })
 
@@ -186,7 +186,7 @@ def enrich_from_notes(person: dict) -> list[dict]:
                 "old": "",
                 "new": icdph,
                 "confidence": 0.92,
-                "reason": "IČ DPH nájdené v poznámke",
+                "reason": "VAT ID (IČ DPH) found in notes",
                 "extra": {"key": "IČ DPH", "value": icdph},
             })
 
@@ -229,14 +229,14 @@ def enrich_from_email(person: dict) -> list[dict]:
                     "old": "",
                     "new": given_fixed,
                     "confidence": 0.55,
-                    "reason": f"meno odhadnuté z emailu ({email})",
+                    "reason": f"given name inferred from email ({email})",
                 })
                 changes.append({
                     "field": "names[0].familyName" if names else "names[+].familyName",
                     "old": "",
                     "new": family_fixed,
                     "confidence": 0.55,
-                    "reason": f"priezvisko odhadnuté z emailu ({email})",
+                    "reason": f"family name inferred from email ({email})",
                 })
                 has_given = True
                 has_family = True
@@ -250,7 +250,7 @@ def enrich_from_email(person: dict) -> list[dict]:
                     "old": "",
                     "new": company,
                     "confidence": 0.50,
-                    "reason": f"organizácia odhadnutá z emailu ({email})",
+                    "reason": f"organization inferred from email ({email})",
                     "extra": {"domain": company},
                 })
                 has_org = True
@@ -289,7 +289,7 @@ def enrich_cross_field(person: dict) -> list[dict]:
                     "old": "",
                     "new": parsed["givenName"],
                     "confidence": 0.80,
-                    "reason": f"meno doplnené z displayName/unstructuredName",
+                    "reason": "given name filled from displayName/unstructuredName",
                 })
             if parsed.get("familyName"):
                 changes.append({
@@ -297,7 +297,7 @@ def enrich_cross_field(person: dict) -> list[dict]:
                     "old": "",
                     "new": parsed["familyName"],
                     "confidence": 0.80,
-                    "reason": f"priezvisko doplnené z displayName/unstructuredName",
+                    "reason": "family name filled from displayName/unstructuredName",
                 })
 
     return changes

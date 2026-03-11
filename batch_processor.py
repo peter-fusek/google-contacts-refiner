@@ -177,7 +177,7 @@ def format_batch_header(batch_num: int, total_batches: int, start_idx: int, end_
     """Format batch header."""
     return (
         f"\n{'═' * 50}\n"
-        f" BATCH {batch_num}/{total_batches} (kontakty {start_idx}-{end_idx})\n"
+        f" BATCH {batch_num}/{total_batches} (contacts {start_idx}-{end_idx})\n"
         f"{'═' * 50}\n"
     )
 
@@ -186,7 +186,7 @@ def format_batch_footer(stats: dict) -> str:
     """Format batch footer with stats."""
     return (
         f"\n{'═' * 50}\n"
-        f"Zmeny: 🟢 {stats.get('high', 0)} high | "
+        f"Changes: 🟢 {stats.get('high', 0)} high | "
         f"🟡 {stats.get('medium', 0)} medium | "
         f"🔴 {stats.get('low', 0)} low\n"
     )
@@ -201,7 +201,7 @@ def prompt_user_approval(batch_num: int) -> tuple[str, list[int]]:
         action: 'approve', 'reject', 'edit', 'quit'
         skip_indices: List of contact indices to skip (only if action == 'approve')
     """
-    print("Schváliť? [y/n/čísla na preskočenie/e pre edit/q pre ukončenie]:", end=" ")
+    print("Approve? [y/n/indices to skip/e for edit/q to quit]:", end=" ")
     try:
         response = input().strip().lower()
     except (EOFError, KeyboardInterrupt):
@@ -213,7 +213,7 @@ def prompt_user_approval(batch_num: int) -> tuple[str, list[int]]:
         return "reject", []
     elif response in ("e", "edit"):
         return "edit", []
-    elif response in ("q", "quit", "koniec"):
+    elif response in ("q", "quit"):
         return "quit", []
     else:
         # Try to parse skip indices
@@ -308,12 +308,12 @@ def process_batches(
             action, skip_indices = prompt_user_approval(batch_num)
 
         if action == "quit":
-            print("\n⏸  Ukončujem. Môžeš pokračovať cez 'python main.py resume'.")
+            print("\n⏸  Stopping. You can resume with 'python main.py resume'.")
             recovery.save_checkpoint(batch_num - 1, total_processed)
             return
 
         if action == "reject":
-            print(f"   ❌ Batch {batch_num} odmietnutý.")
+            print(f"   ❌ Batch {batch_num} rejected.")
             rejected.append({
                 "batch_num": batch_num,
                 "rejected_at": datetime.now().isoformat(),
@@ -333,7 +333,7 @@ def process_batches(
             continue
 
         if action == "edit":
-            print("   ✏️  Edit mód — v tejto verzii nie je podporovaný. Preskakujem batch.")
+            print("   ✏️  Edit mode — not supported in this version. Skipping batch.")
             total_skipped += len(contacts_in_batch)
             total_processed += len(contacts_in_batch)
             recovery.save_checkpoint(batch_num, total_processed)
@@ -350,7 +350,7 @@ def process_batches(
         for i, result in enumerate(contacts_in_batch):
             contact_idx = start_idx + i
             if contact_idx in skip_global:
-                print(f"   ⏭  [{contact_idx}] preskočený")
+                print(f"   ⏭  [{contact_idx}] skipped")
                 total_skipped += 1
                 continue
 
@@ -360,7 +360,7 @@ def process_batches(
             resource_name = result["resourceName"]
             person = contacts_lookup.get(resource_name)
             if not person:
-                print(f"   ⚠️  [{contact_idx}] kontakt nenájdený: {resource_name}")
+                print(f"   ⚠️  [{contact_idx}] contact not found: {resource_name}")
                 batch_failed += 1
                 continue
 
@@ -423,13 +423,13 @@ def process_batches(
 
     print()
     print("═══════════════════════════════════════════")
-    print("          DOKONČENÉ")
+    print("          COMPLETED")
     print("═══════════════════════════════════════════")
-    print(f"  Úspešné:    {total_success}")
-    print(f"  Zlyhané:    {total_failed}")
-    print(f"  Preskočené: {total_skipped}")
+    print(f"  Successful: {total_success}")
+    print(f"  Failed:     {total_failed}")
+    print(f"  Skipped:    {total_skipped}")
     if skipped_for_review:
-        print(f"  Na review:  {len(skipped_for_review)}")
+        print(f"  For review: {len(skipped_for_review)}")
     print("═══════════════════════════════════════════")
 
     return {

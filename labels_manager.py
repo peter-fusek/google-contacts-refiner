@@ -138,7 +138,7 @@ def _suggest_label_assignments(
                                 "label_rn": label["resourceName"],
                                 "contact_rn": rn,
                                 "contact_name": get_display_name(person),
-                                "reason": f"rovnaká organizácia ({org_name})",
+                                "reason": f"same organization ({org_name})",
                                 "confidence": 0.60,
                             })
                             break
@@ -149,32 +149,32 @@ def _suggest_label_assignments(
 def format_labels_report(analysis: dict) -> str:
     """Format label analysis for display."""
     lines = [
-        "═══ ANALÝZA LABELS/SKUPÍN ═══",
+        "═══ LABELS ANALYSIS ═══",
         "",
     ]
 
     labels = analysis["labels"]
     if not labels:
-        lines.append("Žiadne používateľské labels/skupiny.")
+        lines.append("No user labels/groups found.")
     else:
-        lines.append(f"Celkom {len(labels)} labels:")
+        lines.append(f"Total {len(labels)} labels:")
         lines.append("")
         for label in labels:
             name = label["name"]
             count = label["member_count"]
-            lines.append(f"  📁 {name} ({count} kontaktov)")
+            lines.append(f"  📁 {name} ({count} contacts)")
             if label["org_distribution"]:
                 top_orgs = sorted(label["org_distribution"].items(), key=lambda x: -x[1])[:3]
                 org_str = ", ".join(f"{org}: {cnt}" for org, cnt in top_orgs)
-                lines.append(f"     Organizácie: {org_str}")
+                lines.append(f"     Organizations: {org_str}")
 
     lines.append("")
-    lines.append(f"Kontakty bez labelu: {analysis['unlabeled_contacts']}")
+    lines.append(f"Contacts without label: {analysis['unlabeled_contacts']}")
 
     suggestions = analysis["suggestions"]
     if suggestions:
         lines.append("")
-        lines.append(f"💡 {len(suggestions)} návrhov na pridanie do labels:")
+        lines.append(f"💡 {len(suggestions)} suggestions for label assignment:")
         for s in suggestions[:20]:  # Show max 20
             lines.append(f"  → {s['contact_name']} → label \"{s['label_name']}\" ({s['reason']})")
 

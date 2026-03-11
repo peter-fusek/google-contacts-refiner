@@ -114,19 +114,19 @@ class RecoveryManager:
     def format_checkpoint_info(data: dict) -> str:
         """Format checkpoint info for display."""
         lines = [
-            "═══ NEDOKONČENÁ RELÁCIA ═══",
+            "═══ PENDING SESSION ═══",
             "",
             f"  Session ID:  {data.get('session_id', '?')}",
-            f"  Spustená:    {data.get('started_at', '?')}",
-            f"  Stav:        {data.get('status', '?')}",
-            f"  Posledný batch: {data.get('last_completed_batch', 0)} / {data.get('total_batches', '?')}",
-            f"  Kontakty:    {data.get('contacts_processed', 0)} / {data.get('contacts_total', '?')}",
+            f"  Started:     {data.get('started_at', '?')}",
+            f"  Status:      {data.get('status', '?')}",
+            f"  Last batch:  {data.get('last_completed_batch', 0)} / {data.get('total_batches', '?')}",
+            f"  Contacts:    {data.get('contacts_processed', 0)} / {data.get('contacts_total', '?')}",
         ]
 
         if data.get("last_checkpoint_at"):
-            lines.append(f"  Posledný checkpoint: {data['last_checkpoint_at']}")
+            lines.append(f"  Last checkpoint: {data['last_checkpoint_at']}")
 
         if data.get("error"):
-            lines.append(f"  Chyba: {data['error']}")
+            lines.append(f"  Error: {data['error']}")
 
         return "\n".join(lines)

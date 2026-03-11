@@ -254,7 +254,7 @@ def _detect_company_in_name(person: dict) -> Optional[dict]:
                     "old": given,
                     "new": new_given,
                     "confidence": 0.90,
-                    "reason": "company_in_name: meno vyčistené po odstránení firmy (%s)" % paren_content,
+                    "reason": "company_in_name: given name cleaned after removing company (%s)" % paren_content,
                 })
             if new_family != family:
                 changes.append({
@@ -262,7 +262,7 @@ def _detect_company_in_name(person: dict) -> Optional[dict]:
                     "old": family,
                     "new": new_family,
                     "confidence": 0.90,
-                    "reason": "company_in_name: priezvisko vyčistené po odstránení firmy (%s)" % paren_content,
+                    "reason": "company_in_name: family name cleaned after removing company (%s)" % paren_content,
                 })
             if new_middle != middle:
                 changes.append({
@@ -270,7 +270,7 @@ def _detect_company_in_name(person: dict) -> Optional[dict]:
                     "old": middle,
                     "new": new_middle,
                     "confidence": 0.90,
-                    "reason": "company_in_name: vyčistenie middleName (obsahoval firmu)",
+                    "reason": "company_in_name: cleared middleName (contained company name)",
                 })
             # Clear unstructuredName
             if unstructured and re.search(r'\s*\([^)]+\)\s*$', unstructured):
@@ -279,7 +279,7 @@ def _detect_company_in_name(person: dict) -> Optional[dict]:
                     "old": unstructured,
                     "new": clean_name,
                     "confidence": 0.90,
-                    "reason": "company_in_name: odstránenie firmy z mena (%s)" % paren_content,
+                    "reason": "company_in_name: removed company from name (%s)" % paren_content,
                 })
             if changes:
                 return {"changes": changes, "given": new_given, "family": new_family, "middle": new_middle}
@@ -307,7 +307,7 @@ def _detect_company_in_name(person: dict) -> Optional[dict]:
                 "old": family,
                 "new": middle,
                 "confidence": 0.90,
-                "reason": "priezvisko bolo v middleName, familyName obsahoval firmu (%s)" % parens_content,
+                "reason": "surname was in middleName, familyName contained company (%s)" % parens_content,
             })
             # Add company to organizations if not already there
             if parens_content.lower() not in org_names:
@@ -316,7 +316,7 @@ def _detect_company_in_name(person: dict) -> Optional[dict]:
                     "old": "",
                     "new": parens_content,
                     "confidence": 0.90,
-                    "reason": "firma z mena (%s) pridaná do organizácií" % parens_content,
+                    "reason": "company from name (%s) added to organizations" % parens_content,
                 })
             return {"changes": changes, "given": given, "family": middle, "middle": middle}
 
@@ -336,7 +336,7 @@ def _detect_company_in_name(person: dict) -> Optional[dict]:
                 "old": family,
                 "new": real_surname,
                 "confidence": 0.92,
-                "reason": "familyName obsahoval len právnu formu firmy, priezvisko z displayName",
+                "reason": "familyName contained only legal form suffix, surname from displayName",
             })
             # Extract full company name from displayName and add to orgs
             company_name = _extract_company_from_display(display)
@@ -346,7 +346,7 @@ def _detect_company_in_name(person: dict) -> Optional[dict]:
                     "old": "",
                     "new": company_name,
                     "confidence": 0.92,
-                    "reason": "firma z mena (%s) pridaná do organizácií" % company_name,
+                    "reason": "company from name (%s) added to organizations" % company_name,
                 })
             return {"changes": changes, "given": given, "family": real_surname, "middle": middle}
 
@@ -360,7 +360,7 @@ def _detect_company_in_name(person: dict) -> Optional[dict]:
                 "old": family,
                 "new": real_surname,
                 "confidence": 0.85,
-                "reason": "familyName obsahoval názov firmy (%s), priezvisko z displayName" % family,
+                "reason": "familyName contained company name (%s), surname from displayName" % family,
             })
             return {"changes": changes, "given": given, "family": real_surname, "middle": middle}
 
@@ -440,7 +440,7 @@ def normalize_name(person: dict) -> list[dict]:
                     "old": given,
                     "new": title_case_sk(new_given),
                     "confidence": 0.95,
-                    "reason": "extrakcia mena z X.500 DN formátu",
+                    "reason": "given name extracted from X.500 DN format",
                 })
             if new_family and new_family != family:
                 changes.append({
@@ -448,7 +448,7 @@ def normalize_name(person: dict) -> list[dict]:
                     "old": family,
                     "new": title_case_sk(new_family),
                     "confidence": 0.95,
-                    "reason": "extrakcia priezviska z X.500 DN formátu",
+                    "reason": "family name extracted from X.500 DN format",
                 })
             # Add org from O= if present and not already in organizations
             dn_org = dn_parts.get("O", "")
@@ -463,7 +463,7 @@ def normalize_name(person: dict) -> list[dict]:
                         "old": "",
                         "new": dn_org,
                         "confidence": 0.90,
-                        "reason": "extrakcia organizácie z X.500 DN formátu",
+                        "reason": "organization extracted from X.500 DN format",
                     })
             given = title_case_sk(new_given) if new_given else given
             family = title_case_sk(new_family) if new_family else family
@@ -485,7 +485,7 @@ def normalize_name(person: dict) -> list[dict]:
                 "old": "",
                 "new": parsed["givenName"],
                 "confidence": 0.85,
-                "reason": "extrakcia givenName z displayName",
+                "reason": "givenName extracted from displayName",
             })
         if parsed.get("familyName"):
             changes.append({
@@ -493,7 +493,7 @@ def normalize_name(person: dict) -> list[dict]:
                 "old": "",
                 "new": parsed["familyName"],
                 "confidence": 0.85,
-                "reason": "extrakcia familyName z displayName",
+                "reason": "familyName extracted from displayName",
             })
         if parsed.get("prefix") and not prefix:
             changes.append({
@@ -501,7 +501,7 @@ def normalize_name(person: dict) -> list[dict]:
                 "old": "",
                 "new": parsed["prefix"],
                 "confidence": 0.90,
-                "reason": "extrakcia titulu z displayName",
+                "reason": "title/prefix extracted from displayName",
             })
         given = parsed.get("givenName", "")
         family = parsed.get("familyName", "")
@@ -515,14 +515,14 @@ def normalize_name(person: dict) -> list[dict]:
                 "old": "",
                 "new": parsed["givenName"],
                 "confidence": 0.80,
-                "reason": "rozdelenie mena z familyName",
+                "reason": "split given name from familyName",
             })
             changes.append({
                 "field": "names[0].familyName",
                 "old": family,
                 "new": parsed["familyName"],
                 "confidence": 0.80,
-                "reason": "rozdelenie priezviska z familyName",
+                "reason": "split family name from familyName",
             })
             given = parsed["givenName"]
             family = parsed["familyName"]
@@ -536,14 +536,14 @@ def normalize_name(person: dict) -> list[dict]:
                 "old": given,
                 "new": parsed["givenName"],
                 "confidence": 0.80,
-                "reason": "rozdelenie mena z givenName",
+                "reason": "split given name from givenName",
             })
             changes.append({
                 "field": "names[0].familyName",
                 "old": "",
                 "new": parsed["familyName"],
                 "confidence": 0.80,
-                "reason": "rozdelenie priezviska z givenName",
+                "reason": "split family name from givenName",
             })
             given = parsed["givenName"]
             family = parsed["familyName"]
@@ -558,7 +558,7 @@ def normalize_name(person: dict) -> list[dict]:
                 "old": "",
                 "new": extracted_prefix,
                 "confidence": 0.90,
-                "reason": f"extrakcia titulu '{extracted_prefix}' z mena",
+                "reason": f"title/prefix '{extracted_prefix}' extracted from name",
             })
             # Re-parse remaining
             parsed = split_name_fields(remaining)
@@ -568,7 +568,7 @@ def normalize_name(person: dict) -> list[dict]:
                     "old": given,
                     "new": parsed.get("givenName", given),
                     "confidence": 0.85,
-                    "reason": "úprava mena po extrakcii titulu",
+                    "reason": "given name adjusted after title extraction",
                 })
                 given = parsed.get("givenName", given)
             if family and parsed.get("familyName") != family:
@@ -577,7 +577,7 @@ def normalize_name(person: dict) -> list[dict]:
                     "old": family,
                     "new": parsed.get("familyName", family),
                     "confidence": 0.85,
-                    "reason": "úprava priezviska po extrakcii titulu",
+                    "reason": "family name adjusted after title extraction",
                 })
                 family = parsed.get("familyName", family)
 
@@ -590,7 +590,7 @@ def normalize_name(person: dict) -> list[dict]:
                 "old": given,
                 "new": fixed,
                 "confidence": 0.95,
-                "reason": "oprava veľkosti písmen (Title Case)",
+                "reason": "fix letter casing (Title Case)",
             })
             given = fixed
 
@@ -602,7 +602,7 @@ def normalize_name(person: dict) -> list[dict]:
                 "old": family,
                 "new": fixed,
                 "confidence": 0.95,
-                "reason": "oprava veľkosti písmen (Title Case)",
+                "reason": "fix letter casing (Title Case)",
             })
             family = fixed
 
@@ -615,7 +615,7 @@ def normalize_name(person: dict) -> list[dict]:
                 "old": given,
                 "new": fixed,
                 "confidence": conf,
-                "reason": f"doplnenie diakritiky (meno)",
+                "reason": "diacritics restoration (given name)",
             })
 
     if family:
@@ -626,7 +626,7 @@ def normalize_name(person: dict) -> list[dict]:
                 "old": family,
                 "new": fixed,
                 "confidence": conf,
-                "reason": f"doplnenie diakritiky (priezvisko)",
+                "reason": "diacritics restoration (family name)",
             })
 
     return changes
@@ -708,7 +708,7 @@ def normalize_phones(person: dict) -> list[dict]:
                 "old": value,
                 "new": normalized,
                 "confidence": confidence,
-                "reason": f"normalizácia tel. čísla na medzinárodný formát",
+                "reason": "phone number normalization to international format",
             })
 
         # Suggest type if missing
@@ -718,7 +718,7 @@ def normalize_phones(person: dict) -> list[dict]:
                 "old": "",
                 "new": detected_type,
                 "confidence": 0.80,
-                "reason": f"doplnenie typu tel. ({detected_type})",
+                "reason": f"phone type detection ({detected_type})",
             })
 
         # Track for duplicate detection
@@ -729,7 +729,7 @@ def normalize_phones(person: dict) -> list[dict]:
                 "old": value,
                 "new": "__DUPLICATE__",
                 "confidence": 0.90,
-                "reason": f"duplicitné tel. číslo v rámci kontaktu",
+                "reason": "duplicate phone number within contact",
             })
         seen_numbers.add(norm_digits)
 
@@ -787,7 +787,7 @@ def normalize_emails(person: dict) -> list[dict]:
                 "old": value,
                 "new": normalized,
                 "confidence": confidence,
-                "reason": "normalizácia emailu (lowercase, trim)",
+                "reason": "email normalization (lowercase, trim)",
             })
 
         if not is_valid:
@@ -796,7 +796,7 @@ def normalize_emails(person: dict) -> list[dict]:
                 "old": value,
                 "new": "__INVALID__",
                 "confidence": 0.70,
-                "reason": f"nevalidný formát emailu",
+                "reason": "invalid email format",
             })
 
         # Duplicate check
@@ -806,7 +806,7 @@ def normalize_emails(person: dict) -> list[dict]:
                 "old": value,
                 "new": "__DUPLICATE__",
                 "confidence": 0.90,
-                "reason": "duplicitný email v rámci kontaktu",
+                "reason": "duplicate email within contact",
             })
         seen_emails.add(normalized.lower())
 
@@ -867,7 +867,7 @@ def normalize_addresses(person: dict) -> list[dict]:
                     "old": postal,
                     "new": formatted,
                     "confidence": 0.95,
-                    "reason": "formátovanie PSČ (XXX XX)",
+                    "reason": "postal code formatting (XXX XX)",
                 })
 
             # Add country if missing — but only if address has other useful fields
@@ -879,14 +879,14 @@ def normalize_addresses(person: dict) -> list[dict]:
                     "old": "",
                     "new": country_name,
                     "confidence": 0.75,
-                    "reason": f"doplnenie krajiny z PSČ ({detected})",
+                    "reason": f"country inferred from postal code ({detected})",
                 })
                 changes.append({
                     "field": f"addresses[{i}].countryCode",
                     "old": "",
                     "new": detected,
                     "confidence": 0.75,
-                    "reason": f"doplnenie kódu krajiny z PSČ",
+                    "reason": "country code inferred from postal code",
                 })
 
         # Try to parse unstructured address
@@ -902,7 +902,7 @@ def normalize_addresses(person: dict) -> list[dict]:
                             "old": "",
                             "new": field_value,
                             "confidence": 0.60,
-                            "reason": "parsovanie adresy z formattedValue",
+                            "reason": "address parsed from formattedValue",
                         })
 
     return changes
@@ -958,7 +958,7 @@ def normalize_organizations(person: dict) -> list[dict]:
                         "old": name,
                         "new": fixed,
                         "confidence": 0.70,
-                        "reason": "oprava veľkosti písmen (organizácia)",
+                        "reason": "fix letter casing (organization)",
                     })
 
         # Fix casing for title/position
@@ -970,7 +970,7 @@ def normalize_organizations(person: dict) -> list[dict]:
                     "old": title,
                     "new": fixed,
                     "confidence": 0.70,
-                    "reason": "oprava veľkosti písmen (pozícia)",
+                    "reason": "fix letter casing (job title)",
                 })
 
     return changes

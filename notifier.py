@@ -59,19 +59,19 @@ def generate_run_summary(
     """Generate a human-readable summary of an auto-mode run."""
     lines = [
         "═══════════════════════════════════════════",
-        f"  AUTOMATICKÝ BEH — {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+        f"  AUTOMATIC RUN — {datetime.now().strftime('%Y-%m-%d %H:%M')}",
         "═══════════════════════════════════════════",
-        f"  Aplikované:  {changes_applied}",
-        f"  Zlyhané:     {changes_failed}",
-        f"  Preskočené:  {changes_skipped}",
-        f"  Na review:   {len(skipped_for_review)}",
+        f"  Applied:     {changes_applied}",
+        f"  Failed:      {changes_failed}",
+        f"  Skipped:     {changes_skipped}",
+        f"  For review:  {len(skipped_for_review)}",
     ]
 
     if ai_stats:
         lines.append(
             f"  AI tokeny:   {ai_stats.get('total_input_tokens', 0) + ai_stats.get('total_output_tokens', 0)}"
         )
-        lines.append(f"  AI náklady:  ${ai_stats.get('estimated_cost_usd', 0):.3f}")
+        lines.append(f"  AI cost:     ${ai_stats.get('estimated_cost_usd', 0):.3f}")
 
     lines.append("═══════════════════════════════════════════")
 

@@ -96,32 +96,32 @@ def format_workplan_summary(workplan: dict) -> str:
     s = workplan["summary"]
     lines = [
         "═══════════════════════════════════════════",
-        "          PLÁN PRÁCE — SÚHRN",
+        "          WORKPLAN — SUMMARY",
         "═══════════════════════════════════════════",
         "",
-        f"  Kontakty s nálezmi:  {s['total_contacts_with_changes']}",
-        f"  Celkom zmien:        {s['total_changes']}",
-        f"  Počet batchov:       {s['total_batches']}  (po {s['batch_size']} kontaktov)",
+        f"  Contacts with findings:  {s['total_contacts_with_changes']}",
+        f"  Total changes:           {s['total_changes']}",
+        f"  Batches:                 {s['total_batches']}  ({s['batch_size']} contacts each)",
         "",
-        "  Zmeny podľa istoty:",
+        "  Changes by confidence:",
         f"    🟢 HIGH (90%+):    {s['by_confidence']['high']}",
         f"    🟡 MEDIUM (60-90%): {s['by_confidence']['medium']}",
         f"    🔴 LOW (<60%):     {s['by_confidence']['low']}",
         "",
-        "  Zmeny podľa typu:",
+        "  Changes by type:",
     ]
 
     for field_type, count in sorted(s["by_field_type"].items(), key=lambda x: -x[1]):
         if count > 0:
             label_map = {
-                "names": "Mená",
-                "phones": "Telefóny",
-                "emails": "Emaily",
-                "addresses": "Adresy",
-                "organizations": "Organizácie",
-                "enrichment_notes": "Z poznámok",
-                "enrichment_email": "Z emailu",
-                "other": "Ostatné",
+                "names": "Names",
+                "phones": "Phones",
+                "emails": "Emails",
+                "addresses": "Addresses",
+                "organizations": "Organizations",
+                "enrichment_notes": "From notes",
+                "enrichment_email": "From email",
+                "other": "Other",
             }
             label = label_map.get(field_type, field_type)
             lines.append(f"    {label:20s} {count}")
@@ -130,17 +130,17 @@ def format_workplan_summary(workplan: dict) -> str:
     info = s.get("info_items", {})
     if info.get("duplicates") or info.get("invalid"):
         lines.append("")
-        lines.append("  Informačné nálezy:")
+        lines.append("  Info findings:")
         if info.get("duplicates"):
-            lines.append(f"    Duplicitné hodnoty v kontaktoch: {info['duplicates']}")
+            lines.append(f"    Duplicate values within contacts: {info['duplicates']}")
         if info.get("invalid"):
-            lines.append(f"    Nevalidné hodnoty: {info['invalid']}")
+            lines.append(f"    Invalid values: {info['invalid']}")
 
     # Duplicates
     dupes = workplan.get("duplicates", [])
     if dupes:
         lines.append("")
-        lines.append(f"  🔍 Potenciálne duplikáty: {len(dupes)} skupín")
+        lines.append(f"  🔍 Potential duplicates: {len(dupes)} groups")
 
     lines.append("")
     lines.append("═══════════════════════════════════════════")

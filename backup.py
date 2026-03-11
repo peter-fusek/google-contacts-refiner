@@ -24,27 +24,27 @@ def create_backup(client: PeopleAPIClient) -> Path:
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     backup_path = DATA_DIR / f"backup_{timestamp}.json"
 
-    print("📦 Zálohujem všetky kontakty...")
+    print("📦 Backing up all contacts...")
     print()
 
     # ── Fetch all contacts ─────────────────────────────────────────
     def progress(fetched, total):
-        print(f"\r   Stiahnuté: {fetched} / ~{total}  ", end="", flush=True)
+        print(f"\r   Fetched: {fetched} / ~{total}  ", end="", flush=True)
 
     contacts = client.get_all_contacts(
         person_fields=PERSON_FIELDS,
         progress_callback=progress,
     )
     print()
-    print(f"   ✅ Stiahnutých kontaktov: {len(contacts)}")
+    print(f"   ✅ Contacts fetched: {len(contacts)}")
 
     # ── Fetch all contact groups ──────────────────────────────────
-    print("   Sťahujem contact groups/labels...")
+    print("   Fetching contact groups/labels...")
     groups = client.get_all_contact_groups()
     print(f"   ✅ Contact groups: {len(groups)}")
 
     # ── Fetch group memberships ───────────────────────────────────
-    print("   Sťahujem členov skupín...")
+    print("   Fetching group members...")
     group_members = {}
     for g in groups:
         rn = g.get("resourceName", "")
@@ -53,7 +53,7 @@ def create_backup(client: PeopleAPIClient) -> Path:
                 members = client.get_contact_group_members(rn)
                 group_members[rn] = members
             except Exception as e:
-                print(f"   ⚠️  Nepodarilo sa načítať členov {g.get('name', rn)}: {e}")
+                print(f"   ⚠️  Failed to load members of {g.get('name', rn)}: {e}")
                 group_members[rn] = []
 
     # ── Build backup structure ────────────────────────────────────
@@ -71,23 +71,23 @@ def create_backup(client: PeopleAPIClient) -> Path:
     }
 
     # ── Write backup ──────────────────────────────────────────────
-    print(f"   Zapisujem zálohu do {backup_path}...")
+    print(f"   Writing backup to {backup_path}...")
     with open(backup_path, "w", encoding="utf-8") as f:
         json.dump(backup_data, f, ensure_ascii=False, indent=2)
 
     file_size = backup_path.stat().st_size
-    print(f"   ✅ Záloha uložená: {file_size / 1024 / 1024:.1f} MB")
+    print(f"   ✅ Backup saved: {file_size / 1024 / 1024:.1f} MB")
 
     # ── Verify backup ─────────────────────────────────────────────
-    print("   Overujem integritu zálohy...")
+    print("   Verifying backup integrity...")
     if verify_backup(backup_path, len(contacts)):
         print("   ✅ Integrita OK")
     else:
-        print("   ❌ CHYBA integrity! Záloha môže byť poškodená!")
+        print("   ❌ Integrity ERROR! Backup may be corrupted!")
         sys.exit(1)
 
     print()
-    print(f"✅ Záloha hotová: {backup_path}")
+    print(f"✅ Backup complete: {backup_path}")
     return backup_path
 
 
@@ -108,28 +108,28 @@ def verify_backup(backup_path: Path, expected_count: int) -> bool:
 
         # Check count
         if len(contacts) != expected_count:
-            print(f"   ⚠️  Počet kontaktov v zálohe ({len(contacts)}) != očakávaný ({expected_count})")
+            print(f"   ⚠️  Contact count in backup ({len(contacts)}) != expected ({expected_count})")
             return False
 
         # Check each contact has resourceName
         missing_rn = [i for i, c in enumerate(contacts) if not c.get("resourceName")]
         if missing_rn:
-            print(f"   ⚠️  {len(missing_rn)} kontaktov bez resourceName")
+            print(f"   ⚠️  {len(missing_rn)} contacts without resourceName")
             return False
 
         # Check metadata
         meta = data.get("metadata", {})
         if meta.get("total_contacts") != expected_count:
-            print(f"   ⚠️  Metadata total_contacts ({meta.get('total_contacts')}) != skutočnosť ({expected_count})")
+            print(f"   ⚠️  Metadata total_contacts ({meta.get('total_contacts')}) != actual ({expected_count})")
             return False
 
         return True
 
     except json.JSONDecodeError as e:
-        print(f"   ❌ Nevalidný JSON: {e}")
+        print(f"   ❌ Invalid JSON: {e}")
         return False
     except Exception as e:
-        print(f"   ❌ Chyba pri overovaní: {e}")
+        print(f"   ❌ Verification error: {e}")
         return False
 
 
@@ -165,7 +165,7 @@ def restore_contact_from_backup(client: PeopleAPIClient, backup_data: dict, reso
             break
 
     if not backup_contact:
-        print(f"   ❌ Kontakt {resource_name} nie je v zálohe")
+        print(f"   ❌ Contact {resource_name} not in backup")
         return False
 
     try:

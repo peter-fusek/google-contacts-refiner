@@ -105,7 +105,7 @@ def find_duplicates(
                             ],
                             "match_type": "phone",
                             "confidence": 0.90,
-                            "detail": f"rovnaké tel. číslo (…{digits[-4:]})",
+                            "detail": f"same phone number (…{digits[-4:]})",
                         })
 
     # ── Email-based duplicates ────────────────────────────────────
@@ -127,7 +127,7 @@ def find_duplicates(
                             ],
                             "match_type": "email",
                             "confidence": 0.90,
-                            "detail": f"rovnaký email ({email})",
+                            "detail": f"same email ({email})",
                         })
 
     # ── Name-based fuzzy duplicates ───────────────────────────────
@@ -177,7 +177,7 @@ def find_duplicates(
                         ],
                         "match_type": "name",
                         "confidence": ratio / 100.0,
-                        "detail": f"podobné meno (zhoda {ratio:.0f}%)",
+                        "detail": f"similar name (match {ratio:.0f}%)",
                     })
 
     if progress_callback:
@@ -192,10 +192,10 @@ def find_duplicates(
 def format_duplicates(groups: list[dict]) -> str:
     """Format duplicate groups for display."""
     if not groups:
-        return "✅ Žiadne potenciálne duplikáty nenájdené."
+        return "✅ No potential duplicates found."
 
     lines = [
-        f"🔍 Nájdených {len(groups)} potenciálnych skupín duplikátov:",
+        f"🔍 Found {len(groups)} potential duplicate groups:",
         "",
     ]
 
@@ -206,9 +206,9 @@ def format_duplicates(groups: list[dict]) -> str:
         detail = group["detail"]
 
         lines.append(f"  [{i}] {names}")
-        lines.append(f"      Typ: {match_type} | Istota: {conf_pct} | {detail}")
+        lines.append(f"      Type: {match_type} | Confidence: {conf_pct} | {detail}")
         lines.append("")
 
-    lines.append("ℹ️  Duplikáty nie sú automaticky zlúčené. Skontrolujte a zlúčte manuálne v Google Contacts.")
+    lines.append("ℹ️  Duplicates are not merged automatically. Review and merge manually in Google Contacts.")
 
     return "\n".join(lines)

@@ -27,14 +27,14 @@ def _get_credentials_cloud() -> Credentials:
     client = secretmanager.SecretManagerServiceClient()
     name = f"projects/{GCP_PROJECT}/secrets/contacts-refresh-token/versions/latest"
 
-    print("🔑 Načítavam token zo Secret Manager...")
+    print("🔑 Loading token from Secret Manager...")
     response = client.access_secret_version(request={"name": name})
     token_data = json.loads(response.payload.data.decode())
     creds = Credentials.from_authorized_user_info(token_data, SCOPES)
 
     # Refresh if expired
     if creds.expired and creds.refresh_token:
-        print("🔄 Obnovujem token...")
+        print("🔄 Refreshing token...")
         creds.refresh(Request())
 
     return creds
@@ -67,26 +67,26 @@ def authenticate(force_new: bool = False) -> Credentials:
 
     # Refresh or re-authenticate
     if creds and creds.expired and creds.refresh_token:
-        print("🔄 Obnovujem token...")
+        print("🔄 Refreshing token...")
         try:
             creds.refresh(Request())
         except Exception as e:
-            print(f"⚠️  Nepodarilo sa obnoviť token: {e}")
+            print(f"⚠️  Failed to refresh token: {e}")
             creds = None
 
     if not creds or not creds.valid:
         if not CREDENTIALS_FILE or not CREDENTIALS_FILE.exists():
-            print(f"❌ Súbor {CREDENTIALS_FILE} neexistuje!")
+            print(f"❌ File {CREDENTIALS_FILE} does not exist!")
             print()
-            print("Postup na získanie credentials.json:")
-            print("1. Choď na https://console.cloud.google.com/apis/credentials")
-            print("2. Vytvor OAuth 2.0 Client ID (typ: Desktop application)")
-            print("3. Stiahni JSON a ulož ako credentials.json do priečinka projektu")
-            print("4. Zapni People API: https://console.cloud.google.com/apis/library/people.googleapis.com")
+            print("How to get credentials.json:")
+            print("1. Go to https://console.cloud.google.com/apis/credentials")
+            print("2. Create OAuth 2.0 Client ID (type: Desktop application)")
+            print("3. Download JSON and save as credentials.json in the project directory")
+            print("4. Enable People API: https://console.cloud.google.com/apis/library/people.googleapis.com")
             sys.exit(1)
 
-        print("🔐 Otváram prehliadač pre Google autorizáciu...")
-        print("   (Ak sa prehliadač neotvorí, skopíruj URL z terminálu)")
+        print("🔐 Opening browser for Google authorization...")
+        print("   (If browser doesn't open, copy the URL from terminal)")
         print()
 
         flow = InstalledAppFlow.from_client_secrets_file(
@@ -95,13 +95,13 @@ def authenticate(force_new: bool = False) -> Credentials:
         creds = flow.run_local_server(
             port=0,
             prompt="consent",
-            success_message="✅ Autorizácia úspešná! Môžeš zavrieť toto okno.",
+            success_message="✅ Authorization successful! You can close this window.",
         )
 
         # Save token for next time
         TOKEN_FILE.write_text(creds.to_json())
         TOKEN_FILE.chmod(0o600)
-        print(f"✅ Token uložený do {TOKEN_FILE}")
+        print(f"✅ Token saved to {TOKEN_FILE}")
 
     return creds
 
@@ -113,7 +113,7 @@ def test_connection(creds: Credentials) -> bool:
     """
     from googleapiclient.discovery import build
 
-    print("🧪 Testujem pripojenie k Google People API...")
+    print("🧪 Testing connection to Google People API...")
 
     try:
         service = build("people", "v1", credentials=creds)
@@ -126,14 +126,14 @@ def test_connection(creds: Credentials) -> bool:
         connections = result.get("connections", [])
         total = result.get("totalPeople", 0) or result.get("totalItems", 0) or len(connections)
 
-        print(f"✅ Pripojenie funguje! Celkom kontaktov: ~{total}")
+        print(f"✅ Connection works! Total contacts: ~{total}")
         print()
 
         if connections:
-            print("Prvých 5 kontaktov (sanity check):")
+            print("First 5 contacts (sanity check):")
             for i, person in enumerate(connections[:5], 1):
                 names = person.get("names", [{}])
-                name = names[0].get("displayName", "(bez mena)") if names else "(bez mena)"
+                name = names[0].get("displayName", "(no name)") if names else "(no name)"
                 emails = person.get("emailAddresses", [])
                 email = emails[0].get("value", "") if emails else ""
                 print(f"  {i}. {name} {f'<{email}>' if email else ''}")
@@ -142,7 +142,7 @@ def test_connection(creds: Credentials) -> bool:
         return True
 
     except Exception as e:
-        print(f"❌ Chyba pri testovaní: {e}")
+        print(f"❌ Error during testing: {e}")
         return False
 
 
@@ -181,20 +181,20 @@ def authenticate_for_activity(account_email: str, force_new: bool = False) -> Cr
         creds = Credentials.from_authorized_user_file(str(token_path), ACTIVITY_SCOPES)
 
     if creds and creds.expired and creds.refresh_token:
-        print(f"🔄 Obnovujem activity token pre {account_email}...")
+        print(f"🔄 Refreshing activity token for {account_email}...")
         try:
             creds.refresh(Request())
         except Exception as e:
-            print(f"⚠️  Nepodarilo sa obnoviť token: {e}")
+            print(f"⚠️  Failed to refresh token: {e}")
             creds = None
 
     if not creds or not creds.valid:
         if not CREDENTIALS_FILE or not CREDENTIALS_FILE.exists():
-            print(f"❌ Súbor {CREDENTIALS_FILE} neexistuje!")
+            print(f"❌ File {CREDENTIALS_FILE} does not exist!")
             sys.exit(1)
 
-        print(f"🔐 Otváram prehliadač pre {account_email} (Gmail + Calendar)...")
-        print(f"   Prihláste sa ako: {account_email}")
+        print(f"🔐 Opening browser for {account_email} (Gmail + Calendar)...")
+        print(f"   Sign in as: {account_email}")
         print()
 
         flow = InstalledAppFlow.from_client_secrets_file(
@@ -204,12 +204,12 @@ def authenticate_for_activity(account_email: str, force_new: bool = False) -> Cr
             port=0,
             prompt="consent",
             login_hint=account_email,
-            success_message="✅ Autorizácia úspešná! Môžeš zavrieť toto okno.",
+            success_message="✅ Authorization successful! You can close this window.",
         )
 
         token_path.write_text(creds.to_json())
         token_path.chmod(0o600)
-        print(f"✅ Token uložený do {token_path}")
+        print(f"✅ Token saved to {token_path}")
 
     return creds
 
@@ -229,13 +229,13 @@ def _get_activity_credentials_cloud(account: dict) -> Credentials:
     client = secretmanager.SecretManagerServiceClient()
     name = f"projects/{GCP_PROJECT}/secrets/{secret_name}/versions/latest"
 
-    print(f"🔑 Načítavam activity token pre {account['email']}...")
+    print(f"🔑 Loading activity token for {account['email']}...")
     response = client.access_secret_version(request={"name": name})
     token_data = json.loads(response.payload.data.decode())
     creds = Credentials.from_authorized_user_info(token_data, ACTIVITY_SCOPES)
 
     if creds.expired and creds.refresh_token:
-        print("🔄 Obnovujem token...")
+        print("🔄 Refreshing token...")
         creds.refresh(Request())
 
     return creds

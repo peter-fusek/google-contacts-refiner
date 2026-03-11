@@ -51,16 +51,16 @@ def _get_ai_analyzer():
     try:
         from ai_analyzer import AIAnalyzer
         ai = AIAnalyzer()
-        print("🤖 Claude AI aktívny")
+        print("🤖 Claude AI active")
         return ai
     except Exception as e:
-        print(f"ℹ️  AI nedostupné: {e}")
+        print(f"ℹ️  AI not available: {e}")
         return None
 
 
 def cmd_auth():
     """Authenticate and test connection."""
-    print("🔐 Google Contacts Cleanup — Autentifikácia")
+    print("🔐 Google Contacts Cleanup — Authentication")
     print("=" * 50)
     print()
 
@@ -68,15 +68,15 @@ def cmd_auth():
     success = test_connection(creds)
 
     if success:
-        print("✅ Všetko je pripravené! Pokračuj so 'python main.py backup'.")
+        print("✅ All set! Continue with 'python main.py backup'.")
     else:
-        print("❌ Niečo nie je v poriadku. Skontroluj credentials.json a skús znova.")
+        print("❌ Something went wrong. Check credentials.json and try again.")
         sys.exit(1)
 
 
 def cmd_backup():
     """Create a full backup of all contacts."""
-    print("📦 Google Contacts Cleanup — Záloha")
+    print("📦 Google Contacts Cleanup — Backup")
     print("=" * 50)
     print()
 
@@ -85,66 +85,66 @@ def cmd_backup():
     backup_path = create_backup(client)
 
     print()
-    print(f"Pokračuj so 'python main.py analyze'.")
+    print(f"Continue with 'python main.py analyze'.")
 
 
 def cmd_analyze():
     """Analyze contacts, detect issues, generate workplan."""
-    print("🔍 Google Contacts Cleanup — Analýza")
+    print("🔍 Google Contacts Cleanup — Analysis")
     print("=" * 50)
     print()
 
     # Load latest backup
     backup_path = get_latest_backup()
     if not backup_path:
-        print("❌ Žiadna záloha! Najprv spusti 'python main.py backup'.")
+        print("❌ No backup found! Run 'python main.py backup' first.")
         sys.exit(1)
 
-    print(f"Používam zálohu: {backup_path.name}")
+    print(f"Using backup: {backup_path.name}")
     backup_data = load_backup(backup_path)
     contacts = backup_data["contacts"]
     groups = backup_data.get("contact_groups", [])
     group_members = backup_data.get("group_members", {})
 
-    print(f"Celkom kontaktov: {len(contacts)}")
+    print(f"Total contacts: {len(contacts)}")
     print()
 
     # ── Initialize AI (if configured) ──────────────────────────────
     ai = _get_ai_analyzer()
 
     # ── Analyze contacts ──────────────────────────────────────────
-    print("📊 Analyzujem kontakty...")
+    print("📊 Analyzing contacts...")
 
     def progress(done, total):
-        print(f"\r   Analyzované: {done}/{total}  ", end="", flush=True)
+        print(f"\r   Analyzed: {done}/{total}  ", end="", flush=True)
 
     results = analyze_all_contacts(contacts, progress_callback=progress, ai_analyzer=ai)
     print()
-    print(f"   Kontakty s nálezmi: {len(results)}")
+    print(f"   Contacts with findings: {len(results)}")
 
     if ai:
         stats = ai.get_usage_stats()
-        print(f"   🤖 AI: {stats['total_input_tokens'] + stats['total_output_tokens']} tokenov, ~${stats['estimated_cost_usd']:.3f}")
+        print(f"   🤖 AI: {stats['total_input_tokens'] + stats['total_output_tokens']} tokens, ~${stats['estimated_cost_usd']:.3f}")
     print()
 
     # ── Find duplicates ───────────────────────────────────────────
-    print("🔍 Hľadám duplikáty...")
+    print("🔍 Finding duplicates...")
     duplicates = find_duplicates(contacts)
-    print(f"   Potenciálne duplikáty: {len(duplicates)} skupín")
+    print(f"   Potential duplicates: {len(duplicates)} groups")
     print()
 
     # ── Analyze labels ────────────────────────────────────────────
-    print("🏷  Analyzujem labels...")
+    print("🏷  Analyzing labels...")
     labels_analysis = analyze_labels(groups, group_members, contacts)
     print(f"   Labels: {len(labels_analysis['labels'])}")
-    print(f"   Bez labelu: {labels_analysis['unlabeled_contacts']} kontaktov")
-    print(f"   Návrhy: {len(labels_analysis['suggestions'])}")
+    print(f"   Unlabeled: {labels_analysis['unlabeled_contacts']} contacts")
+    print(f"   Suggestions: {len(labels_analysis['suggestions'])}")
     print()
 
     # ── Generate workplan ─────────────────────────────────────────
-    print("📝 Generujem plán práce...")
+    print("📝 Generating workplan...")
     workplan_path = generate_workplan(results, duplicates, labels_analysis)
-    print(f"   Uložený: {workplan_path}")
+    print(f"   Saved: {workplan_path}")
     print()
 
     # ── Display summary ───────────────────────────────────────────
@@ -163,22 +163,22 @@ def cmd_analyze():
     print(format_labels_report(labels_analysis))
     print()
 
-    print(f"Pokračuj so 'python main.py fix' pre interaktívne opravy.")
+    print(f"Continue with 'python main.py fix' for interactive fixes.")
 
 
 def cmd_fix(auto_mode=False, confidence_threshold=0.90, dry_run=False):
     """Apply fixes interactively (or automatically in auto-mode)."""
     if auto_mode:
-        print("🤖 Google Contacts Cleanup — Automatické opravy")
+        print("🤖 Google Contacts Cleanup — Automatic Fixes")
     else:
-        print("🔧 Google Contacts Cleanup — Opravy")
+        print("🔧 Google Contacts Cleanup — Fixes")
     print("=" * 50)
     print()
 
     # Load workplan
     workplan_path = get_latest_workplan()
     if not workplan_path:
-        print("❌ Žiadny workplan! Najprv spusti 'python main.py analyze'.")
+        print("❌ No workplan found! Run 'python main.py analyze' first.")
         sys.exit(1)
 
     workplan = load_workplan(workplan_path)
@@ -187,20 +187,20 @@ def cmd_fix(auto_mode=False, confidence_threshold=0.90, dry_run=False):
     print()
 
     if dry_run:
-        print("ℹ️  DRY RUN — žiadne zmeny nebudú aplikované.")
+        print("ℹ️  DRY RUN — no changes will be applied.")
         return
 
     # Confirm (skip in auto mode)
     if not auto_mode:
-        print("Chceš pokračovať s opravami? [y/n]: ", end="")
+        print("Continue with fixes? [y/n]: ", end="")
         try:
             answer = input().strip().lower()
         except (EOFError, KeyboardInterrupt):
-            print("\nZrušené.")
+            print("\nCancelled.")
             return
 
         if answer not in ("y", "yes", "a", "ano"):
-            print("Zrušené.")
+            print("Cancelled.")
             return
 
     # ── Setup ─────────────────────────────────────────────────────
@@ -210,10 +210,10 @@ def cmd_fix(auto_mode=False, confidence_threshold=0.90, dry_run=False):
 
     # We need fresh contact data for etags
     print()
-    print("📡 Sťahujem aktuálne kontakty pre etag synchronizáciu...")
+    print("📡 Fetching current contacts for etag sync...")
 
     def progress(fetched, total):
-        print(f"\r   Stiahnuté: {fetched} / ~{total}  ", end="", flush=True)
+        print(f"\r   Fetched: {fetched} / ~{total}  ", end="", flush=True)
 
     current_contacts = client.get_all_contacts(progress_callback=progress)
     print()
@@ -239,7 +239,7 @@ def cmd_fix(auto_mode=False, confidence_threshold=0.90, dry_run=False):
     print(f"Session ID: {session_id}")
     print(f"Changelog:  {changelog.log_path}")
     if auto_mode:
-        print(f"Režim:      automatický (confidence >= {confidence_threshold})")
+        print(f"Mode:       automatic (confidence >= {confidence_threshold})")
     print()
 
     # ── Process batches ───────────────────────────────────────────
@@ -276,12 +276,12 @@ def cmd_fix(auto_mode=False, confidence_threshold=0.90, dry_run=False):
         print(summary)
 
         if review_path:
-            print(f"\n📋 Review súbor: {review_path}")
+            print(f"\n📋 Review file: {review_path}")
 
         # Send macOS notification
-        msg = f"✅ {result.get('success', 0)} zmien"
+        msg = f"✅ {result.get('success', 0)} changes"
         if skipped:
-            msg += f", 📋 {len(skipped)} na review"
+            msg += f", 📋 {len(skipped)} for review"
         send_macos_notification("Contacts Refiner", msg)
 
 
@@ -296,7 +296,7 @@ def cmd_ai_review(resume=False) -> int:
     checkpoint = {}
     if resume and AI_REVIEW_CHECKPOINT.exists():
         checkpoint = json.loads(AI_REVIEW_CHECKPOINT.read_text(encoding="utf-8"))
-        print(f"Pokračujem od pozície {checkpoint.get('last_reviewed', 0)}")
+        print(f"Resuming from position {checkpoint.get('last_reviewed', 0)}")
 
     # Load workplan
     workplan_path = checkpoint.get("workplan_path")
@@ -306,7 +306,7 @@ def cmd_ai_review(resume=False) -> int:
         workplan_path = get_latest_workplan()
 
     if not workplan_path or not workplan_path.exists():
-        print("❌ Žiadny workplan!")
+        print("❌ No workplan found!")
         return
 
     workplan = load_workplan(workplan_path)
@@ -315,7 +315,7 @@ def cmd_ai_review(resume=False) -> int:
     # Load backup for full contact data (AI needs context)
     backup_path = get_latest_backup()
     if not backup_path:
-        print("❌ Žiadna záloha!")
+        print("❌ No backup found!")
         return
 
     backup_data = load_backup(backup_path)
@@ -363,20 +363,20 @@ def cmd_ai_review(resume=False) -> int:
         else:
             medium_items.append(item)
 
-    print(f"Kontakty s MEDIUM zmenami: {len(all_medium_items)}")
+    print(f"Contacts with MEDIUM changes: {len(all_medium_items)}")
     if skipped_from_history:
-        print(f"   Preskočené (už reviewed): {skipped_from_history}")
-    print(f"   Na review: {len(medium_items)}")
+        print(f"   Skipped (already reviewed): {skipped_from_history}")
+    print(f"   For review: {len(medium_items)}")
 
     if not medium_items:
-        print("ℹ️  Žiadne MEDIUM zmeny na AI review.")
+        print("ℹ️  No MEDIUM changes for AI review.")
         _cleanup_ai_checkpoint()
         return 0
 
     # Initialize AI
     ai = _get_ai_analyzer()
     if not ai:
-        print("❌ AI nie je dostupné!")
+        print("❌ AI not available!")
         return 0
 
     # Process in batches of AI_MAX_CONTACTS_PER_BATCH
@@ -460,11 +460,11 @@ def cmd_ai_review(resume=False) -> int:
     # Print AI stats
     stats = ai.get_usage_stats()
     print()
-    print(f"🤖 AI review hotový:")
+    print(f"🤖 AI review complete:")
     print(f"   Promoted (MEDIUM→HIGH): {promoted}")
     print(f"   Demoted (MEDIUM→LOW):   {demoted}")
-    print(f"   Tokeny: {stats['total_input_tokens'] + stats['total_output_tokens']}")
-    print(f"   Cena:   ~${stats['estimated_cost_usd']:.3f}")
+    print(f"   Tokens: {stats['total_input_tokens'] + stats['total_output_tokens']}")
+    print(f"   Cost:   ~${stats['estimated_cost_usd']:.3f}")
 
     # Cleanup checkpoint
     _cleanup_ai_checkpoint()
@@ -472,7 +472,7 @@ def cmd_ai_review(resume=False) -> int:
     # Log AI learnings count
     learnings = ai.get_new_learnings()
     if learnings:
-        print(f"   Naučené vzory: {len(learnings)}")
+        print(f"   Learned patterns: {len(learnings)}")
 
     return promoted
 
@@ -485,14 +485,14 @@ def _cleanup_ai_checkpoint():
 
 def cmd_verify():
     """Verify changes by comparing current state with backup."""
-    print("✅ Google Contacts Cleanup — Verifikácia")
+    print("✅ Google Contacts Cleanup — Verification")
     print("=" * 50)
     print()
 
     # Load backup
     backup_path = get_latest_backup()
     if not backup_path:
-        print("❌ Žiadna záloha!")
+        print("❌ No backup found!")
         sys.exit(1)
 
     backup_data = load_backup(backup_path)
@@ -501,7 +501,7 @@ def cmd_verify():
     # Load changelog
     changelog_path = find_latest_changelog()
     if not changelog_path:
-        print("❌ Žiadny changelog!")
+        print("❌ No changelog found!")
         sys.exit(1)
 
     entries = load_changelog(changelog_path)
@@ -511,10 +511,10 @@ def cmd_verify():
     creds = authenticate()
     client = PeopleAPIClient(creds)
 
-    print("📡 Sťahujem aktuálne kontakty...")
+    print("📡 Fetching current contacts...")
 
     def progress(fetched, total):
-        print(f"\r   Stiahnuté: {fetched} / ~{total}  ", end="", flush=True)
+        print(f"\r   Fetched: {fetched} / ~{total}  ", end="", flush=True)
 
     current_contacts = client.get_all_contacts(progress_callback=progress)
     print()
@@ -528,7 +528,7 @@ def cmd_verify():
 
     change_entries = [e for e in entries if "field" in e and "old" in e]
 
-    print(f"Changelog má {len(change_entries)} zmien na {cl_summary['contacts_modified']} kontaktoch")
+    print(f"Changelog has {len(change_entries)} changes on {cl_summary['contacts_modified']} contacts")
     print()
 
     # Verify each changed contact
@@ -543,21 +543,21 @@ def cmd_verify():
             changed_count += 1
         else:
             missing_count += 1
-            print(f"   ⚠️  Kontakt {rn} už neexistuje!")
+            print(f"   ⚠️  Contact {rn} no longer exists!")
 
     total_contacts = len(current_contacts)
 
     print("═══════════════════════════════════════════")
-    print("          VERIFIKÁCIA")
+    print("          VERIFICATION")
     print("═══════════════════════════════════════════")
-    print(f"  Záloha:              {backup_path.name}")
-    print(f"  Kontakty v zálohe:   {len(backup_contacts)}")
-    print(f"  Aktuálne kontakty:   {total_contacts}")
-    print(f"  Zmenené (changelog): {cl_summary['contacts_modified']}")
-    print(f"  Overené:             {changed_count}")
-    print(f"  Chýbajúce:           {missing_count}")
+    print(f"  Backup:              {backup_path.name}")
+    print(f"  Contacts in backup:  {len(backup_contacts)}")
+    print(f"  Current contacts:    {total_contacts}")
+    print(f"  Changed (changelog): {cl_summary['contacts_modified']}")
+    print(f"  Verified:            {changed_count}")
+    print(f"  Missing:             {missing_count}")
     print()
-    print(f"  Zmeny podľa istoty:")
+    print(f"  Changes by confidence:")
     for conf, count in cl_summary["by_confidence"].items():
         print(f"    {conf}: {count}")
     print("═══════════════════════════════════════════")
@@ -571,14 +571,14 @@ def cmd_rollback():
 
     changelog_path = find_latest_changelog()
     if not changelog_path:
-        print("❌ Žiadny changelog na rollback!")
+        print("❌ No changelog for rollback!")
         sys.exit(1)
 
     entries = load_changelog(changelog_path)
     change_entries = [e for e in entries if "field" in e and "old" in e]
 
     if not change_entries:
-        print("ℹ️  Changelog neobsahuje žiadne zmeny na rollback.")
+        print("ℹ️  Changelog contains no changes to rollback.")
         return
 
     # Reverse order for rollback
@@ -591,23 +591,23 @@ def cmd_rollback():
         by_contact.setdefault(rn, []).append(entry)
 
     print(f"Changelog: {changelog_path.name}")
-    print(f"Zmien na rollback: {len(change_entries)}")
-    print(f"Kontaktov na rollback: {len(by_contact)}")
+    print(f"Changes to rollback: {len(change_entries)}")
+    print(f"Contacts to rollback: {len(by_contact)}")
     print()
 
-    print("POZOR: Rollback vráti zmeny v opačnom poradí.")
-    print("       Pre úplný rollback použi zálohu (backup).")
+    print("WARNING: Rollback reverts changes in reverse order.")
+    print("         For a full rollback, use a backup instead.")
     print()
-    print("Pokračovať? [y/n]: ", end="")
+    print("Continue? [y/n]: ", end="")
 
     try:
         answer = input().strip().lower()
     except (EOFError, KeyboardInterrupt):
-        print("\nZrušené.")
+        print("\nCancelled.")
         return
 
     if answer not in ("y", "yes", "a", "ano"):
-        print("Zrušené.")
+        print("Cancelled.")
         return
 
     # Connect and rollback
@@ -615,10 +615,10 @@ def cmd_rollback():
     client = PeopleAPIClient(creds)
 
     print()
-    print("📡 Sťahujem aktuálne kontakty...")
+    print("📡 Fetching current contacts...")
 
     def progress(fetched, total):
-        print(f"\r   Stiahnuté: {fetched} / ~{total}  ", end="", flush=True)
+        print(f"\r   Fetched: {fetched} / ~{total}  ", end="", flush=True)
 
     current_contacts = client.get_all_contacts(progress_callback=progress)
     print()
@@ -632,7 +632,7 @@ def cmd_rollback():
     for rn, entries_for_contact in by_contact.items():
         person = contacts_lookup.get(rn)
         if not person:
-            print(f"   ⚠️  {rn} — kontakt nenájdený, preskakujem")
+            print(f"   ⚠️  {rn} — contact not found, skipping")
             failed += 1
             continue
 
@@ -685,17 +685,17 @@ def cmd_rollback():
 
 def cmd_resume():
     """Resume from last checkpoint."""
-    print("▶️  Google Contacts Cleanup — Pokračovanie")
+    print("▶️  Google Contacts Cleanup — Resume")
     print("=" * 50)
     print()
 
     if not RecoveryManager.has_pending_session():
-        print("ℹ️  Žiadna nedokončená relácia.")
+        print("ℹ️  No pending session.")
         return
 
     checkpoint = RecoveryManager.load_checkpoint()
     if not checkpoint:
-        print("ℹ️  Nepodarilo sa načítať checkpoint.")
+        print("ℹ️  Failed to load checkpoint.")
         return
 
     print(RecoveryManager.format_checkpoint_info(checkpoint))
@@ -704,32 +704,32 @@ def cmd_resume():
     # In cloud environment, auto-approve resume
     from config import ENVIRONMENT
     if ENVIRONMENT != "cloud":
-        print("Pokračovať od posledného checkpointu? [y/n/r pre restart]: ", end="")
+        print("Resume from last checkpoint? [y/n/r to restart]: ", end="")
         try:
             answer = input().strip().lower()
         except (EOFError, KeyboardInterrupt):
-            print("\nZrušené.")
+            print("\nCancelled.")
             return
 
         if answer in ("r", "restart"):
             RecoveryManager.clear_checkpoint()
-            print("Checkpoint vymazaný. Spusti 'python main.py fix' pre nový štart.")
+            print("Checkpoint cleared. Run 'python main.py fix' for a fresh start.")
             return
 
         if answer not in ("y", "yes", "a", "ano"):
-            print("Zrušené.")
+            print("Cancelled.")
             return
 
     # Resume
     workplan_path = checkpoint.get("workplan_path")
     if not workplan_path or not Path(workplan_path).exists():
-        print("❌ Workplan súbor neexistuje!")
+        print("❌ Workplan file does not exist!")
         return
 
     workplan = load_workplan(Path(workplan_path))
     start_batch = checkpoint.get("last_completed_batch", 0) + 1
 
-    print(f"Pokračujem od batch {start_batch}...")
+    print(f"Resuming from batch {start_batch}...")
     print()
 
     # Setup
@@ -737,10 +737,10 @@ def cmd_resume():
     creds = authenticate()
     client = PeopleAPIClient(creds)
 
-    print("📡 Sťahujem aktuálne kontakty...")
+    print("📡 Fetching current contacts...")
 
     def progress(fetched, total):
-        print(f"\r   Stiahnuté: {fetched} / ~{total}  ", end="", flush=True)
+        print(f"\r   Fetched: {fetched} / ~{total}  ", end="", flush=True)
 
     current_contacts = client.get_all_contacts(progress_callback=progress)
     print()
@@ -778,7 +778,7 @@ def cmd_info():
 
     # Backups
     backups = list_backups()
-    print(f"📦 Zálohy ({len(backups)}):")
+    print(f"📦 Backups ({len(backups)}):")
     for b in backups[:5]:
         size = b.stat().st_size / 1024 / 1024
         print(f"   {b.name}  ({size:.1f} MB)")
@@ -786,7 +786,7 @@ def cmd_info():
 
     # Workplans
     plans = sorted(DATA_DIR.glob("workplan_*.json"), reverse=True)
-    print(f"📝 Workplany ({len(plans)}):")
+    print(f"📝 Workplans ({len(plans)}):")
     for p in plans[:5]:
         size = p.stat().st_size / 1024
         print(f"   {p.name}  ({size:.0f} KB)")
@@ -794,11 +794,11 @@ def cmd_info():
 
     # Changelogs
     logs = sorted(DATA_DIR.glob("changelog_*.jsonl"), reverse=True)
-    print(f"📜 Changelogy ({len(logs)}):")
+    print(f"📜 Changelogs ({len(logs)}):")
     for l in logs[:5]:
         entries = load_changelog(l)
         changes = sum(1 for e in entries if "field" in e)
-        print(f"   {l.name}  ({changes} zmien)")
+        print(f"   {l.name}  ({changes} changes)")
     print()
 
     # Checkpoint
@@ -807,7 +807,7 @@ def cmd_info():
         if checkpoint:
             print(RecoveryManager.format_checkpoint_info(checkpoint))
     else:
-        print("⏸  Žiadna nedokončená relácia.")
+        print("⏸  No pending session.")
 
 
 def cmd_auth_activity():
@@ -815,7 +815,7 @@ def cmd_auth_activity():
     from config import ACTIVITY_ACCOUNTS
     from auth import authenticate_for_activity
 
-    print("🔐 Activity Tagging — Autentifikácia")
+    print("🔐 Activity Tagging — Authentication")
     print("=" * 50)
     print()
 
@@ -835,10 +835,10 @@ def cmd_auth_activity():
             cal_list = cal.calendarList().list(maxResults=1).execute()
             print(f"✅ Calendar OK")
         except Exception as e:
-            print(f"❌ Chyba: {e}")
+            print(f"❌ Error: {e}")
         print()
 
-    print("✅ Hotovo! Teraz môžeš spustiť 'python main.py tag-activity'")
+    print("✅ Done! Now you can run 'python main.py tag-activity'")
 
 
 def cmd_tag_activity(skip_scan=False, dry_run=False):
@@ -847,26 +847,26 @@ def cmd_tag_activity(skip_scan=False, dry_run=False):
     from auth import authenticate, authenticate_for_activity
     from interaction_scanner import InteractionScanner
 
-    print("🏷  Activity Tagging — Skenovanie a označovanie kontaktov")
+    print("🏷  Activity Tagging — Scanning and labeling contacts")
     print("=" * 50)
     print()
 
     if dry_run:
-        print("ℹ️  DRY RUN — žiadne labely nebudú priradené")
+        print("ℹ️  DRY RUN — no labels will be assigned")
         print()
 
     # Step 1: Get contacts
     creds = authenticate()
     client = PeopleAPIClient(creds)
 
-    print("📡 Sťahujem kontakty...")
+    print("📡 Fetching contacts...")
 
     def progress(fetched, total):
-        print(f"\r   Stiahnuté: {fetched} / ~{total}  ", end="", flush=True)
+        print(f"\r   Fetched: {fetched} / ~{total}  ", end="", flush=True)
 
     contacts = client.get_all_contacts(progress_callback=progress)
     print()
-    print(f"   Celkom kontaktov: {len(contacts)}")
+    print(f"   Total contacts: {len(contacts)}")
     print()
 
     # Step 2: Authenticate activity accounts
@@ -874,13 +874,13 @@ def cmd_tag_activity(skip_scan=False, dry_run=False):
     if not skip_scan:
         for account in ACTIVITY_ACCOUNTS:
             email = account["email"]
-            print(f"🔐 Autentifikujem {email}...")
+            print(f"🔐 Authenticating {email}...")
             try:
                 acreds = authenticate_for_activity(email)
                 account_credentials.append((email, acreds))
                 print(f"   ✅ OK")
             except Exception as e:
-                print(f"   ⚠️  Preskakujem {email}: {e}")
+                print(f"   ⚠️  Skipping {email}: {e}")
         print()
 
     # Step 3: Scan and assign
@@ -1052,8 +1052,8 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Google Contacts Refiner — čistenie a oprava kontaktov",
-        usage="python main.py <príkaz> [možnosti]",
+        description="Google Contacts Refiner — cleanup and fix contacts",
+        usage="python main.py <command> [options]",
     )
     parser.add_argument(
         "command",
@@ -1063,12 +1063,12 @@ def main():
             "verify", "rollback", "resume", "info",
             "auth-activity", "tag-activity", "ltns", "refresh-tables",
         ],
-        help="Príkaz na vykonanie",
+        help="Command to execute",
     )
-    parser.add_argument("--auto", action="store_true", help="Automatický režim (bez interakcie)")
-    parser.add_argument("--confidence", type=float, default=0.90, help="Min. confidence pre auto-apply (default: 0.90)")
-    parser.add_argument("--dry-run", action="store_true", help="Len analýza, žiadne zmeny")
-    parser.add_argument("--skip-scan", action="store_true", help="Preskočiť Gmail/Calendar sken, použiť cache")
+    parser.add_argument("--auto", action="store_true", help="Automatic mode (no interaction)")
+    parser.add_argument("--confidence", type=float, default=0.90, help="Min. confidence for auto-apply (default: 0.90)")
+    parser.add_argument("--dry-run", action="store_true", help="Analysis only, no changes")
+    parser.add_argument("--skip-scan", action="store_true", help="Skip Gmail/Calendar scan, use cache")
     parser.add_argument("--no-prompts", action="store_true", help="Skip AI reconnect prompt generation (LTNS)")
 
     args = parser.parse_args()
@@ -1115,14 +1115,14 @@ def main():
         elif command in simple_commands:
             simple_commands[command]()
         else:
-            print(f"❌ Neznámy príkaz: {command}")
+            print(f"❌ Unknown command: {command}")
             print(__doc__)
             sys.exit(1)
     except KeyboardInterrupt:
-        print("\n\n⏸  Prerušené používateľom.")
+        print("\n\n⏸  Interrupted by user.")
         sys.exit(130)
     except Exception as e:
-        print(f"\n❌ Chyba: {e}")
+        print(f"\n❌ Error: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

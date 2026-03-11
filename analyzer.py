@@ -215,7 +215,7 @@ def summarize_analysis(results: list[dict]) -> dict:
                 summary["by_field_type"]["addresses"] += 1
             elif field.startswith("organizations"):
                 summary["by_field_type"]["organizations"] += 1
-            elif "poznámk" in change.get("reason", "").lower() or "note" in change.get("reason", "").lower():
+            elif "note" in change.get("reason", "").lower() or "poznámk" in change.get("reason", "").lower():
                 summary["by_field_type"]["enrichment_notes"] += 1
             elif "email" in change.get("reason", "").lower():
                 summary["by_field_type"]["enrichment_email"] += 1
@@ -282,8 +282,8 @@ def format_contact_changes(result: dict, index: int = 0) -> str:
     # List info items
     for info in result.get("info", []):
         if info["new"] == "__DUPLICATE__":
-            lines.append(f"  ℹ️  DUPLICITA: {info['field']} = \"{info['old']}\"")
+            lines.append(f"  ℹ️  DUPLICATE: {info['field']} = \"{info['old']}\"")
         elif info["new"] == "__INVALID__":
-            lines.append(f"  ⚠️  NEVALIDNÝ: {info['field']} = \"{info['old']}\"")
+            lines.append(f"  ⚠️  INVALID: {info['field']} = \"{info['old']}\"")
 
     return "\n".join(lines)
