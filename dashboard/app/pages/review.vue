@@ -310,11 +310,18 @@ async function exportDecisions() {
       method: 'POST',
       body: { sessionId: sessionId.value },
     })
-    exportMessage.value = `Exported ${result.exported} decisions (${result.total} total incl. rejections) for pipeline processing.`
+    exportMessage.value = `Exported ${result.exported} decisions for pipeline processing.`
   } catch (err) {
     console.error('Export failed:', err)
   }
 }
+
+// Auto-export when all changes reviewed (100%)
+watch(progressPercent, async (pct) => {
+  if (pct === 100 && allChanges.value.length > 0 && !isDemo.value && !exportMessage.value) {
+    await exportDecisions()
+  }
+})
 
 // Keyboard shortcuts
 function handleKeydown(e: KeyboardEvent) {
@@ -422,11 +429,11 @@ const progressPercent = computed(() => {
           @click="saveToGCS()"
         />
         <UButton
-          label="Export for Pipeline"
-          icon="i-lucide-upload"
+          :label="exportMessage ? 'Exported' : 'Export for Pipeline'"
+          :icon="exportMessage ? 'i-lucide-check' : 'i-lucide-upload'"
           size="sm"
-          color="primary"
-          :disabled="!sessionStats.approved && !sessionStats.edited"
+          :color="exportMessage ? 'success' : 'primary'"
+          :disabled="(!sessionStats.approved && !sessionStats.edited) || !!exportMessage"
           @click="exportDecisions()"
         />
       </div>
