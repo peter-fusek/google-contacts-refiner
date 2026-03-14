@@ -49,16 +49,21 @@ RULE_CATEGORIES = {
 
 # Migration map: old Slovak/stale rule_stats keys → current English category
 _RULE_STATS_MIGRATION = {
-    # Slovak keys from pre-translation era
+    # Slovak keys from pre-translation era (prefix-matched)
     "URL nájdené v poznámke": "event_from_note",
     "email nájdený v poznámke": "event_from_note",
     "tel. číslo nájdené v poznámke": "event_from_note",
     "dátum narodenia z poznámky": "event_from_note",
     "meno odhadnuté z emailu": "name_extract",
+    "URL extrahovaná z poznámky": "event_from_note",
+    "mobilné číslo extrahované z poznámky": "event_from_note",
+    # AI-generated Slovak one-off reasons → other
+    "oprava typu": "other",
+    "neistá oprava": "other",
+    "poznámka uvádza": "other",
+    "preusporiadanie": "other",
     # Removed category — org casing was never routed here
     "domain_case": "org_case",
-    # Pre-split diacritics — merge into sub-categories if possible,
-    # otherwise keep as generic fallback
 }
 
 # Default empty memory structure
@@ -84,9 +89,9 @@ class MemoryManager:
     """
 
     def __init__(self):
+        self._dirty = False
         self.instructions = self._load_instructions()
         self.memory = self._load_memory()
-        self._dirty = False
 
     # ── Public API ────────────────────────────────────────────────
 
@@ -398,5 +403,14 @@ class MemoryManager:
                     target["adjusted_confidence"] = max(0.30, min(0.98, round(adjusted, 3)))
 
                 migrated = True
+
+        # Seed diacritics sub-categories from the generic "diacritics" stats
+        # so they inherit the learned confidence until they accumulate own feedback.
+        diac = rule_stats.get("diacritics")
+        if diac and diac.get("adjusted_confidence"):
+            for sub in ("diacritics_given", "diacritics_family"):
+                if sub not in rule_stats:
+                    rule_stats[sub] = dict(diac)  # copy stats as seed
+                    migrated = True
 
         return migrated

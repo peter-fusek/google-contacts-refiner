@@ -609,8 +609,15 @@ def normalize_name(person: dict) -> list[dict]:
             family = fixed
 
     # ── Fix diacritics ────────────────────────────────────────────
+    # Lazy-load memory for learned diacritics preferences
+    try:
+        from memory import MemoryManager
+        _diac_memory = MemoryManager()
+    except Exception:
+        _diac_memory = None
+
     if given:
-        fixed, conf = fix_diacritics(given)
+        fixed, conf = fix_diacritics(given, memory=_diac_memory)
         if fixed != given and conf > 0.0:
             changes.append({
                 "field": "names[0].givenName",
@@ -621,7 +628,7 @@ def normalize_name(person: dict) -> list[dict]:
             })
 
     if family:
-        fixed, conf = fix_diacritics(family)
+        fixed, conf = fix_diacritics(family, memory=_diac_memory)
         if fixed != family and conf > 0.0:
             changes.append({
                 "field": "names[0].familyName",

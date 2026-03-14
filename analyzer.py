@@ -37,6 +37,10 @@ def _adjust_confidence(changes: list[dict]) -> list[dict]:
     for change in changes:
         category = memory.extract_rule_category(change.get("reason", ""))
         base = change["confidence"]
+        # Memory-learned corrections (0.97) are user-approved individual items —
+        # don't let category-level confidence downgrade them.
+        if base >= 0.97:
+            continue
         adjusted = memory.get_adjusted_confidence(category, base)
         if adjusted != base:
             change["confidence"] = adjusted
