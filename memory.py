@@ -131,8 +131,10 @@ class MemoryManager:
         """
         Check if memory has a learned diacritics preference for a name.
 
-        Returns the corrected form if approved more than rejected,
-        or None if no preference or if user rejected the correction.
+        Returns:
+            corrected form if approved > rejected (use this form)
+            original name if rejected >= approved (keep as-is, skip correction)
+            None if no data exists for this name
         """
         diacritics = self.memory.get("diacritics_corrections", {})
         entry = diacritics.get(name)
@@ -144,7 +146,8 @@ class MemoryManager:
 
         if approved > rejected:
             return entry.get("corrected")
-        return None
+        # User rejected this correction — return original name to block re-proposal
+        return name
 
     def record_approval(self, change: dict):
         """Record that a change was approved by the user."""

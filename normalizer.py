@@ -44,8 +44,10 @@ def fix_diacritics(name: str, memory=None) -> tuple[str, float]:
     # Check memory first (learned preferences override dictionary)
     if memory:
         pref = memory.get_diacritics_preference(name)
-        if pref and pref != name:
-            return pref, 0.97
+        if pref is not None:
+            if pref != name:
+                return pref, 0.97  # Use approved correction
+            return name, 0.0  # User rejected correction — keep original
 
     # Check exact dictionary match (case-insensitive key lookup)
     # Build a lookup from stripped version
