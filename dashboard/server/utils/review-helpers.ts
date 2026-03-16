@@ -29,6 +29,7 @@ const RULE_PATTERNS: [string, RegExp][] = [
   ['owner_email', /owner email/i],
   ['corporate_url', /corporate.*(LinkedIn|website|directory|social media)/i],
   ['shared_address', /shared HQ|shared.*office.*address/i],
+  ['tobedeleted', /low-value contact|deletion candidate/i],
 ]
 
 export function extractRuleCategory(reason: string): string {
