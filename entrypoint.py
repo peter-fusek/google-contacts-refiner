@@ -308,6 +308,15 @@ def run():
     dry_run = os.getenv("DRY_RUN", "").lower() in ("1", "true", "yes")
     skip_ai = os.getenv("SKIP_AI_REVIEW", "").lower() in ("1", "true", "yes")
 
+    # Track run state for pipeline_runs.json
+    run_state = {
+        "phases_completed": [],
+        "changes_applied": 0,
+        "changes_failed": 0,
+        "queue_size": 0,
+        "errors": [],
+    }
+
     from config import AI_REVIEW_CHECKPOINT
     from recovery import RecoveryManager
 
@@ -321,8 +330,10 @@ def run():
     # ── Phase 0: Process review feedback ─────────────────────────────
     try:
         _process_review_feedback()
+        run_state["phases_completed"].append("phase0")
     except Exception as e:
         logger.warning(f"Phase 0 failed (non-fatal): {e}")
+        run_state["errors"].append(f"Phase 0: {e}")
 
     # ── Resume routing ──────────────────────────────────────────────
     # Priority 1: AI review checkpoint (Phase 2 was interrupted)
@@ -334,10 +345,13 @@ def run():
             # After AI review, apply promoted changes
             logger.info("Phase 2: Auto-fix promoted changes")
             cmd_fix(auto_mode=True, confidence_threshold=0.90, dry_run=dry_run)
+            run_state["phases_completed"].append("phase2_resume")
         except Exception as e:
             logger.error(f"AI review resume failed: {e}")
+            run_state["errors"].append(f"Phase 2 resume: {e}")
             traceback.print_exc()
             sys.exit(1)
+        _record_pipeline_run(run_state, start)
         _log_elapsed(start)
         return
 
@@ -347,10 +361,13 @@ def run():
         try:
             from main import cmd_resume
             cmd_resume()
+            run_state["phases_completed"].append("fix_resume")
         except Exception as e:
             logger.error(f"Fix resume failed: {e}")
+            run_state["errors"].append(f"Fix resume: {e}")
             traceback.print_exc()
             sys.exit(1)
+        _record_pipeline_run(run_state, start)
         _log_elapsed(start)
         return
 
@@ -392,21 +409,25 @@ def run():
         cmd_fix(auto_mode=True, confidence_threshold=0.90, dry_run=dry_run)
     except Exception as e:
         logger.error(f"Auto-fix failed: {e}")
+        run_state["errors"].append(f"Phase 1 auto-fix: {e}")
         traceback.print_exc()
         sys.exit(1)
 
     # Record queue stats after analysis
     try:
-        _record_queue_stats()
+        queue_size = _record_queue_stats()
+        run_state["queue_size"] = queue_size or 0
     except Exception as e:
         logger.warning(f"Queue stats failed (non-fatal): {e}")
 
+    run_state["phases_completed"].append("phase1")
     phase1_elapsed = datetime.now() - start
     logger.info(f"Phase 1 completed in {phase1_elapsed}")
 
     # ── Phase 2: AI review (checkpointed) ───────────────────────────
     if skip_ai:
         logger.info("Phase 2 skipped (SKIP_AI_REVIEW=true)")
+        _record_pipeline_run(run_state, start)
         _log_elapsed(start)
         return
 
@@ -416,6 +437,7 @@ def run():
         promoted_count = cmd_ai_review()
     except Exception as e:
         logger.error(f"AI review failed: {e}")
+        run_state["errors"].append(f"Phase 2 AI review: {e}")
         traceback.print_exc()
         sys.exit(1)
 
@@ -426,10 +448,13 @@ def run():
             cmd_fix(auto_mode=True, confidence_threshold=0.90, dry_run=dry_run)
         except Exception as e:
             logger.error(f"Promoted fix failed: {e}")
+            run_state["errors"].append(f"Phase 2 fix: {e}")
             traceback.print_exc()
             sys.exit(1)
     else:
         logger.info("Phase 2: No promoted changes, skipping fix")
+
+    run_state["phases_completed"].append("phase2")
 
     # ── Phase 3 (optional): Activity Tagging ────────────────────────
     enable_activity = os.getenv("ENABLE_ACTIVITY_TAGGING", "").lower() in ("1", "true", "yes")
@@ -438,17 +463,31 @@ def run():
         try:
             from main import cmd_tag_activity
             cmd_tag_activity(dry_run=dry_run)
+            run_state["phases_completed"].append("phase3")
         except Exception as e:
             logger.error(f"Activity tagging failed (non-fatal): {e}")
+            run_state["errors"].append(f"Phase 3: {e}")
             traceback.print_exc()
     else:
         logger.info("Phase 3 skipped (ENABLE_ACTIVITY_TAGGING not set)")
 
+    # ── Record run & send digest ─────────────────────────────────
+    _record_pipeline_run(run_state, start)
+
+    try:
+        from notifier import send_email_digest
+        send_email_digest(run_state, start)
+    except Exception as e:
+        logger.warning(f"Email digest failed (non-fatal): {e}")
+
     _log_elapsed(start)
 
 
-def _record_queue_stats():
-    """Record current review queue size to queue_stats.json for trend tracking."""
+def _record_queue_stats() -> int:
+    """Record current review queue size to queue_stats.json for trend tracking.
+
+    Returns the total number of pending changes.
+    """
     import json
     from config import DATA_DIR
 
@@ -458,7 +497,7 @@ def _record_queue_stats():
         if "sessions" not in f.name and "decisions" not in f.name
     )
     if not review_files:
-        return
+        return 0
 
     try:
         with open(review_files[-1], encoding="utf-8") as f:
@@ -504,9 +543,47 @@ def _record_queue_stats():
             json.dump(stats, f, ensure_ascii=False, indent=2)
 
         logger.info(f"Queue stats: {total_changes} pending changes recorded")
+        return total_changes
 
     except Exception as e:
         logger.warning(f"Queue stats recording failed (non-fatal): {e}")
+        return 0
+
+
+def _record_pipeline_run(run_state: dict, start: datetime):
+    """Record structured pipeline run metadata to pipeline_runs.json."""
+    import json
+    from config import DATA_DIR
+
+    try:
+        elapsed = datetime.now() - start
+        entry = {
+            "date": start.isoformat(),
+            "duration_seconds": int(elapsed.total_seconds()),
+            "phases_completed": run_state.get("phases_completed", []),
+            "queue_size": run_state.get("queue_size", 0),
+            "errors": run_state.get("errors", []),
+        }
+
+        runs_path = DATA_DIR / "pipeline_runs.json"
+        runs = []
+        if runs_path.exists():
+            try:
+                with open(runs_path, encoding="utf-8") as f:
+                    runs = json.load(f)
+            except (json.JSONDecodeError, IOError):
+                runs = []
+
+        runs.append(entry)
+        runs = runs[-90:]  # Keep last 90 entries
+
+        with open(runs_path, "w", encoding="utf-8") as f:
+            json.dump(runs, f, ensure_ascii=False, indent=2)
+
+        logger.info(f"Pipeline run recorded: {len(entry['phases_completed'])} phases, {entry['duration_seconds']}s")
+
+    except Exception as e:
+        logger.warning(f"Pipeline run recording failed (non-fatal): {e}")
 
 
 def _log_elapsed(start):

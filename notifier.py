@@ -1,12 +1,15 @@
 """
 Notification system for headless runs.
 
-Supports macOS notifications (local) and Cloud Logging (cloud).
+Supports macOS notifications (local), Cloud Logging (cloud),
+and daily email digest via Gmail API.
 """
+import base64
 import json
 import logging
 import subprocess
 from datetime import datetime
+from email.mime.text import MIMEText
 from pathlib import Path
 from typing import Optional
 
@@ -76,6 +79,78 @@ def generate_run_summary(
     lines.append("═══════════════════════════════════════════")
 
     return "\n".join(lines)
+
+
+def send_email_digest(run_state: dict, start: datetime) -> bool:
+    """
+    Send a daily email digest summarizing the pipeline run.
+
+    Uses Gmail API with the existing OAuth token. Requires gmail.send scope.
+    Returns True if sent successfully.
+    """
+    elapsed = datetime.now() - start
+    duration_min = int(elapsed.total_seconds()) // 60
+    duration_sec = int(elapsed.total_seconds()) % 60
+    date_str = start.strftime("%Y-%m-%d")
+    phases = ", ".join(run_state.get("phases_completed", [])) or "none"
+    queue = run_state.get("queue_size", 0)
+    errors = run_state.get("errors", [])
+
+    body_lines = [
+        "Contact Refiner — Daily Report",
+        "=" * 35,
+        f"Date:     {date_str}",
+        f"Duration: {duration_min}m {duration_sec}s",
+        f"Phases:   {phases}",
+        "",
+        f"Review Queue: {queue} pending",
+        "",
+    ]
+
+    if errors:
+        body_lines.append(f"Errors: {len(errors)}")
+        for err in errors:
+            body_lines.append(f"  - {err}")
+    else:
+        body_lines.append("Errors: none")
+
+    body_lines.extend([
+        "",
+        "— Contact Refiner",
+        "https://contactrefiner.com/dashboard",
+    ])
+
+    body = "\n".join(body_lines)
+    subject = f"Contact Refiner — Daily Report {date_str}"
+
+    try:
+        from auth import authenticate
+        from googleapiclient.discovery import build
+
+        creds = authenticate()
+        service = build("gmail", "v1", credentials=creds)
+
+        message = MIMEText(body)
+        message["to"] = "peterfusek1980@gmail.com"
+        message["subject"] = subject
+
+        raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
+        service.users().messages().send(
+            userId="me", body={"raw": raw}
+        ).execute()
+
+        logger.info(f"Email digest sent: {subject}")
+        return True
+
+    except Exception as e:
+        logger.warning(f"Email digest failed: {e}")
+        # Common case: missing gmail.send scope — log instructions
+        if "insufficient" in str(e).lower() or "scope" in str(e).lower():
+            logger.info(
+                "To enable email digest, re-authorize with gmail.send scope: "
+                "python main.py auth --add-scope=https://www.googleapis.com/auth/gmail.send"
+            )
+        return False
 
 
 def write_review_file(skipped_changes: list[dict]) -> Optional[Path]:

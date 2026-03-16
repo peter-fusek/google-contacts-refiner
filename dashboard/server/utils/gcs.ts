@@ -304,3 +304,20 @@ export async function getQueueStats(): Promise<QueueStatsEntry[]> {
     return data ?? []
   })
 }
+
+// --- Pipeline Runs API ---
+
+export interface PipelineRun {
+  date: string
+  duration_seconds: number
+  phases_completed: string[]
+  queue_size: number
+  errors: string[]
+}
+
+export async function getPipelineRuns(): Promise<PipelineRun[]> {
+  return cachedRead('pipeline_runs', async () => {
+    const data = await readJson<PipelineRun[]>('data/pipeline_runs.json')
+    return data ?? []
+  })
+}

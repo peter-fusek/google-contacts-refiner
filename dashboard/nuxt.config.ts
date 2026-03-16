@@ -2,7 +2,14 @@ export default defineNuxtConfig({
   modules: [
     '@nuxt/ui',
     'nuxt-auth-utils',
+    '@nuxtjs/plausible',
   ],
+
+  plausible: {
+    domain: 'contactrefiner.com',
+    apiHost: 'https://plausible.io',
+    autoPageviews: true,
+  },
 
   app: {
     head: {
