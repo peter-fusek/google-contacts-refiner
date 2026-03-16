@@ -45,6 +45,7 @@ RULE_CATEGORIES = {
     "owner_email": r"owner email",
     "corporate_url": r"corporate.*(?:LinkedIn|website|directory|social media)",
     "shared_address": r"shared HQ|shared.*office.*address",
+    "tobedeleted": r"low-value contact|deletion candidate",
 }
 
 # Migration map: old Slovak/stale rule_stats keys → current English category

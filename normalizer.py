@@ -405,6 +405,41 @@ def _extract_surname_from_display(display: str, given: str) -> Optional[str]:
     return None
 
 
+def _surname_suggests_sk_cz(family: str) -> bool:
+    """Check if surname provides SK/CZ context (for given name diacritics gating)."""
+    if not family:
+        return False
+    # Already has diacritics → clearly SK/CZ
+    if family != unidecode(family):
+        return True
+    # ASCII feminine suffix -ova is a strong SK/CZ signal
+    lower = family.lower()
+    if lower.endswith("ova") and len(lower) > 4:
+        return True
+    return False
+
+
+def _is_obvious_feminine_suffix_fix(old_family: str, new_family: str) -> bool:
+    """Check if a family name diacritics fix is an obvious feminine suffix correction.
+
+    Only allows changes like Novakova → Nováková (missing háček on feminine endings).
+    Blocks changes like Zemko → Žemko (not obviously wrong).
+    """
+    if not old_family or not new_family:
+        return False
+    old_lower = old_family.lower()
+    new_lower = new_family.lower()
+    # Obvious feminine suffix pairs (ASCII → correct diacritics)
+    _FEMININE_PAIRS = [
+        ("ova", "ová"), ("akova", "áková"), ("ikova", "íková"),
+        ("arova", "árová"), ("ckova", "čková"), ("skova", "šková"),
+    ]
+    for old_end, new_end in _FEMININE_PAIRS:
+        if old_lower.endswith(old_end) and new_lower.endswith(new_end):
+            return True
+    return False
+
+
 def normalize_name(person: dict) -> list[dict]:
     """
     Analyze and suggest name normalizations for a contact.
@@ -618,27 +653,33 @@ def normalize_name(person: dict) -> list[dict]:
     except Exception:
         _diac_memory = None
 
+    # Given name diacritics: only if surname suggests SK/CZ context
     if given:
         fixed, conf = fix_diacritics(given, memory=_diac_memory)
         if fixed != given and conf > 0.0:
-            changes.append({
-                "field": "names[0].givenName",
-                "old": given,
-                "new": fixed,
-                "confidence": conf,
-                "reason": "diacritics restoration (given name)",
-            })
+            # Memory-learned (0.97) always applies; otherwise need SK/CZ surname signal
+            if conf >= 0.97 or _surname_suggests_sk_cz(family):
+                changes.append({
+                    "field": "names[0].givenName",
+                    "old": given,
+                    "new": fixed,
+                    "confidence": conf,
+                    "reason": "diacritics restoration (given name)",
+                })
 
+    # Family name diacritics: only obvious feminine suffix fixes (-ova → -ová)
     if family:
         fixed, conf = fix_diacritics(family, memory=_diac_memory)
         if fixed != family and conf > 0.0:
-            changes.append({
-                "field": "names[0].familyName",
-                "old": family,
-                "new": fixed,
-                "confidence": conf,
-                "reason": "diacritics restoration (family name)",
-            })
+            # Memory-learned (0.97) always applies; otherwise only feminine suffix fixes
+            if conf >= 0.97 or _is_obvious_feminine_suffix_fix(family, fixed):
+                changes.append({
+                    "field": "names[0].familyName",
+                    "old": family,
+                    "new": fixed,
+                    "confidence": conf,
+                    "reason": "diacritics restoration (family name)",
+                })
 
     return changes
 

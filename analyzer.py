@@ -11,7 +11,7 @@ from normalizer import (
 )
 from enricher import enrich_contact
 from utils import get_display_name, get_resource_name
-from config import CONFIDENCE_HIGH, CONFIDENCE_MEDIUM
+from config import CONFIDENCE_HIGH, CONFIDENCE_MEDIUM, FREE_EMAIL_DOMAINS
 
 # Lazy-loaded memory manager for confidence adjustment
 _memory = None
@@ -45,6 +45,84 @@ def _adjust_confidence(changes: list[dict]) -> list[dict]:
         if adjusted != base:
             change["confidence"] = adjusted
     return changes
+
+
+def _flag_deletion_candidate(person: dict) -> list[dict]:
+    """Flag contacts that look like low-value one-offs for review.
+
+    Signals of a real contact (each adds weight):
+    - Has both givenName AND familyName
+    - Has a personal email (free domain like gmail/yahoo)
+    - Has a phone number
+    - Has a postal address
+    - Has a birthday
+    - Has an organization with title (real work relationship)
+    - Has notes/biography content
+
+    Contacts with 0-1 signals are flagged as deletion candidates.
+    """
+    signals = 0
+    reasons = []
+
+    names = person.get("names", [])
+    name_data = names[0] if names else {}
+    has_given = bool(name_data.get("givenName", "").strip())
+    has_family = bool(name_data.get("familyName", "").strip())
+
+    if has_given and has_family:
+        signals += 1
+    else:
+        reasons.append("no full name")
+
+    # Personal email (free domain = personal relationship signal)
+    emails = person.get("emailAddresses", [])
+    has_personal_email = False
+    for e in emails:
+        domain = e.get("value", "").split("@")[-1].lower() if "@" in e.get("value", "") else ""
+        if domain in FREE_EMAIL_DOMAINS:
+            has_personal_email = True
+            break
+    if has_personal_email:
+        signals += 1
+    elif emails:
+        signals += 0.5  # Has email but only corporate
+    else:
+        reasons.append("no email")
+
+    if person.get("phoneNumbers"):
+        signals += 1
+    else:
+        reasons.append("no phone")
+
+    if person.get("addresses"):
+        signals += 1
+    else:
+        reasons.append("no address")
+
+    if person.get("birthdays"):
+        signals += 0.5
+
+    orgs = person.get("organizations", [])
+    if orgs and any(o.get("title") for o in orgs):
+        signals += 0.5  # Has org with job title
+
+    bios = person.get("biographies", [])
+    if bios and any(b.get("value", "").strip() for b in bios):
+        signals += 0.5
+
+    # Only flag if very few signals (0-1 out of ~5 possible)
+    if signals > 1:
+        return []
+
+    display = get_display_name(person)
+    conf = 0.55 if signals <= 0.5 else 0.45
+    return [{
+        "field": "contact",
+        "old": display,
+        "new": "__TO_BE_DELETED__",
+        "confidence": conf,
+        "reason": f"low-value contact deletion candidate ({', '.join(reasons)})",
+    }]
 
 
 def analyze_contact(person: dict, ai_analyzer=None, shared_address_index: dict = None) -> dict:
@@ -90,6 +168,9 @@ def analyze_contact(person: dict, ai_analyzer=None, shared_address_index: dict =
 
     # Run enrichment
     changes.extend(enrich_contact(person))
+
+    # Flag low-value contacts for deletion review
+    changes.extend(_flag_deletion_candidate(person))
 
     # Remove changes where old == new (no-ops) or new is empty
     # Allow empty new for: middleName clearing, URL/email/address removal

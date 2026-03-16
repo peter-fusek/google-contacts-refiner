@@ -90,20 +90,8 @@ def enrich_from_notes(person: dict) -> list[dict]:
             })
             existing_emails.add(norm.lower())
 
-    # ── Extract URLs from notes ───────────────────────────────────
-    found_urls = extract_urls_from_text(note_text)
-    for url in found_urls:
-        clean_url = url.rstrip("/").lower()
-        if clean_url not in existing_urls:
-            changes.append({
-                "field": "urls[+]",
-                "old": "",
-                "new": url,
-                "confidence": 0.75,
-                "reason": "URL found in notes",
-                "extra": {"type": "other"},
-            })
-            existing_urls.add(clean_url)
+    # ── URL enrichment from notes — DISABLED ───────────────────────
+    # Company URLs in contacts are not useful; user preference (2026-03-16)
 
     # ── Extract dates from notes ──────────────────────────────────
     found_dates = extract_dates_from_text(note_text)
