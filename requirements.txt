@@ -29,3 +29,6 @@ anthropic>=0.40.0
 
 # Cloud (Secret Manager — used in cloud mode only)
 google-cloud-secret-manager>=2.20.0
+
+# Email digest
+resend>=2.0.0

@@ -2,14 +2,13 @@
 Notification system for headless runs.
 
 Supports macOS notifications (local), Cloud Logging (cloud),
-and daily email digest via Gmail API.
+and daily email digest via Resend.
 """
-import base64
 import json
 import logging
+import os
 import subprocess
 from datetime import datetime
-from email.mime.text import MIMEText
 from pathlib import Path
 from typing import Optional
 
@@ -83,11 +82,22 @@ def generate_run_summary(
 
 def send_email_digest(run_state: dict, start: datetime) -> bool:
     """
-    Send a daily email digest summarizing the pipeline run.
+    Send a daily email digest summarizing the pipeline run via Resend.
 
-    Uses Gmail API with the existing OAuth token. Requires gmail.send scope.
+    Requires RESEND_API_KEY env var (or Secret Manager in cloud mode).
     Returns True if sent successfully.
     """
+    api_key = os.getenv("RESEND_API_KEY", "")
+    if not api_key:
+        logger.info("Email digest skipped: RESEND_API_KEY not set")
+        return False
+
+    try:
+        import resend
+    except ImportError:
+        logger.warning("Email digest skipped: 'resend' package not installed (pip install resend)")
+        return False
+
     elapsed = datetime.now() - start
     duration_min = int(elapsed.total_seconds()) // 60
     duration_sec = int(elapsed.total_seconds()) % 60
@@ -124,32 +134,18 @@ def send_email_digest(run_state: dict, start: datetime) -> bool:
     subject = f"Contact Refiner — Daily Report {date_str}"
 
     try:
-        from auth import authenticate
-        from googleapiclient.discovery import build
-
-        creds = authenticate()
-        service = build("gmail", "v1", credentials=creds)
-
-        message = MIMEText(body)
-        message["to"] = "peterfusek1980@gmail.com"
-        message["subject"] = subject
-
-        raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
-        service.users().messages().send(
-            userId="me", body={"raw": raw}
-        ).execute()
-
-        logger.info(f"Email digest sent: {subject}")
+        resend.api_key = api_key
+        result = resend.Emails.send({
+            "from": "Contact Refiner <noreply@contactrefiner.com>",
+            "to": ["peterfusek1980@gmail.com"],
+            "subject": subject,
+            "text": body,
+        })
+        logger.info(f"Email digest sent: {result.get('id', 'ok')}")
         return True
 
     except Exception as e:
         logger.warning(f"Email digest failed: {e}")
-        # Common case: missing gmail.send scope — log instructions
-        if "insufficient" in str(e).lower() or "scope" in str(e).lower():
-            logger.info(
-                "To enable email digest, re-authorize with gmail.send scope: "
-                "python main.py auth --add-scope=https://www.googleapis.com/auth/gmail.send"
-            )
         return False
 
 
