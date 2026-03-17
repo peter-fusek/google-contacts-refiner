@@ -644,19 +644,19 @@ onUnmounted(() => {
 
           <template v-if="!isDemo">
             <UButton
-              v-if="filteredChanges.length"
+              v-if="filteredChanges.filter(c => !decisions[c.id]).length"
               size="xs"
               variant="soft"
               color="success"
-              :label="`Approve all (${filteredChanges.filter(c => !decisions[c.id]).length})`"
+              :label="`Approve remaining (${filteredChanges.filter(c => !decisions[c.id]).length})`"
               @click="bulkDecide('approved')"
             />
             <UButton
-              v-if="filteredChanges.length"
+              v-if="filteredChanges.filter(c => !decisions[c.id]).length"
               size="xs"
               variant="soft"
               color="error"
-              :label="`Reject all (${filteredChanges.filter(c => !decisions[c.id]).length})`"
+              :label="`Reject remaining (${filteredChanges.filter(c => !decisions[c.id]).length})`"
               @click="bulkDecide('rejected')"
             />
           </template>
@@ -727,13 +727,13 @@ onUnmounted(() => {
               <UButton
                 v-if="ruleUndecided(changes) > 0"
                 size="xs" variant="soft" color="success"
-                :label="`Approve ${ruleUndecided(changes)}`"
+                :label="`Approve remaining (${ruleUndecided(changes)})`"
                 @click="changes.forEach(c => { if (!decisions[c.id]) decide(c.id, 'approved') })"
               />
               <UButton
                 v-if="ruleUndecided(changes) > 0"
                 size="xs" variant="soft" color="error"
-                :label="`Reject ${ruleUndecided(changes)}`"
+                :label="`Reject remaining (${ruleUndecided(changes)})`"
                 @click="changes.forEach(c => { if (!decisions[c.id]) decide(c.id, 'rejected') })"
               />
               <UButton
