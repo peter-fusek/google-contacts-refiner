@@ -3,6 +3,7 @@ const route = useRoute()
 const { user, loggedIn, clear: logout } = useUserSession()
 
 const isDemo = computed(() => !loggedIn.value)
+const sidebarOpen = ref(false)
 
 const navItems = [
   { label: 'Status', icon: 'i-lucide-activity', to: '/dashboard' },
@@ -16,12 +17,40 @@ const navItems = [
 function isActive(to: string) {
   return to === '/dashboard' ? route.path === '/dashboard' : route.path.startsWith(to)
 }
+
+// Close sidebar on route change (mobile)
+watch(() => route.path, () => {
+  sidebarOpen.value = false
+})
 </script>
 
 <template>
   <div class="flex min-h-screen bg-neutral-950">
+    <!-- Mobile header -->
+    <div class="fixed top-0 inset-x-0 z-40 md:hidden bg-neutral-950 border-b border-neutral-800 flex items-center justify-between px-4 h-12">
+      <button
+        class="text-neutral-400 hover:text-neutral-200 transition-colors"
+        aria-label="Toggle navigation"
+        @click="sidebarOpen = !sidebarOpen"
+      >
+        <UIcon :name="sidebarOpen ? 'i-lucide-x' : 'i-lucide-menu'" class="size-5" />
+      </button>
+      <span class="text-sm font-semibold text-primary-400">Mission Control</span>
+      <div class="w-5" />
+    </div>
+
+    <!-- Sidebar overlay (mobile) -->
+    <div
+      v-if="sidebarOpen"
+      class="fixed inset-0 z-30 bg-black/60 md:hidden"
+      @click="sidebarOpen = false"
+    />
+
     <!-- Sidebar -->
-    <aside class="w-56 shrink-0 border-r border-neutral-800 bg-neutral-950 flex flex-col">
+    <aside
+      class="fixed md:static z-30 top-0 left-0 h-full w-56 shrink-0 border-r border-neutral-800 bg-neutral-950 flex flex-col transition-transform duration-200"
+      :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
+    >
       <!-- Header -->
       <div class="flex items-center gap-2 p-4 border-b border-neutral-800/50">
         <div class="size-8 rounded-lg bg-primary-500/20 flex items-center justify-center">
@@ -95,13 +124,13 @@ function isActive(to: string) {
     </aside>
 
     <!-- Main -->
-    <main class="flex-1 overflow-y-auto">
+    <main class="flex-1 overflow-y-auto pt-12 md:pt-0">
       <!-- Demo banner -->
-      <div v-if="isDemo" class="bg-amber-500/10 border-b border-amber-500/20 px-6 py-2.5 flex items-center justify-between">
+      <div v-if="isDemo" class="bg-amber-500/10 border-b border-amber-500/20 px-4 md:px-6 py-2.5 flex items-center justify-between">
         <div class="flex items-center gap-2 text-sm text-amber-400">
           <UIcon name="i-lucide-eye" class="size-4" />
           <span class="font-medium">DEMO MODE</span>
-          <span class="text-amber-500/70">— Read-only view with masked personal data</span>
+          <span class="text-amber-500/70 hidden sm:inline">— Read-only view with masked personal data</span>
         </div>
         <a
           href="/login"
@@ -110,7 +139,7 @@ function isActive(to: string) {
           Sign in
         </a>
       </div>
-      <div class="max-w-7xl mx-auto p-6">
+      <div class="max-w-7xl mx-auto p-4 md:p-6">
         <slot />
       </div>
     </main>
