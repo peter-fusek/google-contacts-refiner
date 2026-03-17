@@ -21,7 +21,13 @@ export default defineEventHandler(async (event) => {
   }
 
   // Load or create session
-  let session = await getReviewSession(body.sessionId)
+  let session: ReviewSession | null = null
+  try {
+    session = await getReviewSession(body.sessionId)
+  } catch (err) {
+    console.error(`[Review] Failed to load session ${body.sessionId}:`, (err as Error).message)
+    // Proceed with new session instead of crashing
+  }
   if (!session) {
     session = {
       id: body.sessionId,
@@ -69,8 +75,13 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // Save session (critical) and feedback (non-fatal) in parallel
-  await saveReviewSession(session)
+  // Save session (critical) and feedback (non-fatal)
+  try {
+    await saveReviewSession(session)
+  } catch (err) {
+    console.error('[Review] saveReviewSession failed:', (err as Error).message, (err as Error).stack)
+    throw createError({ statusCode: 500, message: `Save failed: ${(err as Error).message}` })
+  }
   if (feedbackEntries.length) {
     appendFeedback(feedbackEntries).catch((err) => {
       console.error('[Review] Feedback append failed (non-fatal):', (err as Error).message)
