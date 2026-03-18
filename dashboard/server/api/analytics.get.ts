@@ -3,6 +3,7 @@ import {
   getChangelogWithMarkers,
   getAIReviewCheckpoint,
   isBatchMarker,
+  estimateAICost,
 } from '../utils/gcs'
 import { isDemoMode, maskTopContact } from '../utils/demo'
 
@@ -86,9 +87,7 @@ export default defineEventHandler(async (event): Promise<AnalyticsResponse> => {
     .sort((a, b) => b.changes - a.changes)
     .slice(0, 10)
 
-  // Estimated cost
-  const aiReviewed = aiCheckpoint?.last_reviewed ?? 0
-  const estimatedCost = Math.round(aiReviewed * 500 * (0.80 + 4.0) / 2 / 1_000_000 * 100) / 100
+  const estimatedCost = estimateAICost(aiCheckpoint?.last_reviewed ?? 0)
 
   return {
     byField,

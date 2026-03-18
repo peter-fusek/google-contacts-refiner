@@ -336,3 +336,10 @@ export async function getPipelineRuns(): Promise<PipelineRun[]> {
     return data ?? []
   })
 }
+
+// --- Cost Estimation ---
+
+/** Estimate AI review cost (Haiku: ~$0.80/1M input, $4/1M output, ~500 tokens/review) */
+export function estimateAICost(reviewedCount: number): number {
+  return Math.round(reviewedCount * 500 * (0.80 + 4.0) / 2 / 1_000_000 * 100) / 100
+}

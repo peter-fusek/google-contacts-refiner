@@ -4,6 +4,7 @@ import {
   getAIReviewCheckpoint,
   getChangelogWithMarkers,
   isBatchMarker,
+  estimateAICost,
 } from '../utils/gcs'
 
 export default defineEventHandler(async (): Promise<StatusResponse> => {
@@ -56,10 +57,7 @@ export default defineEventHandler(async (): Promise<StatusResponse> => {
     )
   }
 
-  // Estimate cost from AI review (Haiku: ~$0.80/1M input, $4/1M output)
-  // Rough estimate: ~500 tokens per contact review
-  const aiReviewed = aiCheckpoint?.last_reviewed ?? 0
-  const estimatedCost = aiReviewed * 500 * (0.80 + 4.0) / 2 / 1_000_000
+  const estimatedCost = estimateAICost(aiCheckpoint?.last_reviewed ?? 0)
 
   return {
     status,

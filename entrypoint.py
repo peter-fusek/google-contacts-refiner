@@ -138,6 +138,22 @@ def _auto_export_sessions():
         logger.info("Phase 0: No unexported sessions found")
 
 
+def _move_to_failed(filepath: str, reason: str):
+    """Move a decision file to failed/ directory. Logs outcome."""
+    import shutil
+    from pathlib import Path
+    from config import DATA_DIR
+
+    failed_dir = DATA_DIR / "failed"
+    failed_dir.mkdir(exist_ok=True)
+    failed_path = failed_dir / Path(filepath).name
+    try:
+        shutil.move(filepath, failed_path)
+        logger.error(f"Phase 0: {reason} — {filepath} moved to failed/")
+    except OSError as e:
+        logger.error(f"Phase 0: {reason} — {filepath} could not be moved to failed/: {e}")
+
+
 def _process_review_feedback():
     """
     Phase 0: Process review decisions from the dashboard.
@@ -225,26 +241,11 @@ def _process_review_feedback():
                 shutil.move(filepath, archive_path)
                 logger.info(f"Phase 0: Archived {filepath} -> {archive_path}")
             except OSError as move_err:
-                # Archive failed — move to failed/ so it doesn't retry forever
-                failed_dir = DATA_DIR / "failed"
-                failed_dir.mkdir(exist_ok=True)
-                failed_path = failed_dir / Path(filepath).name
-                try:
-                    shutil.move(filepath, failed_path)
-                except OSError:
-                    pass
-                logger.error(f"Phase 0: Archive failed for {filepath}: {move_err}, moved to failed/")
+                # Archive failed — try to quarantine so it doesn't retry forever
+                _move_to_failed(filepath, f"Archive failed: {move_err}")
 
         except json.JSONDecodeError as e:
-            # Corrupted JSON — move to failed/ directory to prevent infinite retry
-            failed_dir = DATA_DIR / "failed"
-            failed_dir.mkdir(exist_ok=True)
-            failed_path = failed_dir / Path(filepath).name
-            try:
-                shutil.move(filepath, failed_path)
-            except OSError:
-                pass
-            logger.error(f"Phase 0: Corrupt decision file {filepath}: {e}, moved to failed/")
+            _move_to_failed(filepath, f"Corrupt JSON: {e}")
 
         except Exception as e:
             logger.error(f"Phase 0: Failed to process {filepath}: {e}")
