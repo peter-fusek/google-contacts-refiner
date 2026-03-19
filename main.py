@@ -14,6 +14,7 @@ Usage:
     python main.py auth-activity  # Authenticate for Gmail+Calendar scanning
     python main.py tag-activity   # Scan interactions and assign year labels
     python main.py ltns           # Identify LTNS contacts and generate reconnect prompts
+    python main.py linkedin-scan  # Scan LinkedIn profiles for social signals
 """
 import os
 import sys
@@ -1073,6 +1074,130 @@ def cmd_ltns(skip_scan=False, dry_run=False, no_prompts=False):
     print(f"   List saved: {ltns_path}")
 
 
+def cmd_linkedin_scan(skip_scan=False, dry_run=False, limit=100):
+    """Scan LinkedIn profiles of LTNS contacts for social signals."""
+    from config import ACTIVITY_ACCOUNTS
+    from auth import authenticate, authenticate_for_activity
+    from interaction_scanner import InteractionScanner
+    from linkedin_scanner import LinkedInScanner
+
+    print("🔗 LinkedIn Social Signals Scanner")
+    print("=" * 50)
+    print()
+
+    if dry_run:
+        print("ℹ️  DRY RUN — no notes will be updated")
+        print()
+
+    # Step 1: Get contacts
+    creds = authenticate()
+    client = PeopleAPIClient(creds)
+
+    print("📡 Fetching contacts...")
+
+    def progress(fetched, total):
+        print(f"\r   Fetched: {fetched} / ~{total}  ", end="", flush=True)
+
+    contacts = client.get_all_contacts(progress_callback=progress)
+    print()
+    print(f"   Total contacts: {len(contacts)}")
+    print()
+
+    # Step 2: Get LTNS list (reuse interaction scanner)
+    ltns_list = []
+    if not skip_scan:
+        # Scan interactions to identify LTNS candidates
+        account_credentials = []
+        for account in ACTIVITY_ACCOUNTS:
+            email = account["email"]
+            print(f"🔐 Authenticating {email}...")
+            try:
+                from auth import authenticate_for_activity
+                acreds = authenticate_for_activity(email)
+                account_credentials.append((email, acreds))
+                print(f"   ✅ OK")
+            except Exception as e:
+                print(f"   ⚠️  Skipping {email}: {e}")
+        print()
+
+        scanner = InteractionScanner(contacts)
+        for account_email, acreds in account_credentials:
+            print(f"📧 Scanning {account_email}...")
+            scanner.scan_gmail(acreds, account_email)
+            scanner.scan_calendar(acreds, account_email)
+        print()
+
+        print("🔍 Identifying LTNS candidates...")
+        from config import LTNS_TOP_N
+        ltns_list = scanner.identify_ltns(client, top_n=LTNS_TOP_N, dry_run=True)
+        print(f"   Found {len(ltns_list)} LTNS candidates")
+        print()
+    else:
+        # Try loading cached LTNS list
+        ltns_path = DATA_DIR / "ltns_list.json"
+        if ltns_path.exists():
+            data = json.loads(ltns_path.read_text(encoding="utf-8"))
+            ltns_list = data.get("candidates", [])
+            print(f"   Loaded {len(ltns_list)} cached LTNS candidates")
+        else:
+            print("   ⚠️  No cached LTNS list — scanning contacts with LinkedIn URLs only")
+        print()
+
+    # Step 3: Select targets
+    li_scanner = LinkedInScanner(contacts)
+    targets = li_scanner.select_targets(ltns_list=ltns_list, limit=limit)
+
+    if not targets:
+        print("ℹ️  No targets found for LinkedIn scanning.")
+        return
+
+    with_url = sum(1 for t in targets if t.get("linkedin_url"))
+    without_url = len(targets) - with_url
+    print(f"🎯 Selected {len(targets)} targets ({with_url} with LinkedIn URL, {without_url} need discovery)")
+    print()
+
+    # Step 4: Display targets and wait for confirmation
+    print("═══════════════════════════════════════════")
+    print(f"       LINKEDIN SCAN TARGETS ({len(targets)})")
+    print("═══════════════════════════════════════════")
+    for i, t in enumerate(targets[:20], 1):
+        url_status = "✅" if t.get("linkedin_url") else "🔍"
+        org_info = f" @ {t['org']}" if t.get("org") else ""
+        print(f"  {i:3d}. {url_status} {t['name']:<30s}{org_info}")
+    if len(targets) > 20:
+        print(f"  ... and {len(targets) - 20} more")
+    print("═══════════════════════════════════════════")
+    print()
+
+    print("⚠️  Browser automation will visit LinkedIn profiles.")
+    print("   This requires Chrome with an active LinkedIn session.")
+    print("   Rate: ~1 profile every 15 seconds.")
+    print(f"   Estimated time: ~{len(targets) * 15 // 60} minutes")
+    print()
+    print("   To proceed, run the linkedin-scan from Claude Code")
+    print("   which will use Chrome MCP tools for browser automation.")
+    print()
+
+    # Save targets for the browser automation step
+    targets_path = DATA_DIR / "linkedin_scan_targets.json"
+    with open(targets_path, "w", encoding="utf-8") as f:
+        json.dump({
+            "generated": datetime.now().isoformat(),
+            "count": len(targets),
+            "targets": targets,
+        }, f, ensure_ascii=False, indent=2)
+    print(f"   Targets saved: {targets_path}")
+
+    # Step 5: If not dry run, note writing will happen after browser automation
+    if dry_run:
+        print("\n   DRY RUN — skipping browser automation and note writing")
+    else:
+        print("\n   Next: Use Claude Code to run browser automation on these targets.")
+        print("   Then call: python main.py linkedin-scan --write-notes")
+
+    return targets
+
+
 def cmd_refresh_tables(table=None):
     """Refresh code tables from external sources."""
     from code_tables import tables
@@ -1124,7 +1249,7 @@ def main():
             "auth", "backup", "analyze", "analyse", "fix", "ai-review",
             "verify", "rollback", "resume", "info",
             "auth-activity", "tag-activity", "ltns", "linkedin-match",
-            "refresh-tables",
+            "linkedin-scan", "refresh-tables",
         ],
         help="Command to execute",
     )
@@ -1134,6 +1259,8 @@ def main():
     parser.add_argument("--skip-scan", action="store_true", help="Skip Gmail/Calendar scan, use cache")
     parser.add_argument("--no-prompts", action="store_true", help="Skip AI reconnect prompt generation (LTNS)")
     parser.add_argument("--csv", type=str, help="Path to LinkedIn Connections.csv (for linkedin-match)")
+    parser.add_argument("--limit", type=int, default=100, help="Max profiles to scan (for linkedin-scan)")
+    parser.add_argument("--write-notes", action="store_true", help="Write cached scan results to notes (for linkedin-scan)")
 
     args = parser.parse_args()
 
@@ -1175,6 +1302,12 @@ def main():
                 print("❌ --csv required: python main.py linkedin-match --csv <path-to-Connections.csv>")
                 sys.exit(1)
             cmd_linkedin_match(csv_path=args.csv, dry_run=args.dry_run)
+        elif command == "linkedin-scan":
+            cmd_linkedin_scan(
+                skip_scan=args.skip_scan,
+                dry_run=args.dry_run,
+                limit=args.limit,
+            )
         elif command == "ltns":
             cmd_ltns(
                 skip_scan=args.skip_scan,
