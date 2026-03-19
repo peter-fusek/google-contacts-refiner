@@ -1110,12 +1110,17 @@ def cmd_linkedin_scan(skip_scan=False, dry_run=False, limit=100, groups=None):
         print(f"🏷️  Filtering by groups: {', '.join(group_names)}")
         all_groups = client.get_all_contact_groups()
         group_members = set()
+        matched_names = []
         for grp in all_groups:
-            if grp.get("name") in group_names or grp.get("formattedName") in group_names:
-                grp_rn = grp["resourceName"]
-                members = client.get_contact_group_members(grp_rn)
-                print(f"   {grp.get('name', grp.get('formattedName'))}: {len(members)} members")
+            grp_name = grp.get("name") or grp.get("formattedName", "")
+            if grp_name in group_names:
+                members = client.get_contact_group_members(grp["resourceName"])
+                print(f"   {grp_name}: {len(members)} members")
                 group_members.update(members)
+                matched_names.append(grp_name)
+        unmatched = set(group_names) - set(matched_names)
+        if unmatched:
+            print(f"   ⚠️  Groups not found: {', '.join(sorted(unmatched))}")
         print(f"   Total unique members: {len(group_members)}")
         print()
 
@@ -1131,7 +1136,6 @@ def cmd_linkedin_scan(skip_scan=False, dry_run=False, limit=100, groups=None):
             email = account["email"]
             print(f"🔐 Authenticating {email}...")
             try:
-                from auth import authenticate_for_activity
                 acreds = authenticate_for_activity(email)
                 account_credentials.append((email, acreds))
                 print(f"   ✅ OK")

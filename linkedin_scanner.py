@@ -151,7 +151,7 @@ class LinkedInScanner:
                 "linkedin_url": linkedin_url,
                 "org": org,
                 "title": title,
-                "source": "group" if group_members else "contact_url",
+                "source": "group" if group_members is not None else "contact_url",
                 "months_gap": 0,
             })
             seen_rn.add(rn)
