@@ -29,3 +29,11 @@
 - Review sessions in `data/review_sessions/`, decisions in `data/review_decisions_*.json`
 - Feedback learning in `data/feedback.jsonl`
 - `readJson` returns null ONLY on 404 — throws for all other GCS errors (auth, permissions, etc.)
+- Emergency stop: `data/pipeline_paused.json` (written by dashboard, checked by entrypoint.py)
+
+## Dashboard Patterns
+- Name resolution: `getContactNameMap()` in gcs.ts — resolves resourceName → displayName from workplan + LinkedIn signals
+- Cache: 60s TTL in-memory Map; `clearCache()` exposed via POST /api/cache-clear
+- Demo masking: `demo.ts` — must handle ALL PII fields including `field === 'contact'` (tobedeleted names)
+- API sub-routes: use directory structure (e.g., `api/config/index.get.ts` + `api/config/pause.post.ts`)
+- Nuxt API routes with `isDemoMode()` guard for write endpoints
