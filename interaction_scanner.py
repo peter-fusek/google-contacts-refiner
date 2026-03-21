@@ -24,6 +24,8 @@ from config import (
     ACTIVITY_ACCOUNTS,
     ACTIVITY_LABEL_PREFIX,
     CALENDAR_EVENTS_SINCE,
+    FOLLOWUP_GROUP_NAME,
+    FOLLOWUP_NOTE_MARKER,
     GMAIL_RATE_LIMIT,
     INTERACTIONS_CACHE,
     LTNS_GROUP_NAME,
@@ -1194,6 +1196,296 @@ class InteractionScanner:
             logger.error(f"LTNS AI prompt generation failed: {e}")
 
         return prompts
+
+    # ── FollowUp Prompts ────────────────────────────────────────────────
+
+    def generate_followup_prompts(
+        self,
+        client: PeopleAPIClient,
+        scored_list: list,
+        dry_run: bool = False,
+    ) -> tuple[int, dict[str, str]]:
+        """Generate AI reconnect prompts with LinkedIn context and write to contact notes.
+
+        scored_list: list of FollowUpScore dataclass instances from followup_scorer.
+        """
+        if not scored_list:
+            return 0, {}
+
+        # Build (contact_dict, details_with_linkedin) tuples for AI generation
+        to_prompt = []
+        for s in scored_list:
+            details = self.get_contact_interaction_details(s.resource_name)
+            # Enrich details with LinkedIn signal info for the AI prompt
+            details["followup_linkedin_signal"] = s.linkedin_signal_text
+            details["followup_current_role"] = s.linkedin_current_role
+            details["followup_linkedin_type"] = s.linkedin_signal
+
+            subject = (details.get("last_email") or {}).get("subject", "")
+            snippet = (details.get("last_email") or {}).get("snippet", "")
+            meeting = (details.get("last_meeting") or {}).get("title", "")
+            has_context = subject or snippet or meeting or s.org or s.linkedin_signal
+
+            if has_context:
+                contact_dict = {
+                    "resourceName": s.resource_name,
+                    "name": s.name,
+                    "org": s.org,
+                    "title": s.title,
+                    "urls": s.urls,
+                    "months_gap": s.months_gap,
+                }
+                to_prompt.append((contact_dict, details))
+
+        if not to_prompt:
+            logger.info("FollowUp: No contacts with enough context for prompts")
+            return 0, {}
+
+        logger.info(f"FollowUp: Generating prompts for {len(to_prompt)} contacts")
+
+        # Generate via AI — reuse the shared method which handles LinkedIn fields
+        prompts = self._generate_followup_prompts_ai(to_prompt)
+
+        if dry_run:
+            for c, _ in to_prompt[:5]:
+                prompt = prompts.get(c["resourceName"], "")
+                logger.info(f"  Would add FollowUp prompt for {c['name']}: {prompt[:80]}...")
+            return len(prompts), prompts
+
+        # Write prompts to contact notes
+        updated = 0
+        for c, _ in to_prompt:
+            rn = c["resourceName"]
+            prompt_text = prompts.get(rn)
+            if not prompt_text:
+                continue
+
+            try:
+                person = client.get_contact(rn, person_fields="biographies,metadata")
+                etag = person.get("etag", "")
+
+                existing_note = ""
+                for bio in person.get("biographies", []):
+                    if bio.get("contentType") == "TEXT_PLAIN":
+                        existing_note = bio.get("value", "")
+                        break
+
+                # Strip old followup prompt if present
+                clean_note = self._strip_followup_prompt(existing_note).strip()
+
+                # Build new followup block
+                today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+                followup_block = (
+                    f"{FOLLOWUP_NOTE_MARKER} (generated {today}) ──\n"
+                    f"{prompt_text}"
+                )
+
+                # Insert after interaction block (if present) or at top
+                if INTERACTION_NOTE_MARKER in clean_note:
+                    lines = clean_note.split("\n")
+                    insert_at = 0
+                    in_interaction = False
+                    for i, line in enumerate(lines):
+                        if INTERACTION_NOTE_MARKER in line:
+                            in_interaction = True
+                            continue
+                        if in_interaction:
+                            if not line.strip() or not line.startswith(("Email:", "Meeting:", "Summary:")):
+                                insert_at = i
+                                break
+                            insert_at = i + 1
+
+                    lines.insert(insert_at, f"\n{followup_block}")
+                    new_note = "\n".join(lines)
+                else:
+                    new_note = f"{followup_block}\n\n{clean_note}" if clean_note else followup_block
+
+                body = {
+                    "biographies": [{
+                        "value": new_note,
+                        "contentType": "TEXT_PLAIN",
+                    }]
+                }
+                client.update_contact(rn, etag, body, update_fields="biographies")
+                updated += 1
+
+            except Exception as e:
+                logger.error(f"FollowUp: Failed to update notes for {rn}: {e}")
+
+        logger.info(f"FollowUp: {updated} prompts written to notes")
+
+        # Return prompts dict so caller can attach to FollowUpScore objects
+        return updated, prompts
+
+    def _strip_followup_prompt(self, note: str) -> str:
+        """Remove existing FollowUp prompt block from a note.
+
+        Strips from the marker line until the next known marker (──) or
+        a blank line followed by non-prompt text. AI prompts don't start
+        with known markers, so the first ── line after the marker ends the block.
+        """
+        if FOLLOWUP_NOTE_MARKER not in note:
+            return note
+
+        lines = note.split("\n")
+        result = []
+        in_block = False
+        for line in lines:
+            if FOLLOWUP_NOTE_MARKER in line:
+                in_block = True
+                continue
+            if in_block:
+                # End block at next known marker
+                if line.strip().startswith("──"):
+                    in_block = False
+                    result.append(line)
+                    continue
+                # Non-blank line = still in block (prompt text)
+                # Blank line = end of block
+                if not line.strip():
+                    in_block = False
+                continue
+            result.append(line)
+
+        return "\n".join(result).rstrip()
+
+    def _generate_followup_prompts_ai(
+        self,
+        contacts_with_details: list[tuple[dict, dict]],
+    ) -> dict[str, str]:
+        """Generate AI-powered FollowUp prompts with LinkedIn context."""
+        prompts = {}
+
+        try:
+            import anthropic
+            import os
+
+            api_key = os.environ.get("ANTHROPIC_API_KEY")
+            if not api_key:
+                logger.warning("FollowUp: No ANTHROPIC_API_KEY, skipping AI prompts")
+                return prompts
+
+            ai_client = anthropic.Anthropic(api_key=api_key)
+
+            for batch_start in range(0, len(contacts_with_details), 20):
+                batch = contacts_with_details[batch_start:batch_start + 20]
+
+                prompt_parts = []
+                for i, (c, details) in enumerate(batch):
+                    part = f"[{i+1}] {c['name']}"
+                    if c.get("org"):
+                        part += f" ({c['org']}"
+                        if c.get("title"):
+                            part += f", {c['title']}"
+                        part += ")"
+
+                    # LinkedIn signal context (new for FollowUp)
+                    li_type = details.get("followup_linkedin_type")
+                    li_signal = details.get("followup_linkedin_signal")
+                    li_role = details.get("followup_current_role")
+                    if li_type == "job_change" and li_signal:
+                        part += f"\n  LinkedIn: JOB CHANGE — {li_signal}"
+                    elif li_type == "active" and li_signal:
+                        part += f"\n  LinkedIn: Recently active — {li_signal}"
+                    if li_role:
+                        part += f"\n  Current role: {li_role}"
+
+                    le = details.get("last_email") or {}
+                    if le.get("subject"):
+                        part += f"\n  Last email ({le['date']}): {le['subject']}"
+                    if le.get("snippet"):
+                        part += f"\n  Snippet: {le['snippet'][:150]}"
+                    lm = details.get("last_meeting") or {}
+                    if lm.get("title"):
+                        part += f"\n  Last meeting ({lm['date']}): {lm['title']}"
+                    linkedin_urls = [u for u in c.get("urls", []) if u.get("type") == "linkedin"]
+                    if linkedin_urls:
+                        part += f"\n  LinkedIn: {linkedin_urls[0]['url']}"
+                    part += f"\n  Gap: {c['months_gap']} months"
+                    prompt_parts.append(part)
+
+                prompt = (
+                    "You are helping reconnect with contacts. For each person below, "
+                    "write a brief reconnect note (2-3 lines) that includes:\n"
+                    "1. A natural conversation starter — if they have a job change, congratulate them; "
+                    "otherwise reference the last interaction\n"
+                    "2. If they have a company/role, mention something relevant to their field\n"
+                    "3. A suggested discussion topic relevant for Instarea (tech consulting company in Slovakia)\n\n"
+                    "Keep it warm, personal, and in English. "
+                    "Reply with numbered entries only.\n\n"
+                    + "\n\n".join(prompt_parts)
+                )
+
+                response = ai_client.messages.create(
+                    model="claude-haiku-4-5-20251001",
+                    max_tokens=2000,
+                    messages=[{"role": "user", "content": prompt}],
+                )
+
+                # Parse response — same pattern as LTNS
+                text = response.content[0].text
+                current_idx = None
+                current_lines = []
+
+                for line in text.strip().split("\n"):
+                    match = re.match(r"\[(\d+)\](.+)", line.strip())
+                    if match:
+                        if current_idx is not None and current_lines:
+                            if 0 <= current_idx < len(batch):
+                                rn = batch[current_idx][0]["resourceName"]
+                                prompts[rn] = "\n".join(current_lines).strip()
+
+                        current_idx = int(match.group(1)) - 1
+                        current_lines = [match.group(2).strip()]
+                    elif current_idx is not None and line.strip():
+                        current_lines.append(line.strip())
+
+                if current_idx is not None and current_lines:
+                    if 0 <= current_idx < len(batch):
+                        rn = batch[current_idx][0]["resourceName"]
+                        prompts[rn] = "\n".join(current_lines).strip()
+
+                logger.info(
+                    f"FollowUp AI: Batch {batch_start // 20 + 1} — "
+                    f"{sum(1 for c, _ in batch if c['resourceName'] in prompts)} prompts"
+                )
+
+        except Exception as e:
+            logger.error(f"FollowUp AI prompt generation failed: {e}")
+
+        return prompts
+
+    def create_followup_group(self, client: PeopleAPIClient, scored_list: list):
+        """Create/populate the FollowUp contact group (additive only)."""
+        existing_groups = client.get_all_contact_groups()
+        group_rn = None
+        for g in existing_groups:
+            if g.get("name") == FOLLOWUP_GROUP_NAME:
+                group_rn = g["resourceName"]
+                break
+
+        if not group_rn:
+            logger.info(f"Creating contact group: {FOLLOWUP_GROUP_NAME}")
+            group = client.create_contact_group(FOLLOWUP_GROUP_NAME)
+            group_rn = group["resourceName"]
+
+        try:
+            existing = set(client.get_contact_group_members(group_rn))
+        except Exception:
+            existing = set()
+
+        new_rns = [s.resource_name for s in scored_list if s.resource_name not in existing]
+        if new_rns:
+            for batch_start in range(0, len(new_rns), 500):
+                batch = new_rns[batch_start:batch_start + 500]
+                try:
+                    client.add_contact_to_group(group_rn, batch)
+                except Exception as e:
+                    logger.error(f"FollowUp: Failed to add {len(batch)} contacts to group: {e}")
+
+            logger.info(f"FollowUp: Added {len(new_rns)} contacts to {FOLLOWUP_GROUP_NAME} group")
+        else:
+            logger.info(f"FollowUp: All {len(scored_list)} contacts already in {FOLLOWUP_GROUP_NAME} group")
 
     # ── Full Scan Pipeline ──────────────────────────────────────────────
 

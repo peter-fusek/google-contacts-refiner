@@ -15,6 +15,7 @@ Usage:
     python main.py tag-activity   # Scan interactions and assign year labels
     python main.py ltns           # Identify LTNS contacts and generate reconnect prompts
     python main.py linkedin-scan  # Scan LinkedIn profiles for social signals
+    python main.py followup       # Score FollowUp candidates (LinkedIn + interaction signals)
 """
 import os
 import sys
@@ -1074,6 +1075,141 @@ def cmd_ltns(skip_scan=False, dry_run=False, no_prompts=False):
     print(f"   List saved: {ltns_path}")
 
 
+def cmd_followup(skip_scan=False, dry_run=False, no_prompts=False):
+    """Score FollowUp candidates using interaction history + LinkedIn signals."""
+    from config import ACTIVITY_ACCOUNTS, FOLLOWUP_SCORES_FILE, FOLLOWUP_TOP_N
+    from auth import authenticate, authenticate_for_activity
+    from interaction_scanner import InteractionScanner
+    from followup_scorer import (
+        load_linkedin_signals,
+        score_contacts,
+        build_followup_scores_json,
+        upload_followup_scores_to_gcs,
+    )
+
+    print("🔄 FollowUp — AI-Powered Reconnect Scoring")
+    print("=" * 50)
+    print()
+
+    if dry_run:
+        print("ℹ️  DRY RUN — no groups, notes, or GCS will be updated")
+        print()
+
+    # Step 1: Get contacts
+    creds = authenticate()
+    client = PeopleAPIClient(creds)
+
+    print("📡 Fetching contacts...")
+
+    def progress(fetched, total):
+        print(f"\r   Fetched: {fetched} / ~{total}  ", end="", flush=True)
+
+    contacts = client.get_all_contacts(progress_callback=progress)
+    print()
+    print(f"   Total contacts: {len(contacts)}")
+    print()
+
+    # Step 2: Authenticate activity accounts + scan
+    scanner = InteractionScanner(contacts)
+    if not skip_scan:
+        account_credentials = []
+        for account in ACTIVITY_ACCOUNTS:
+            email = account["email"]
+            print(f"🔐 Authenticating {email}...")
+            try:
+                acreds = authenticate_for_activity(email)
+                account_credentials.append((email, acreds))
+                print(f"   ✅ OK")
+            except Exception as e:
+                print(f"   ⚠️  Skipping {email}: {e}")
+        print()
+
+        for account_email, acreds in account_credentials:
+            print(f"📧 Scanning {account_email}...")
+            scanner.scan_gmail(acreds, account_email)
+            scanner.scan_calendar(acreds, account_email)
+        print()
+
+    # Step 3: Load LinkedIn signals
+    linkedin_signals = load_linkedin_signals()
+    li_count = len(linkedin_signals)
+    print(f"🔗 LinkedIn signals loaded: {li_count}")
+    if li_count:
+        types = {}
+        for sig in linkedin_signals.values():
+            t = sig.get("signal_type", "unknown")
+            types[t] = types.get(t, 0) + 1
+        print(f"   {types}")
+    print()
+
+    # Step 4: Score candidates
+    print("📊 Scoring FollowUp candidates...")
+    scored = score_contacts(
+        contacts=contacts,
+        interactions=scanner._interactions,
+        contact_emails=scanner._contact_emails,
+        linkedin_signals=linkedin_signals,
+        top_n=FOLLOWUP_TOP_N,
+    )
+
+    if not scored:
+        print("ℹ️  No FollowUp candidates found.")
+        return
+
+    # Step 5: Display results
+    print()
+    print("═══════════════════════════════════════════════════════════")
+    print(f"       FOLLOWUP TOP {len(scored)} RECONNECT LIST")
+    print("═══════════════════════════════════════════════════════════")
+    for s in scored:
+        li_tag = ""
+        if s.linkedin_signal:
+            li_tag = f" [LI:{s.linkedin_signal}]"
+        org_info = f" @ {s.org}" if s.org else ""
+        title_info = f" ({s.title})" if s.title else ""
+        last = s.last_date or "never"
+        print(
+            f"  {s.rank:3d}. {s.name:<30s}{org_info}{title_info}"
+            f"  last: {last}  gap: {s.months_gap:>5.1f}m"
+            f"  score: {s.score_total:>7.1f}{li_tag}"
+        )
+    print("═══════════════════════════════════════════════════════════")
+
+    # Score breakdown
+    with_linkedin = sum(1 for s in scored if s.linkedin_signal)
+    job_changes = sum(1 for s in scored if s.linkedin_signal == "job_change")
+    print(f"  With LinkedIn signal: {with_linkedin} ({job_changes} job changes)")
+    print(f"  Avg completeness: {sum(s.completeness for s in scored) / len(scored):.1f}/4")
+    print()
+
+    # Step 6: Create FollowUp group
+    if not dry_run:
+        print("👥 Updating FollowUp group...")
+        scanner.create_followup_group(client, scored)
+
+    # Step 7: Generate AI prompts
+    if not no_prompts:
+        print("🤖 Generating FollowUp prompts...")
+        updated, prompts = scanner.generate_followup_prompts(client, scored, dry_run=dry_run)
+        # Attach prompts to scored list for JSON output
+        for s in scored:
+            s.followup_prompt = prompts.get(s.resource_name)
+        print(f"   Prompts {'generated' if dry_run else 'written'}: {updated}")
+
+    # Step 8: Save scores to file + GCS
+    scores_json = build_followup_scores_json(scored)
+    FOLLOWUP_SCORES_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(FOLLOWUP_SCORES_FILE, "w", encoding="utf-8") as f:
+        json.dump(scores_json, f, ensure_ascii=False, indent=2)
+    print(f"   Scores saved: {FOLLOWUP_SCORES_FILE}")
+
+    if not dry_run:
+        upload_followup_scores_to_gcs()
+
+    print()
+    print("✅ FollowUp scoring complete!")
+
+
 def cmd_linkedin_scan(skip_scan=False, dry_run=False, limit=100, groups=None):
     """Scan LinkedIn profiles for social signals. Supports group-based filtering."""
     from config import ACTIVITY_ACCOUNTS
@@ -1271,8 +1407,8 @@ def main():
         choices=[
             "auth", "backup", "analyze", "analyse", "fix", "ai-review",
             "verify", "rollback", "resume", "info",
-            "auth-activity", "tag-activity", "ltns", "linkedin-match",
-            "linkedin-scan", "refresh-tables",
+            "auth-activity", "tag-activity", "ltns", "followup",
+            "linkedin-match", "linkedin-scan", "refresh-tables",
         ],
         help="Command to execute",
     )
@@ -1335,6 +1471,12 @@ def main():
             )
         elif command == "ltns":
             cmd_ltns(
+                skip_scan=args.skip_scan,
+                dry_run=args.dry_run,
+                no_prompts=args.no_prompts,
+            )
+        elif command == "followup":
+            cmd_followup(
                 skip_scan=args.skip_scan,
                 dry_run=args.dry_run,
                 no_prompts=args.no_prompts,

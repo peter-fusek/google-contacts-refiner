@@ -628,6 +628,21 @@ LTNS_TOP_N = 50                  # Top N candidates for reconnect list
 LTNS_GROUP_NAME = "LTNS"         # Contact group name
 LTNS_NOTE_MARKER = "── Reconnect Prompt"
 
+# ── FollowUp Scoring ─────────────────────────────────────────────────────
+FOLLOWUP_TOP_N = 50
+FOLLOWUP_MIN_INTERACTIONS = 1          # Lower than LTNS — LinkedIn signals compensate
+FOLLOWUP_MIN_MONTHS = 6               # Lower than LTNS (12) — more proactive
+FOLLOWUP_GROUP_NAME = "FollowUp"
+FOLLOWUP_NOTE_MARKER = "── FollowUp Prompt"
+FOLLOWUP_SCORES_FILE = DATA_DIR / "followup_scores.json"
+FOLLOWUP_LINKEDIN_WEIGHTS: dict[str, float] = {
+    "job_change": 30.0,
+    "active":     10.0,
+    "profile":     3.0,
+    "no_activity": 0.0,
+}
+FOLLOWUP_COMPLETENESS_WEIGHT = 2.0    # Per completeness point (0-4 scale)
+
 # ── PSČ Patterns ───────────────────────────────────────────────────────────
 # Slovak PSČ: 0xxxx, 8xxxx, 9xxxx
 # Czech PSČ: 1xxxx-7xxxx

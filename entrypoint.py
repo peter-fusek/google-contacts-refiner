@@ -535,6 +535,21 @@ def run():
     else:
         logger.info("Phase 3 skipped (ENABLE_ACTIVITY_TAGGING not set)")
 
+    # ── Phase 4 (optional): FollowUp Scoring ────────────────────────
+    enable_followup = os.getenv("ENABLE_FOLLOWUP_SCORING", "").lower() in ("1", "true", "yes")
+    if enable_followup:
+        logger.info("Phase 4: FollowUp Scoring")
+        try:
+            from main import cmd_followup
+            cmd_followup(skip_scan=True, dry_run=dry_run, no_prompts=False)
+            run_state["phases_completed"].append("phase4")
+        except Exception as e:
+            logger.error(f"FollowUp scoring failed (non-fatal): {e}")
+            run_state["errors"].append(f"Phase 4: {e}")
+            traceback.print_exc()
+    else:
+        logger.info("Phase 4 skipped (ENABLE_FOLLOWUP_SCORING not set)")
+
     # ── Record run & send digest ─────────────────────────────────
     _record_pipeline_run(run_state, start)
 
