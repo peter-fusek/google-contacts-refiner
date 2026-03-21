@@ -8,6 +8,9 @@ import type {
   BatchMarker,
   ReviewSession,
   FeedbackEntry,
+  FollowUpScore,
+  FollowUpStats,
+  FollowUpScoresFile,
   LinkedInSignal,
   LinkedInSignalsFile,
 } from './types'
@@ -348,6 +351,20 @@ export async function getLinkedInSignals(): Promise<{ signals: LinkedInSignal[];
     return {
       signals: Object.values(data.signals),
       generated: data.generated,
+    }
+  })
+}
+
+// --- FollowUp Scores API ---
+
+export async function getFollowUpScores(): Promise<{ scores: FollowUpScore[]; generated: string | null; stats: FollowUpStats | null }> {
+  return cachedRead('followup_scores', async () => {
+    const data = await readJson<FollowUpScoresFile>('data/followup_scores.json')
+    if (!data) return { scores: [], generated: null, stats: null }
+    return {
+      scores: Object.values(data.scores),
+      generated: data.generated,
+      stats: data.stats,
     }
   })
 }

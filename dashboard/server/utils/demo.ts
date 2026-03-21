@@ -1,5 +1,5 @@
 import type { H3Event } from 'h3'
-import type { ChangelogEntry, ReviewChange, LinkedInSignal } from './types'
+import type { ChangelogEntry, ReviewChange, LinkedInSignal, FollowUpScore } from './types'
 
 /**
  * Check if the current request is in demo mode (unauthenticated visitor).
@@ -174,4 +174,29 @@ export function maskLinkedInSignal(signal: LinkedInSignal): LinkedInSignal {
 
 export function maskTopContact<T extends { name: string }>(contact: T): T {
   return { ...contact, name: maskName(contact.name), resourceName: '***' }
+}
+
+/**
+ * Mask PII in a FollowUp score.
+ */
+export function maskFollowUpScore(score: FollowUpScore): FollowUpScore {
+  const nameParts = (score.name || '').trim().split(/\s+/)
+  if (nameParts.length > 1) {
+    nameParts[nameParts.length - 1] = maskLastName(nameParts[nameParts.length - 1]!)
+  }
+  return {
+    ...score,
+    resourceName: '***',
+    name: nameParts.join(' '),
+    contact: {
+      ...score.contact,
+      emails: score.contact.emails.map(maskEmail),
+      urls: score.contact.urls.map(u => ({ ...u, url: u.type === 'linkedin' ? 'https://www.linkedin.com/in/***' : '***' })),
+    },
+    linkedin: score.linkedin ? {
+      ...score.linkedin,
+      url: 'https://www.linkedin.com/in/***',
+    } : null,
+    followup_prompt: score.followup_prompt ? '[Reconnect prompt — hidden in demo]' : null,
+  }
 }

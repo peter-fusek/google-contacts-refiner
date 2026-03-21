@@ -11,6 +11,7 @@ const navItems = [
   { label: 'Changelog', icon: 'i-lucide-file-diff', to: '/changelog' },
   { label: 'Analytics', icon: 'i-lucide-bar-chart-3', to: '/analytics' },
   { label: 'Social Signals', icon: 'i-lucide-radar', to: '/social-signals' },
+  { label: 'FollowUp', icon: 'i-lucide-user-round-check', to: '/followup' },
   { label: 'Runs', icon: 'i-lucide-play-circle', to: '/runs' },
   { label: 'Config', icon: 'i-lucide-settings', to: '/config' },
 ]

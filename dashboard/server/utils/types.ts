@@ -237,6 +237,66 @@ export interface LinkedInSignalsResponse {
   }
 }
 
+// --- FollowUp Scores ---
+
+export interface FollowUpScore {
+  resourceName: string
+  name: string
+  score_total: number
+  rank: number
+  score_breakdown: {
+    interaction: number
+    linkedin: number
+    completeness: number
+  }
+  interaction: {
+    last_date: string | null
+    months_gap: number
+    count: number
+  }
+  linkedin: {
+    signal_type: string
+    signal_text: string | null
+    headline: string | null
+    current_role: string | null
+    scanned_at: string | null
+    url: string | null
+  } | null
+  contact: {
+    org: string
+    title: string
+    has_email: boolean
+    has_phone: boolean
+    has_org: boolean
+    has_linkedin_url: boolean
+    completeness: number
+    emails: string[]
+    urls: Array<{ url: string; type: string }>
+  }
+  followup_prompt: string | null
+}
+
+export interface FollowUpStats {
+  job_change: number
+  active: number
+  profile_only: number
+  no_linkedin: number
+  avg_completeness: number
+}
+
+export interface FollowUpScoresFile {
+  generated: string
+  count: number
+  scores: Record<string, FollowUpScore>
+  stats: FollowUpStats
+}
+
+export interface FollowUpResponse {
+  scores: FollowUpScore[]
+  generated: string | null
+  stats: FollowUpStats | null
+}
+
 // --- Config ---
 
 export interface ConfigResponse {
