@@ -5,22 +5,41 @@ const submitting = ref(false)
 const pendingScreenshot = ref('')
 const toast = useToast()
 
-async function onBugClick() {
-  // Capture screenshot BEFORE modal opens (so the modal isn't in the shot)
-  try {
-    const html2canvas = (await import('html2canvas')).default
-    const canvas = await html2canvas(document.body, {
-      scale: 1,
-      useCORS: true,
-      logging: false,
-      backgroundColor: '#0a0a0a',
-    })
-    pendingScreenshot.value = canvas.toDataURL('image/png')
-  }
-  catch {
-    pendingScreenshot.value = ''
-  }
+function onBugClick() {
   open.value = true
+}
+
+function onPaste(event: ClipboardEvent) {
+  const items = event.clipboardData?.items
+  if (!items) return
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      event.preventDefault()
+      const blob = item.getAsFile()
+      if (!blob) continue
+      const reader = new FileReader()
+      reader.onload = () => {
+        pendingScreenshot.value = reader.result as string
+      }
+      reader.readAsDataURL(blob)
+      break
+    }
+  }
+}
+
+function onFileSelect(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file || !file.type.startsWith('image/')) return
+  const reader = new FileReader()
+  reader.onload = () => {
+    pendingScreenshot.value = reader.result as string
+  }
+  reader.readAsDataURL(file)
+}
+
+function removeScreenshot() {
+  pendingScreenshot.value = ''
 }
 
 async function submit() {
@@ -28,8 +47,6 @@ async function submit() {
 
   submitting.value = true
   try {
-    const pageState = collectPageState()
-
     const environment = {
       url: window.location.href,
       viewport: `${window.innerWidth}x${window.innerHeight}`,
@@ -43,7 +60,7 @@ async function submit() {
         description: description.value.trim(),
         pageUrl: window.location.href,
         screenshot: pendingScreenshot.value,
-        pageState,
+        pageState: { route: useRoute().fullPath, page: useRoute().name },
         environment,
       },
     })
@@ -72,35 +89,6 @@ async function submit() {
     submitting.value = false
   }
 }
-
-function collectPageState(): Record<string, unknown> {
-  const state: Record<string, unknown> = {
-    route: useRoute().fullPath,
-    page: useRoute().name,
-  }
-
-  // Visible errors on page
-  const errorEls = document.querySelectorAll('[class*="error"], [class*="alert"], [role="alert"]')
-  if (errorEls.length > 0) {
-    state.visibleErrors = Array.from(errorEls).slice(0, 5).map(el => el.textContent?.trim().slice(0, 200))
-  }
-
-  // Table row counts
-  const tableRows = document.querySelectorAll('table tbody tr, [role="row"]')
-  if (tableRows.length > 0) {
-    state.tableRowCount = tableRows.length
-  }
-
-  // Loading indicators
-  const loadingEls = document.querySelectorAll('[class*="loading"], [class*="spinner"], [class*="skeleton"]')
-  if (loadingEls.length > 0) {
-    state.loadingElements = loadingEls.length
-  }
-
-  // No input values captured — PII risk (contact names, phones in search fields)
-
-  return state
-}
 </script>
 
 <template>
@@ -116,7 +104,7 @@ function collectPageState(): Record<string, unknown> {
   <!-- Modal -->
   <UModal v-model:open="open">
     <template #content>
-      <div class="p-6 space-y-4">
+      <div class="p-6 space-y-4" @paste="onPaste">
         <div class="flex items-center gap-3">
           <div class="size-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
             <UIcon name="i-lucide-bug" class="size-5 text-red-400" />
@@ -126,14 +114,31 @@ function collectPageState(): Record<string, unknown> {
               Report a Bug
             </h3>
             <p class="text-xs text-neutral-500">
-              A screenshot and page state will be captured automatically.
+              Take a screenshot (Cmd+Shift+4) and paste it here, or upload an image.
             </p>
           </div>
         </div>
 
-        <!-- Screenshot preview -->
-        <div v-if="pendingScreenshot" class="rounded-lg border border-neutral-700 overflow-hidden">
+        <!-- Screenshot preview or upload area -->
+        <div v-if="pendingScreenshot" class="relative rounded-lg border border-neutral-700 overflow-hidden">
           <img :src="pendingScreenshot" alt="Page screenshot" class="w-full opacity-70" />
+          <button
+            class="absolute top-2 right-2 size-6 flex items-center justify-center rounded-full bg-neutral-900/80 text-neutral-400 hover:text-red-400 transition-colors"
+            title="Remove screenshot"
+            @click="removeScreenshot"
+          >
+            <UIcon name="i-lucide-x" class="size-3.5" />
+          </button>
+        </div>
+        <div v-else class="rounded-lg border border-dashed border-neutral-700 p-4 text-center">
+          <p class="text-xs text-neutral-500 mb-2">
+            Paste a screenshot (Cmd+V) or
+          </p>
+          <label class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-neutral-800 border border-neutral-700 text-neutral-400 hover:text-neutral-200 cursor-pointer transition-colors">
+            <UIcon name="i-lucide-upload" class="size-3.5" />
+            Upload image
+            <input type="file" accept="image/*" class="hidden" @change="onFileSelect" />
+          </label>
         </div>
 
         <div>
@@ -150,7 +155,7 @@ function collectPageState(): Record<string, unknown> {
 
         <div class="flex items-center justify-between pt-1">
           <p class="text-[11px] text-neutral-600">
-            Creates a GitHub issue with screenshot
+            Creates a GitHub issue with your screenshot
           </p>
           <div class="flex gap-2">
             <button
