@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Description is required' })
   }
 
-  const repo = config.githubRepo as string || 'peter-fusek/google-contacts-refiner'
+  const repo = config.githubRepo as string || 'instarea-sk/google-contacts-refiner'
   const reporter = session.user?.name || session.user?.email || 'Authenticated user'
 
   // Sanitize inputs — user description and URL could contain anything

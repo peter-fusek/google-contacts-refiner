@@ -34,7 +34,7 @@ export default defineNuxtConfig({
     gcsBucket: process.env.GCS_BUCKET || 'contacts-refiner-data',
     gcsServiceAccount: process.env.GCS_SERVICE_ACCOUNT || '',
     githubToken: process.env.GITHUB_TOKEN || '',
-    githubRepo: process.env.GITHUB_REPO || 'peter-fusek/google-contacts-refiner',
+    githubRepo: process.env.GITHUB_REPO || 'instarea-sk/google-contacts-refiner',
     public: {
       appVersion: process.env.npm_package_version || '0.1.0',
       buildDate: new Date().toISOString().slice(0, 10),

@@ -212,7 +212,7 @@ useHead({
         <span>Contact Refiner by <a href="https://instarea.sk" target="_blank" rel="noopener" class="text-neutral-500 hover:text-neutral-400 transition-colors">Instarea</a></span>
         <div class="flex items-center gap-4">
           <NuxtLink to="/privacy" class="text-neutral-500 hover:text-neutral-400 transition-colors">Privacy</NuxtLink>
-          <a href="https://github.com/peter-fusek/google-contacts-refiner" target="_blank" rel="noopener" class="text-neutral-500 hover:text-neutral-400 transition-colors">GitHub</a>
+          <a href="https://github.com/instarea-sk/google-contacts-refiner" target="_blank" rel="noopener" class="text-neutral-500 hover:text-neutral-400 transition-colors">GitHub</a>
         </div>
       </div>
     </footer>

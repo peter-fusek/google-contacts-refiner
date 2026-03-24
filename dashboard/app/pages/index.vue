@@ -136,7 +136,7 @@ const steps = [
         </div>
         <div class="flex items-center gap-4">
           <a
-            href="https://github.com/peter-fusek/google-contacts-refiner"
+            href="https://github.com/instarea-sk/google-contacts-refiner"
             target="_blank"
             rel="noopener"
             class="text-neutral-500 hover:text-neutral-300 transition-colors"
@@ -174,7 +174,7 @@ const steps = [
 
         <div class="flex items-center justify-center gap-4 pt-2">
           <a
-            href="https://github.com/peter-fusek/google-contacts-refiner"
+            href="https://github.com/instarea-sk/google-contacts-refiner"
             target="_blank"
             rel="noopener"
             class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-sm font-medium transition-colors"
@@ -321,7 +321,7 @@ const steps = [
           Open source. Self-hosted. Your data stays yours.
         </p>
         <a
-          href="https://github.com/peter-fusek/google-contacts-refiner"
+          href="https://github.com/instarea-sk/google-contacts-refiner"
           target="_blank"
           rel="noopener"
           class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-sm font-medium transition-colors"
@@ -339,7 +339,7 @@ const steps = [
         <div class="flex items-center gap-4">
           <NuxtLink to="/privacy" class="text-neutral-500 hover:text-neutral-400 transition-colors">Privacy</NuxtLink>
           <a
-            href="https://github.com/peter-fusek/google-contacts-refiner"
+            href="https://github.com/instarea-sk/google-contacts-refiner"
             target="_blank"
             rel="noopener"
             class="text-neutral-500 hover:text-neutral-400 transition-colors"
