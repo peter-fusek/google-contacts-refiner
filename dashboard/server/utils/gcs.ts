@@ -183,7 +183,7 @@ export function isBatchMarker(entry: ChangelogLine): entry is BatchMarker {
 
 // --- Write API ---
 
-async function writeJson(path: string, data: unknown): Promise<void> {
+export async function writeJson(path: string, data: unknown): Promise<void> {
   const content = JSON.stringify(data, null, 2)
   try {
     await getBucket().file(path).save(content, {

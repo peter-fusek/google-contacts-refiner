@@ -66,7 +66,8 @@ def _auto_export_sessions():
         rn = item.get("resourceName", "")
         dn = item.get("displayName", "")
         for change in item.get("skipped_changes", []):
-            raw = f"{rn}|{change.get('field', '')}|{change.get('old', '')}|{change.get('new', '')}"
+            # Must match dashboard makeChangeId: resourceName|field|newVal only (NOT old)
+            raw = f"{rn}|{change.get('field', '')}|{change.get('new', '')}"
             change_id = hashlib.sha256(raw.encode()).hexdigest()[:12]
             change_map[change_id] = {
                 "resourceName": rn,
