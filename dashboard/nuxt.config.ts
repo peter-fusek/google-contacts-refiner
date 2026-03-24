@@ -55,5 +55,18 @@ export default defineNuxtConfig({
     enabled: process.env.NODE_ENV !== 'production',
   },
 
+  nitro: {
+    routeRules: {
+      '/**': {
+        headers: {
+          'X-Frame-Options': 'DENY',
+          'X-Content-Type-Options': 'nosniff',
+          'Referrer-Policy': 'strict-origin-when-cross-origin',
+          'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+        },
+      },
+    },
+  },
+
   compatibilityDate: '2025-01-15',
 })

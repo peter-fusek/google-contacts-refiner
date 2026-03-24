@@ -6,8 +6,18 @@ import {
   isBatchMarker,
   estimateAICost,
 } from '../utils/gcs'
+import { isDemoMode } from '../utils/demo'
 
-export default defineEventHandler(async (): Promise<StatusResponse> => {
+export default defineEventHandler(async (event): Promise<StatusResponse> => {
+  if (await isDemoMode(event)) {
+    return {
+      status: 'idle', phase: 'idle',
+      currentBatch: 0, totalBatches: 0,
+      contactsProcessed: 0, contactsTotal: 0,
+      eta: null, lastRun: { startedAt: null, completedAt: null, duration: null, changesApplied: 0, changesFailed: 0, cost: null },
+      aiReview: null,
+    }
+  }
   const [checkpoint, aiCheckpoint, changelog] = await Promise.all([
     getCheckpoint(),
     getAIReviewCheckpoint(),

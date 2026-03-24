@@ -1,7 +1,11 @@
 import { getPipelineRuns } from '../utils/gcs'
+import { isDemoMode } from '../utils/demo'
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
+  if (await isDemoMode(event)) {
+    return []
+  }
+
   const runs = await getPipelineRuns()
-  // Return latest first
   return [...runs].reverse()
 })

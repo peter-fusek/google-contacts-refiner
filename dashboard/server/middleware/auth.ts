@@ -13,8 +13,8 @@ export default defineEventHandler(async (event) => {
   // Check session
   const session = await getUserSession(event)
   if (!session?.user) {
-    // Write API routes require auth — no demo access (except bug reporting)
-    if (path.startsWith('/api/') && event.method !== 'GET' && path !== '/api/bug-report') {
+    // Write API routes require auth — no demo access
+    if (path.startsWith('/api/') && event.method !== 'GET') {
       throw createError({ statusCode: 401, message: 'Unauthorized' })
     }
 
