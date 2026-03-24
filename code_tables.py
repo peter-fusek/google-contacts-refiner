@@ -201,7 +201,7 @@ class CodeTableManager:
 
         # Merge: seed ∪ fetched ∪ custom_add - custom_remove
         if isinstance(seed_entries, list):
-            merged = list(set(seed_entries) | set(new_entries) | set(add_entries) - set(remove_entries))
+            merged = list((set(seed_entries) | set(new_entries) | set(add_entries)) - set(remove_entries))
             merged.sort()
         else:
             merged = {**seed_entries, **new_entries}

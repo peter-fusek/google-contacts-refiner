@@ -75,7 +75,7 @@ export default defineEventHandler(async (event) => {
   const issueBody = [
     '## Bug Report',
     `**Page**: \`${pagePath}\``,
-    `**Reporter**: ${reporter}`,
+    `**Reporter**: \`${reporter.replace(/`/g, "'")}\``,
     `**Date**: ${now}`,
     '',
     '## What happened',

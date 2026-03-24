@@ -356,8 +356,8 @@ def _check_pause_flag() -> bool:
                 logger.warning("Pipeline is PAUSED (emergency stop from dashboard at %s). Exiting.", data.get("pausedAt", "?"))
                 return True
     except Exception as e:
-        logger.warning("Failed to check pause flag: %s", e)
-    return False
+        logger.error("Failed to check pause flag (fail-safe: assuming PAUSED): %s", e)
+        return True
 
 
 def run():

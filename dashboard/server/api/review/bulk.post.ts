@@ -42,8 +42,9 @@ export default defineEventHandler(async (event) => {
 
   for (const changeId of body.changeIds) {
     const old = session.decisions[changeId]
-    if (old) {
-      session.stats[old.decision]--
+    const validDecisions = ['approved', 'rejected', 'edited', 'skipped'] as const
+    if (old && validDecisions.includes(old.decision as typeof validDecisions[number])) {
+      session.stats[old.decision] = Math.max(0, (session.stats[old.decision] ?? 0) - 1)
     }
 
     const decision: ReviewDecision = {

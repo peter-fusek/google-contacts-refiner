@@ -21,7 +21,12 @@ export default defineEventHandler((event) => {
   // Only rate-limit API routes
   if (!path.startsWith('/api/')) return
 
-  const ip = getRequestIP(event, { xForwardedFor: true }) ?? 'unknown'
+  // Use the LAST X-Forwarded-For entry (injected by the trusted proxy, e.g. Render)
+  // The first entry is user-controlled and can be spoofed
+  const forwarded = getHeader(event, 'x-forwarded-for')
+  const ip = forwarded
+    ? forwarded.split(',').at(-1)!.trim()
+    : (getRequestIP(event) ?? 'unknown')
   const now = Date.now()
 
   let entry = hits.get(ip)

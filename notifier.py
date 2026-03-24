@@ -92,6 +92,11 @@ def send_email_digest(run_state: dict, start: datetime) -> bool:
         logger.info("Email digest skipped: RESEND_API_KEY not set")
         return False
 
+    notification_email = os.getenv("NOTIFICATION_EMAIL", "")
+    if not notification_email:
+        logger.info("Email digest skipped: NOTIFICATION_EMAIL not set")
+        return False
+
     try:
         import resend
     except ImportError:
@@ -136,7 +141,7 @@ def send_email_digest(run_state: dict, start: datetime) -> bool:
                 f"LinkedIn Signals: {len(sig_list)} profiles, {job_changes} job changes",
             ])
     except Exception as e:
-        logger.debug(f"LinkedIn signals stats unavailable: {e}")
+        logger.warning(f"LinkedIn signals stats unavailable: {e}")
 
     # FollowUp scoring summary
     try:
@@ -169,7 +174,7 @@ def send_email_digest(run_state: dict, start: datetime) -> bool:
                     signal = c.get("linkedin", {}).get("signal_type", "-")
                     body_lines.append(f"    {c.get('rank', '-')}. {name} ({score:.0f}pts, {signal})")
     except Exception as e:
-        logger.debug(f"FollowUp stats unavailable: {e}")
+        logger.warning(f"FollowUp stats unavailable: {e}")
 
     body_lines.extend([
         "",
@@ -184,7 +189,7 @@ def send_email_digest(run_state: dict, start: datetime) -> bool:
         resend.api_key = api_key
         result = resend.Emails.send({
             "from": "Contact Refiner <noreply@contactrefiner.com>",
-            "to": [os.getenv("NOTIFICATION_EMAIL", "")],
+            "to": [notification_email],
             "subject": subject,
             "text": body,
         })
