@@ -50,7 +50,7 @@ Built with Nuxt 4, Nuxt UI 4, and Tailwind CSS 4.2. Hosted on Render.
 
 ```bash
 # Clone
-git clone https://github.com/instarea-sk/google-contacts-refiner.git
+git clone https://github.com/peter-fusek/google-contacts-refiner.git
 cd google-contacts-refiner
 
 # Virtual environment

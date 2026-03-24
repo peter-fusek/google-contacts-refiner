@@ -27,7 +27,7 @@ Contact Refiner is built for people who manage large Google Contacts databases, 
 
 ## Technical
 
-- [GitHub Repository](https://github.com/instarea-sk/google-contacts-refiner): Source code, issues, and documentation
+- [GitHub Repository](https://github.com/peter-fusek/google-contacts-refiner): Source code, issues, and documentation
 - [API](https://contactrefiner.com/api): REST API for dashboard data (auth-protected)
 
 ## Optional
