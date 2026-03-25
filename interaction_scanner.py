@@ -959,7 +959,8 @@ class InteractionScanner:
         # Get existing members
         try:
             existing = set(client.get_contact_group_members(group_rn))
-        except Exception:
+        except Exception as e:
+            logger.warning(f"LTNS: Failed to get group members for {group_rn}: {e}")
             existing = set()
 
         # Add new members
@@ -1471,7 +1472,8 @@ class InteractionScanner:
 
         try:
             existing = set(client.get_contact_group_members(group_rn))
-        except Exception:
+        except Exception as e:
+            logger.warning(f"FollowUp: Failed to get group members for {group_rn}: {e}")
             existing = set()
 
         new_rns = [s.resource_name for s in scored_list if s.resource_name not in existing]

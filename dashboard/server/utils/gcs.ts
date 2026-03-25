@@ -142,7 +142,7 @@ async function readAllChangelogs(): Promise<ChangelogLine[]> {
         }
       }
     } catch (e) {
-      console.error(`[GCS] Failed to read changelog ${path}: ${(e as Error).message}`)
+      console.warn(`[GCS] Skipping changelog ${path} (will return partial data): ${(e as Error).message}`)
     }
   }
   return all

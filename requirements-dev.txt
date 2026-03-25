@@ -1,0 +1,2 @@
+# Dev/CI tools
+pip-audit>=2.7.0

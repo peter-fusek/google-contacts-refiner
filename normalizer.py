@@ -1207,7 +1207,7 @@ def normalize_urls(person: dict) -> list[dict]:
         parse_url = value if "://" in value else f"https://{value}"
         try:
             parsed = urlparse(parse_url)
-        except Exception:
+        except ValueError:
             continue
 
         domain = (parsed.hostname or "").lower()
