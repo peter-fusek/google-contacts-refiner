@@ -4,7 +4,7 @@ definePageMeta({ layout: false })
 useHead({
   title: 'Contact Refiner — AI-Powered Google Contacts Cleanup',
   meta: [
-    { name: 'description', content: 'Fix diacritics, formatting, and duplicates in Google Contacts. 26 rule categories, 22,000+ changes applied, 164 LinkedIn signals, daily automated pipeline, AI review, and a dashboard to approve every change.' },
+    { name: 'description', content: 'Fix diacritics, formatting, and duplicates in Google Contacts. 26 rule categories, 23,000+ changes applied, 164 LinkedIn signals, 5-phase daily pipeline with feedback learning, AI review, and a dashboard to approve every change.' },
     { property: 'og:title', content: 'Contact Refiner — AI-Powered Google Contacts Cleanup' },
     { property: 'og:description', content: 'Automatically fix diacritics, formatting, and duplicates in your Google Contacts. AI-powered analysis with human review.' },
     { property: 'og:type', content: 'website' },
@@ -46,7 +46,7 @@ useHead({
             'applicationCategory': 'BusinessApplication',
             'operatingSystem': 'Web',
             'url': 'https://contactrefiner.com',
-            'description': 'Automatically fix diacritics, formatting, and duplicates in your Google Contacts. 22,000+ changes applied across 5,500+ contacts. 164 LinkedIn signals. AI-powered analysis with human review and daily email digest.',
+            'description': 'Automatically fix diacritics, formatting, and duplicates in your Google Contacts. 23,000+ changes applied across 5,500+ contacts. 164 LinkedIn signals. 5-phase pipeline with feedback learning, AI review, and daily email digest.',
             'offers': {
               '@type': 'Offer',
               'price': '0',
@@ -120,8 +120,8 @@ const features = [
 
 const steps = [
   { num: '01', title: 'Authenticate', description: 'Connect your Google account with OAuth2. Read-only access to Contacts, Gmail, and Calendar.' },
-  { num: '02', title: 'Analyze', description: 'The pipeline scans all contacts with 26 rule categories — diacritics, formatting, cleanup — then AI reviews ambiguous cases.' },
-  { num: '03', title: 'Review & Fix', description: 'Review changes on the dashboard. Approve, reject, or edit. Only approved changes are applied.' },
+  { num: '02', title: 'Analyze', description: 'A 5-phase daily pipeline scans all contacts with 26 rule categories, AI reviews ambiguous cases, and scores reconnection candidates.' },
+  { num: '03', title: 'Review & Learn', description: 'Review changes on the dashboard. Approve, reject, or edit. The system learns from every decision — rejected changes never come back.' },
 ]
 </script>
 
@@ -158,7 +158,7 @@ const steps = [
       <div class="max-w-3xl mx-auto text-center space-y-6">
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-neutral-800 bg-neutral-900/50 text-xs text-neutral-400">
           <span class="size-1.5 rounded-full bg-primary-400 animate-pulse-glow" />
-          Open source · Security audited · 22,000+ changes · 164 LinkedIn signals
+          Open source · Security audited · 23,000+ changes · 5-phase pipeline · Feedback learning
         </div>
 
         <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-neutral-100 leading-tight">
@@ -168,8 +168,8 @@ const steps = [
 
         <p class="text-lg text-neutral-400 max-w-xl mx-auto leading-relaxed">
           Contact Refiner automatically fixes diacritics, formatting, and duplicates
-          in your Google Contacts. 26 rule categories + Claude AI review + LinkedIn signals + daily email digest.
-          You approve every change.
+          in your Google Contacts. 26 rule categories + Claude AI review + LinkedIn signals + feedback learning loop.
+          You approve every change. Rejected changes never come back.
         </p>
 
         <div class="flex items-center justify-center gap-4 pt-2">
@@ -202,26 +202,30 @@ const steps = [
             <span class="ml-3 text-[11px] text-neutral-600">terminal</span>
           </div>
           <div class="p-5 text-sm leading-relaxed font-mono">
-            <div class="text-neutral-500">$ python main.py analyze</div>
+            <div class="text-neutral-500">$ # Daily pipeline — 5 phases, fully automated</div>
             <div class="mt-2">
-              <span class="text-primary-400">Total contacts: 5,551</span>
+              <span class="text-violet-400">Phase 0:</span>
+              <span class="text-neutral-400"> Process 190 review decisions → learned 175 approvals, 15 rejections</span>
             </div>
             <div>
-              <span class="text-amber-400">  4,331 changes detected (26 rule categories)</span>
+              <span class="text-primary-400">Phase 1:</span>
+              <span class="text-neutral-400"> Analyze 5,551 contacts → auto-fix 950 HIGH confidence changes</span>
             </div>
             <div>
-              <span class="text-cyan-400">  2,140 HIGH confidence → auto-fixed</span>
+              <span class="text-amber-400">Phase 2:</span>
+              <span class="text-neutral-400"> AI review 190 MEDIUM → 8 promoted, 3 demoted</span>
             </div>
             <div>
-              <span class="text-neutral-400">  394 MEDIUM → queued for review</span>
+              <span class="text-cyan-400">Phase 3:</span>
+              <span class="text-neutral-400"> Tag activity from Gmail + Calendar interactions</span>
             </div>
-            <div class="mt-2 text-neutral-500">$ python main.py fix --auto</div>
-            <div class="text-primary-400">  Applied 2,140 changes in 28s</div>
-            <div class="mt-2 text-neutral-500">$ python main.py linkedin-scan</div>
-            <div class="text-cyan-400">  164 profiles scanned → 103 job changes (63%)</div>
+            <div>
+              <span class="text-teal-400">Phase 4:</span>
+              <span class="text-neutral-400"> Score top 50 FollowUp candidates (LinkedIn + interactions)</span>
+            </div>
             <div class="mt-2 text-neutral-600">
-              # Review at https://contactrefiner.com/review<br>
-              # Signals at https://contactrefiner.com/social-signals
+              # Review at contactrefiner.com/review<br>
+              # Pipeline completed in 2m 59s — queue: 2 remaining
             </div>
           </div>
         </div>
@@ -232,11 +236,11 @@ const steps = [
     <section class="py-12 px-6 border-t border-neutral-800/50">
       <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-6 text-center">
         <div>
-          <div class="text-2xl md:text-3xl font-bold text-primary-400 tabular-nums">22,189</div>
+          <div class="text-2xl md:text-3xl font-bold text-primary-400 tabular-nums">23,100+</div>
           <div class="label-refined mt-1">Changes applied</div>
         </div>
         <div>
-          <div class="text-2xl md:text-3xl font-bold text-neutral-100 tabular-nums">6,400+</div>
+          <div class="text-2xl md:text-3xl font-bold text-neutral-100 tabular-nums">6,600+</div>
           <div class="label-refined mt-1">Review decisions</div>
         </div>
         <div>
