@@ -57,7 +57,12 @@ export default defineEventHandler(async (event) => {
     autoThreshold: body.autoThreshold,
   }
 
-  await savePipelineConfig(config)
+  try {
+    await savePipelineConfig(config)
+  } catch (err) {
+    console.error('[config/save] GCS write failed:', (err as Error).message)
+    throw createError({ statusCode: 500, message: 'Failed to save configuration' })
+  }
 
   return { saved: true }
 })

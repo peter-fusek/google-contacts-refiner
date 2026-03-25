@@ -121,7 +121,7 @@ export default defineEventHandler(async (event): Promise<AnalyticsResponse> => {
 
   return {
     byField,
-    byFieldDetail,
+    byFieldDetail: demo ? {} : byFieldDetail,
     byConfidence,
     successRate,
     totalChanges,

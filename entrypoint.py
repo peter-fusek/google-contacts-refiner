@@ -84,7 +84,8 @@ def _auto_export_sessions():
         try:
             with open(session_file, encoding="utf-8") as f:
                 session = json.load(f)
-        except (json.JSONDecodeError, IOError):
+        except (json.JSONDecodeError, IOError) as e:
+            logger.warning("Phase 0: Skipping corrupt session file %s: %s", session_file, e)
             continue
 
         decisions = session.get("decisions", {})
@@ -391,10 +392,7 @@ def run():
     from recovery import RecoveryManager
 
     # Load dashboard config overrides (if any)
-    try:
-        load_pipeline_config_overrides()
-    except Exception as e:
-        logger.warning("Config override loading failed (using defaults): %s", e)
+    load_pipeline_config_overrides()
 
     # ── Pre-phase: Refresh stale code tables ──────────────────────────
     try:
@@ -658,7 +656,8 @@ def _record_queue_stats() -> int:
             try:
                 with open(stats_path, encoding="utf-8") as f:
                     stats = json.load(f)
-            except (json.JSONDecodeError, IOError):
+            except (json.JSONDecodeError, IOError) as e:
+                logger.warning("Queue stats file corrupt, starting fresh: %s", e)
                 stats = []
 
         # Append today's entry (replace if same date)
@@ -708,7 +707,8 @@ def _record_pipeline_run(run_state: dict, start: datetime):
             try:
                 with open(runs_path, encoding="utf-8") as f:
                     runs = json.load(f)
-            except (json.JSONDecodeError, IOError):
+            except (json.JSONDecodeError, IOError) as e:
+                logger.warning("Pipeline runs file corrupt, starting fresh: %s", e)
                 runs = []
 
         runs.append(entry)

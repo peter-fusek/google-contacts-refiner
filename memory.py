@@ -6,12 +6,15 @@ Manages two files:
 - memory.json — machine-learned patterns (gitignored)
 """
 import json
+import logging
 import re
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
 from config import APP_DIR, DATA_DIR
+
+_logger = logging.getLogger(__name__)
 
 
 INSTRUCTIONS_PATH = APP_DIR / "instructions.md"  # Ships with code, not data
@@ -401,9 +404,9 @@ class MemoryManager:
                 try:
                     import shutil
                     shutil.copy2(MEMORY_PATH, backup_path)
-                    print(f"⚠️  memory.json corrupted ({e}), backed up to {backup_path}")
+                    _logger.warning("memory.json corrupted (%s), backed up to %s", e, backup_path)
                 except OSError:
-                    print(f"⚠️  memory.json corrupted ({e}), backup failed")
+                    _logger.error("memory.json corrupted (%s), backup also failed", e)
         return dict(_DEFAULT_MEMORY)
 
     @staticmethod
