@@ -4,7 +4,7 @@ import {
   getAIReviewCheckpoint,
   getContactNameMap,
   isBatchMarker,
-  estimateAICost,
+  getPipelineRuns,
 } from '../utils/gcs'
 import { isDemoMode, maskTopContact } from '../utils/demo'
 
@@ -21,10 +21,11 @@ function fieldCategory(field: string): string {
 
 export default defineEventHandler(async (event): Promise<AnalyticsResponse> => {
   const demo = await isDemoMode(event)
-  const [fullLog, aiCheckpoint, nameMap] = await Promise.all([
+  const [fullLog, aiCheckpoint, nameMap, pipelineRuns] = await Promise.all([
     getChangelogWithMarkers(),
     getAIReviewCheckpoint(),
     getContactNameMap(),
+    getPipelineRuns(),
   ])
 
   // Derive deduplicated entries from full log (avoids duplicate GCS read)
@@ -117,7 +118,15 @@ export default defineEventHandler(async (event): Promise<AnalyticsResponse> => {
     .sort((a, b) => b.lastChanged.localeCompare(a.lastChanged))
     .slice(0, 10)
 
-  const estimatedCost = estimateAICost(aiCheckpoint?.last_reviewed ?? 0)
+  // Actual cost from latest pipeline run (sum of all phases)
+  const latestRun = pipelineRuns.length ? pipelineRuns[pipelineRuns.length - 1] : null
+  let estimatedCost = 0
+  if (latestRun?.phases) {
+    for (const phaseDetail of Object.values(latestRun.phases)) {
+      if (phaseDetail.ai_cost_usd) estimatedCost += phaseDetail.ai_cost_usd
+    }
+    estimatedCost = Math.round(estimatedCost * 1000) / 1000
+  }
 
   return {
     byField,
