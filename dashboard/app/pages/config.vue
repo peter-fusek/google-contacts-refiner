@@ -296,33 +296,5 @@ function formatValue(row: ConfigRow): string {
       </div>
     </div>
 
-    <div v-if="status !== 'pending' && status !== 'error'" class="rounded-xl border border-neutral-800 bg-neutral-900/50 p-5">
-      <p class="text-xs uppercase tracking-wider text-neutral-500 mb-3">
-        Pipeline Info
-      </p>
-      <div class="text-xs text-neutral-400 space-y-2">
-        <div>
-          <span class="text-neutral-500 font-medium">Phase 0 — Review Feedback:</span>
-          Process user review decisions, learn from feedback, apply approved changes to Google Contacts
-        </div>
-        <div>
-          <span class="text-neutral-500 font-medium">Phase 1 — Analyze + Auto-fix:</span>
-          Backup contacts, run 26 normalization rules (diacritics, phones, addresses, URLs, etc.), auto-apply HIGH confidence changes
-        </div>
-        <div>
-          <span class="text-neutral-500 font-medium">Phase 2 — AI Review:</span>
-          Send MEDIUM confidence changes to Claude Haiku for review, promote/demote based on AI assessment, apply promoted changes
-        </div>
-        <div>
-          <span class="text-neutral-500 font-medium">Phase 3 — Post-run:</span>
-          Send email digest via Resend (includes LinkedIn signal stats), record run to pipeline_runs.json, upload queue stats
-        </div>
-        <div class="pt-2 border-t border-neutral-800 text-neutral-500">
-          <p>Cloud Run Job: europe-west1, 60min timeout, 512Mi, daily 9:00 Europe/Bratislava</p>
-          <p>GCS bucket: contacts-refiner-data</p>
-          <p>26 normalization rules across 8 field types, memory-based confidence learning</p>
-        </div>
-      </div>
-    </div>
   </div>
 </template>

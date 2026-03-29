@@ -9,6 +9,7 @@ useHead({
 import type { StatusResponse } from '~/server/utils/types'
 
 const { data: status, status: fetchStatus, refresh } = useFetch<StatusResponse>('/api/status')
+const { relativeLabel } = useNextRun(computed(() => status.value?.status))
 
 // Poll every 5s when running
 const pollInterval = ref<ReturnType<typeof setInterval>>()
@@ -52,7 +53,10 @@ function formatTime(iso: string | null) {
       <h1 class="text-xl font-bold text-neutral-100">
         Status
       </h1>
-      <StatusBadge :status="status?.status ?? 'idle'" />
+      <div class="flex items-center gap-3">
+        <span class="text-xs text-neutral-500">Next: <span class="text-neutral-400">{{ relativeLabel }}</span></span>
+        <StatusBadge :status="status?.status ?? 'idle'" />
+      </div>
     </div>
 
     <!-- Loading -->
@@ -127,31 +131,6 @@ function formatTime(iso: string | null) {
         color="amber"
         to="/runs"
       />
-    </div>
-
-    <!-- AI Review -->
-    <div
-      v-if="status?.aiReview"
-      class="rounded-xl border border-neutral-800 bg-neutral-900/50 p-5 space-y-4"
-    >
-      <p class="text-xs uppercase tracking-wider text-neutral-500">
-        AI Review (Phase 2)
-      </p>
-      <ProgressBar
-        :current="status.aiReview.reviewed"
-        :total="status.aiReview.total"
-        label="Contacts reviewed"
-      />
-      <div class="flex gap-6 text-sm">
-        <div>
-          <span class="text-neutral-500">Promoted:</span>
-          <span class="text-primary-400 ml-1 font-semibold">{{ status.aiReview.promoted }}</span>
-        </div>
-        <div>
-          <span class="text-neutral-500">Demoted:</span>
-          <span class="text-amber-400 ml-1 font-semibold">{{ status.aiReview.demoted }}</span>
-        </div>
-      </div>
     </div>
 
     <!-- Last Run Info -->

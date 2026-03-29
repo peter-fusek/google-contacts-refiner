@@ -1,10 +1,20 @@
 <script setup lang="ts">
+import type { StatusResponse } from '~/server/utils/types'
+import type { PipelineRun } from '~/server/utils/gcs'
+
 useHead({
   title: 'Pipeline — Contact Refiner',
   meta: [
-    { name: 'description', content: 'How the Contact Refiner pipeline works — phases, rules, AI prompts, and scoring.' },
+    { name: 'description', content: 'Pipeline phases, live stats, run history, rules, AI prompts, and scoring.' },
   ],
 })
+
+const { data: status } = useFetch<StatusResponse>('/api/status')
+const { data: runs, status: runsStatus } = useFetch<PipelineRun[]>('/api/pipeline-runs')
+
+const { relativeLabel } = useNextRun(computed(() => status.value?.status))
+
+const latestRun = computed(() => runs.value?.length ? runs.value[0] : null)
 
 const expandedPhase = ref<number | null>(null)
 const expandedRule = ref<string | null>(null)
@@ -16,9 +26,27 @@ function toggleRule(rule: string) {
   expandedRule.value = expandedRule.value === rule ? null : rule
 }
 
+function formatElapsed(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`
+  const min = Math.floor(seconds / 60)
+  const sec = seconds % 60
+  return sec > 0 ? `${min}m ${sec}s` : `${min}m`
+}
+
+function phaseLiveSummary(phaseKey: string): string | null {
+  const detail = latestRun.value?.phases?.[phaseKey]
+  if (!detail) return null
+  const parts: string[] = [formatElapsed(detail.elapsed_s)]
+  if (detail.changes_applied) parts.push(`${detail.changes_applied} applied`)
+  if (detail.promoted) parts.push(`${detail.promoted} promoted`)
+  if (detail.ai_cost_usd) parts.push(`$${detail.ai_cost_usd.toFixed(3)}`)
+  return parts.join(' · ')
+}
+
 const phases = [
   {
     num: 0,
+    key: 'phase0',
     title: 'Review Feedback',
     icon: 'i-lucide-message-square-check',
     color: 'text-blue-400',
@@ -35,6 +63,7 @@ const phases = [
   },
   {
     num: 1,
+    key: 'phase1',
     title: 'Analyze + Auto-Fix HIGH',
     icon: 'i-lucide-scan-search',
     color: 'text-green-400',
@@ -52,6 +81,7 @@ const phases = [
   },
   {
     num: 2,
+    key: 'phase2',
     title: 'AI Review (MEDIUM)',
     icon: 'i-lucide-brain',
     color: 'text-purple-400',
@@ -69,6 +99,7 @@ const phases = [
   },
   {
     num: 3,
+    key: 'phase3',
     title: 'Activity Tagging',
     icon: 'i-lucide-calendar-clock',
     color: 'text-amber-400',
@@ -84,6 +115,7 @@ const phases = [
   },
   {
     num: 4,
+    key: 'phase4',
     title: 'FollowUp Scoring',
     icon: 'i-lucide-user-round-check',
     color: 'text-cyan-400',
@@ -176,17 +208,26 @@ const memoryExplainer = [
 
 <template>
   <div class="space-y-8">
-    <!-- Header -->
-    <div>
-      <h1 class="text-2xl font-bold text-neutral-100">
-        Pipeline Transparency
-      </h1>
-      <p class="text-sm text-neutral-400 mt-1">
-        How Contact Refiner processes your contacts — every rule, prompt, and scoring formula.
-      </p>
+    <!-- Header with live status -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-neutral-100">
+          Pipeline
+        </h1>
+        <p class="text-sm text-neutral-400 mt-1">
+          Phases, live stats, run history, and reference documentation.
+        </p>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="text-right text-xs">
+          <div class="text-neutral-500">Next run</div>
+          <div class="text-neutral-300 font-medium">{{ relativeLabel }}</div>
+        </div>
+        <StatusBadge :status="status?.status ?? 'idle'" />
+      </div>
     </div>
 
-    <!-- Pipeline Phases -->
+    <!-- Pipeline Phases (with live stats) -->
     <section>
       <h2 class="text-lg font-semibold text-neutral-200 mb-3 flex items-center gap-2">
         <UIcon name="i-lucide-workflow" class="size-5 text-primary-400" />
@@ -212,6 +253,13 @@ const memoryExplainer = [
             </span>
             <UIcon :name="phase.icon" class="size-5" :class="phase.color" />
             <span class="font-medium text-neutral-200 flex-1">{{ phase.title }}</span>
+            <!-- Live stats badge -->
+            <span
+              v-if="phaseLiveSummary(phase.key)"
+              class="text-[10px] text-neutral-500 font-mono tabular-nums mr-2 hidden sm:inline"
+            >
+              {{ phaseLiveSummary(phase.key) }}
+            </span>
             <UIcon
               :name="expandedPhase === phase.num ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
               class="size-4 text-neutral-500"
@@ -219,6 +267,36 @@ const memoryExplainer = [
           </button>
 
           <div v-if="expandedPhase === phase.num" class="px-4 pb-4">
+            <!-- Live phase detail (if available) -->
+            <div
+              v-if="latestRun?.phases?.[phase.key]"
+              class="mb-3 p-3 rounded-lg bg-neutral-800/50 border border-neutral-700/30"
+            >
+              <p class="text-[10px] uppercase tracking-wider text-neutral-500 mb-2">Last run stats</p>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                <div>
+                  <span class="text-neutral-500">Duration:</span>
+                  <span class="text-neutral-300 ml-1 font-mono">{{ formatElapsed(latestRun.phases[phase.key].elapsed_s) }}</span>
+                </div>
+                <div v-if="latestRun.phases[phase.key].changes_applied !== undefined">
+                  <span class="text-neutral-500">Applied:</span>
+                  <span class="text-green-400 ml-1 font-mono">{{ latestRun.phases[phase.key].changes_applied }}</span>
+                </div>
+                <div v-if="latestRun.phases[phase.key].promoted">
+                  <span class="text-neutral-500">Promoted:</span>
+                  <span class="text-primary-400 ml-1 font-mono">{{ latestRun.phases[phase.key].promoted }}</span>
+                </div>
+                <div v-if="latestRun.phases[phase.key].demoted">
+                  <span class="text-neutral-500">Demoted:</span>
+                  <span class="text-amber-400 ml-1 font-mono">{{ latestRun.phases[phase.key].demoted }}</span>
+                </div>
+                <div v-if="latestRun.phases[phase.key].ai_cost_usd">
+                  <span class="text-neutral-500">Cost:</span>
+                  <span class="text-amber-400 ml-1 font-mono">${{ latestRun.phases[phase.key].ai_cost_usd!.toFixed(3) }}</span>
+                </div>
+              </div>
+            </div>
+
             <p class="text-sm text-neutral-300 mb-3">
               {{ phase.summary }}
             </p>
@@ -237,175 +315,188 @@ const memoryExplainer = [
       </div>
     </section>
 
-    <!-- Normalizer Rules -->
-    <section>
+    <!-- Run History -->
+    <section id="runs">
       <h2 class="text-lg font-semibold text-neutral-200 mb-3 flex items-center gap-2">
-        <UIcon name="i-lucide-list-checks" class="size-5 text-green-400" />
-        Normalizer Rules (Phase 1)
+        <UIcon name="i-lucide-play-circle" class="size-5 text-primary-400" />
+        Run History
       </h2>
-      <p class="text-sm text-neutral-500 mb-4">
-        Rule-based modules that detect and fix contact data issues. No AI involved.
-      </p>
+      <RunHistoryTable :runs="runs ?? []" :loading="runsStatus === 'pending'" />
+    </section>
 
-      <div class="grid gap-3 md:grid-cols-2">
-        <div
-          v-for="rule in normalizers"
-          :key="rule.id"
-          class="border border-neutral-800 rounded-xl bg-neutral-900/50 overflow-hidden"
-        >
-          <button
-            class="w-full flex items-center gap-3 px-4 py-3 text-left"
-            @click="toggleRule(rule.id)"
+    <!-- Reference Documentation -->
+    <div class="border-t border-neutral-800 pt-8">
+      <p class="text-xs uppercase tracking-wider text-neutral-600 mb-6">Reference Documentation</p>
+
+      <!-- Normalizer Rules -->
+      <section class="mb-8">
+        <h2 class="text-lg font-semibold text-neutral-200 mb-3 flex items-center gap-2">
+          <UIcon name="i-lucide-list-checks" class="size-5 text-green-400" />
+          Normalizer Rules (Phase 1)
+        </h2>
+        <p class="text-sm text-neutral-500 mb-4">
+          Rule-based modules that detect and fix contact data issues. No AI involved.
+        </p>
+
+        <div class="grid gap-3 md:grid-cols-2">
+          <div
+            v-for="rule in normalizers"
+            :key="rule.id"
+            class="border border-neutral-800 rounded-xl bg-neutral-900/50 overflow-hidden"
           >
-            <UIcon :name="rule.icon" class="size-4 text-green-400" />
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-neutral-200">{{ rule.title }}</p>
-              <p class="text-xs text-neutral-500 truncate">{{ rule.desc }}</p>
+            <button
+              class="w-full flex items-center gap-3 px-4 py-3 text-left"
+              @click="toggleRule(rule.id)"
+            >
+              <UIcon :name="rule.icon" class="size-4 text-green-400" />
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-neutral-200">{{ rule.title }}</p>
+                <p class="text-xs text-neutral-500 truncate">{{ rule.desc }}</p>
+              </div>
+              <UIcon
+                :name="expandedRule === rule.id ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
+                class="size-4 text-neutral-600"
+              />
+            </button>
+            <div v-if="expandedRule === rule.id" class="px-4 pb-4">
+              <p class="text-sm text-neutral-400 leading-relaxed">
+                {{ rule.details }}
+              </p>
             </div>
-            <UIcon
-              :name="expandedRule === rule.id ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
-              class="size-4 text-neutral-600"
-            />
-          </button>
-          <div v-if="expandedRule === rule.id" class="px-4 pb-4">
-            <p class="text-sm text-neutral-400 leading-relaxed">
-              {{ rule.details }}
+          </div>
+        </div>
+      </section>
+
+      <!-- AI Prompt -->
+      <section class="mb-8">
+        <h2 class="text-lg font-semibold text-neutral-200 mb-3 flex items-center gap-2">
+          <UIcon name="i-lucide-brain" class="size-5 text-purple-400" />
+          AI System Prompt (Phase 2)
+        </h2>
+        <p class="text-sm text-neutral-500 mb-4">
+          This is the system instruction sent to Claude Haiku for reviewing medium-confidence changes.
+        </p>
+        <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 font-mono text-sm text-neutral-300 whitespace-pre-wrap leading-relaxed">{{ aiPrompt }}</div>
+        <p class="text-xs text-neutral-600 mt-2">
+          Model: claude-haiku-4-5-20251001 | Cost cap: $3/day | Also loads instructions.md (editable rules) and memory.json (learned patterns)
+        </p>
+      </section>
+
+      <!-- Learning System -->
+      <section class="mb-8">
+        <h2 class="text-lg font-semibold text-neutral-200 mb-3 flex items-center gap-2">
+          <UIcon name="i-lucide-graduation-cap" class="size-5 text-amber-400" />
+          Learning System (Memory)
+        </h2>
+        <p class="text-sm text-neutral-500 mb-4">
+          The system learns from your Review decisions to improve future confidence scores.
+        </p>
+
+        <div class="bg-neutral-900 border border-neutral-800 rounded-xl divide-y divide-neutral-800">
+          <div
+            v-for="item in memoryExplainer"
+            :key="item.label"
+            class="flex items-start gap-4 px-4 py-3"
+          >
+            <span class="text-sm text-neutral-500 w-32 shrink-0">{{ item.label }}</span>
+            <span class="text-sm text-neutral-300 font-mono">{{ item.value }}</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- FollowUp Scoring -->
+      <section class="mb-8">
+        <h2 class="text-lg font-semibold text-neutral-200 mb-3 flex items-center gap-2">
+          <UIcon name="i-lucide-calculator" class="size-5 text-cyan-400" />
+          FollowUp Scoring Formula (Phase 4)
+        </h2>
+        <p class="text-sm text-neutral-500 mb-4">
+          How contacts are ranked for reconnection. Three additive components.
+        </p>
+
+        <div class="grid gap-3 md:grid-cols-3">
+          <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+            <p class="text-sm font-semibold text-neutral-200 mb-2">Interaction Score</p>
+            <p class="text-xs text-neutral-400 mb-2">How much you've interacted and how long ago.</p>
+            <div class="font-mono text-sm text-amber-400">
+              interaction_count x months_gap
+            </div>
+            <p class="text-xs text-neutral-500 mt-2">
+              count: 0 (none), 1 (email OR meeting), 2 (both)
+            </p>
+          </div>
+
+          <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+            <p class="text-sm font-semibold text-neutral-200 mb-2">LinkedIn Score</p>
+            <p class="text-xs text-neutral-400 mb-2">Signal from their LinkedIn profile.</p>
+            <div class="space-y-1 text-sm font-mono">
+              <div class="flex justify-between">
+                <span class="text-green-400">job_change</span><span class="text-neutral-400">30</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-yellow-400">active</span><span class="text-neutral-400">10</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-neutral-400">profile</span><span class="text-neutral-400">3</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-neutral-600">no_activity</span><span class="text-neutral-400">0</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+            <p class="text-sm font-semibold text-neutral-200 mb-2">Completeness Score</p>
+            <p class="text-xs text-neutral-400 mb-2">How much info you have on the contact.</p>
+            <div class="font-mono text-sm text-cyan-400">
+              signals x 2.0
+            </div>
+            <p class="text-xs text-neutral-500 mt-2">
+              Signals (0-4): email, phone, org, LinkedIn URL. Max: 8 points.
             </p>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- AI Prompt -->
-    <section>
-      <h2 class="text-lg font-semibold text-neutral-200 mb-3 flex items-center gap-2">
-        <UIcon name="i-lucide-brain" class="size-5 text-purple-400" />
-        AI System Prompt (Phase 2)
-      </h2>
-      <p class="text-sm text-neutral-500 mb-4">
-        This is the system instruction sent to Claude Haiku for reviewing medium-confidence changes.
-      </p>
-      <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 font-mono text-sm text-neutral-300 whitespace-pre-wrap leading-relaxed">{{ aiPrompt }}</div>
-      <p class="text-xs text-neutral-600 mt-2">
-        Model: claude-haiku-4-5-20251001 | Cost cap: $3/day | Also loads instructions.md (editable rules) and memory.json (learned patterns)
-      </p>
-    </section>
+      <!-- Confidence + Safety -->
+      <section class="mb-8">
+        <h2 class="text-lg font-semibold text-neutral-200 mb-3 flex items-center gap-2">
+          <UIcon name="i-lucide-gauge" class="size-5 text-rose-400" />
+          Confidence Thresholds
+        </h2>
 
-    <!-- Learning System -->
-    <section>
-      <h2 class="text-lg font-semibold text-neutral-200 mb-3 flex items-center gap-2">
-        <UIcon name="i-lucide-graduation-cap" class="size-5 text-amber-400" />
-        Learning System (Memory)
-      </h2>
-      <p class="text-sm text-neutral-500 mb-4">
-        The system learns from your Review decisions to improve future confidence scores.
-      </p>
-
-      <div class="bg-neutral-900 border border-neutral-800 rounded-xl divide-y divide-neutral-800">
-        <div
-          v-for="item in memoryExplainer"
-          :key="item.label"
-          class="flex items-start gap-4 px-4 py-3"
-        >
-          <span class="text-sm text-neutral-500 w-32 shrink-0">{{ item.label }}</span>
-          <span class="text-sm text-neutral-300 font-mono">{{ item.value }}</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- FollowUp Scoring -->
-    <section>
-      <h2 class="text-lg font-semibold text-neutral-200 mb-3 flex items-center gap-2">
-        <UIcon name="i-lucide-calculator" class="size-5 text-cyan-400" />
-        FollowUp Scoring Formula (Phase 4)
-      </h2>
-      <p class="text-sm text-neutral-500 mb-4">
-        How contacts are ranked for reconnection. Three additive components.
-      </p>
-
-      <div class="grid gap-3 md:grid-cols-3">
-        <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
-          <p class="text-sm font-semibold text-neutral-200 mb-2">Interaction Score</p>
-          <p class="text-xs text-neutral-400 mb-2">How much you've interacted and how long ago.</p>
-          <div class="font-mono text-sm text-amber-400">
-            interaction_count x months_gap
+        <div class="flex gap-3">
+          <div class="flex-1 bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-center">
+            <p class="text-2xl font-bold text-green-400">90%+</p>
+            <p class="text-sm text-green-400/70 mt-1">HIGH</p>
+            <p class="text-xs text-neutral-500 mt-1">Auto-applied</p>
           </div>
-          <p class="text-xs text-neutral-500 mt-2">
-            count: 0 (none), 1 (email OR meeting), 2 (both)
-          </p>
-        </div>
-
-        <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
-          <p class="text-sm font-semibold text-neutral-200 mb-2">LinkedIn Score</p>
-          <p class="text-xs text-neutral-400 mb-2">Signal from their LinkedIn profile.</p>
-          <div class="space-y-1 text-sm font-mono">
-            <div class="flex justify-between">
-              <span class="text-green-400">job_change</span><span class="text-neutral-400">30</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-yellow-400">active</span><span class="text-neutral-400">10</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-neutral-400">profile</span><span class="text-neutral-400">3</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-neutral-600">no_activity</span><span class="text-neutral-400">0</span>
-            </div>
+          <div class="flex-1 bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 text-center">
+            <p class="text-2xl font-bold text-amber-400">60-89%</p>
+            <p class="text-sm text-amber-400/70 mt-1">MEDIUM</p>
+            <p class="text-xs text-neutral-500 mt-1">Goes to Review</p>
+          </div>
+          <div class="flex-1 bg-neutral-500/10 border border-neutral-500/20 rounded-xl p-4 text-center">
+            <p class="text-2xl font-bold text-neutral-400">&lt;60%</p>
+            <p class="text-sm text-neutral-400/70 mt-1">LOW</p>
+            <p class="text-xs text-neutral-500 mt-1">Dropped silently</p>
           </div>
         </div>
+      </section>
 
-        <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
-          <p class="text-sm font-semibold text-neutral-200 mb-2">Completeness Score</p>
-          <p class="text-xs text-neutral-400 mb-2">How much info you have on the contact.</p>
-          <div class="font-mono text-sm text-cyan-400">
-            signals x 2.0
-          </div>
-          <p class="text-xs text-neutral-500 mt-2">
-            Signals (0-4): email, phone, org, LinkedIn URL. Max: 8 points.
-          </p>
+      <section class="pb-8">
+        <h2 class="text-lg font-semibold text-neutral-200 mb-3 flex items-center gap-2">
+          <UIcon name="i-lucide-shield-alert" class="size-5 text-red-400" />
+          Safety Controls
+        </h2>
+        <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 space-y-2 text-sm text-neutral-400">
+          <p><span class="text-red-400 font-medium">Emergency Stop</span> — Config page pause button halts the pipeline immediately.</p>
+          <p><span class="text-amber-400 font-medium">Cost Cap</span> — AI spending capped at $3/day. Pipeline continues without AI if limit reached.</p>
+          <p><span class="text-green-400 font-medium">Change Limit</span> — Max 200 auto-applied changes per run.</p>
+          <p><span class="text-blue-400 font-medium">Backup</span> — Full contact backup created before every Phase 1 run.</p>
+          <p><span class="text-purple-400 font-medium">Nothing is permanent</span> — Deletion candidates are only flagged for review, never auto-deleted.</p>
         </div>
-      </div>
-    </section>
-
-    <!-- Confidence Thresholds -->
-    <section>
-      <h2 class="text-lg font-semibold text-neutral-200 mb-3 flex items-center gap-2">
-        <UIcon name="i-lucide-gauge" class="size-5 text-rose-400" />
-        Confidence Thresholds
-      </h2>
-
-      <div class="flex gap-3">
-        <div class="flex-1 bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-center">
-          <p class="text-2xl font-bold text-green-400">90%+</p>
-          <p class="text-sm text-green-400/70 mt-1">HIGH</p>
-          <p class="text-xs text-neutral-500 mt-1">Auto-applied</p>
-        </div>
-        <div class="flex-1 bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 text-center">
-          <p class="text-2xl font-bold text-amber-400">60-89%</p>
-          <p class="text-sm text-amber-400/70 mt-1">MEDIUM</p>
-          <p class="text-xs text-neutral-500 mt-1">Goes to Review</p>
-        </div>
-        <div class="flex-1 bg-neutral-500/10 border border-neutral-500/20 rounded-xl p-4 text-center">
-          <p class="text-2xl font-bold text-neutral-400">&lt;60%</p>
-          <p class="text-sm text-neutral-400/70 mt-1">LOW</p>
-          <p class="text-xs text-neutral-500 mt-1">Dropped silently</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Emergency Stop -->
-    <section class="pb-8">
-      <h2 class="text-lg font-semibold text-neutral-200 mb-3 flex items-center gap-2">
-        <UIcon name="i-lucide-shield-alert" class="size-5 text-red-400" />
-        Safety Controls
-      </h2>
-      <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 space-y-2 text-sm text-neutral-400">
-        <p><span class="text-red-400 font-medium">Emergency Stop</span> — Config page pause button halts the pipeline immediately.</p>
-        <p><span class="text-amber-400 font-medium">Cost Cap</span> — AI spending capped at $3/day. Pipeline continues without AI if limit reached.</p>
-        <p><span class="text-green-400 font-medium">Change Limit</span> — Max 200 auto-applied changes per run.</p>
-        <p><span class="text-blue-400 font-medium">Backup</span> — Full contact backup created before every Phase 1 run.</p>
-        <p><span class="text-purple-400 font-medium">Nothing is permanent</span> — Deletion candidates are only flagged for review, never auto-deleted.</p>
-      </div>
-    </section>
+      </section>
+    </div>
   </div>
 </template>
