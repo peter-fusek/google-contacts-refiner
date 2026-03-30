@@ -34,16 +34,22 @@ const phaseLabels: Record<string, string> = {
   phase4: 'FollowUp Scoring',
 }
 
-function phaseStats(detail: PhaseDetail): string {
-  const parts: string[] = []
-  if (detail.changes_applied !== undefined) parts.push(`${detail.changes_applied} applied`)
-  if (detail.changes_failed) parts.push(`${detail.changes_failed} failed`)
-  if (detail.changes_skipped) parts.push(`${detail.changes_skipped} skipped`)
-  if (detail.promoted) parts.push(`${detail.promoted} promoted`)
-  if (detail.demoted) parts.push(`${detail.demoted} demoted`)
-  if (detail.ai_cost_usd) parts.push(`$${detail.ai_cost_usd.toFixed(3)}`)
-  if (detail.fix_changes_applied) parts.push(`${detail.fix_changes_applied} fixes applied`)
-  return parts.join(' · ') || '—'
+function phaseStatParts(detail: PhaseDetail): Array<{ text: string; link?: string }> {
+  const parts: Array<{ text: string; link?: string }> = []
+  if (detail.changes_applied !== undefined) {
+    const link = detail.session_id ? `/changelog?sessionId=${detail.session_id}` : undefined
+    parts.push({ text: `${detail.changes_applied} applied`, link })
+  }
+  if (detail.changes_failed) parts.push({ text: `${detail.changes_failed} failed` })
+  if (detail.changes_skipped) parts.push({ text: `${detail.changes_skipped} skipped` })
+  if (detail.promoted) parts.push({ text: `${detail.promoted} promoted` })
+  if (detail.demoted) parts.push({ text: `${detail.demoted} demoted` })
+  if (detail.ai_cost_usd) parts.push({ text: `$${detail.ai_cost_usd.toFixed(3)}` })
+  if (detail.fix_changes_applied) {
+    const link = detail.session_id ? `/changelog?sessionId=${detail.session_id}` : undefined
+    parts.push({ text: `${detail.fix_changes_applied} fixes applied`, link })
+  }
+  return parts
 }
 </script>
 
@@ -134,7 +140,14 @@ function phaseStats(detail: PhaseDetail): string {
                     {{ run.phases[phase] ? formatDuration(run.phases[phase].elapsed_s) : '—' }}
                   </span>
                   <span class="text-neutral-600">
-                    {{ run.phases[phase] ? phaseStats(run.phases[phase]) : 'No details' }}
+                    <template v-if="run.phases[phase]">
+                      <template v-for="(part, pi) in phaseStatParts(run.phases[phase])" :key="pi">
+                        <span v-if="pi > 0"> · </span>
+                        <NuxtLink v-if="part.link" :to="part.link" class="text-primary-400 hover:text-primary-300 underline underline-offset-2" @click.stop>{{ part.text }}</NuxtLink>
+                        <span v-else>{{ part.text }}</span>
+                      </template>
+                    </template>
+                    <template v-else>No details</template>
                   </span>
                 </div>
                 <div v-if="run.changes_applied !== undefined" class="flex gap-4 pt-1 border-t border-neutral-800/50 text-[11px]">

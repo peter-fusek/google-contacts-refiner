@@ -657,7 +657,7 @@ LTNS_GROUP_NAME = "LTNS"         # Contact group name
 LTNS_NOTE_MARKER = "── Reconnect Prompt"
 
 # ── FollowUp Scoring ─────────────────────────────────────────────────────
-FOLLOWUP_TOP_N = 50
+FOLLOWUP_TOP_N = 200
 FOLLOWUP_MIN_INTERACTIONS = 1          # Lower than LTNS — LinkedIn signals compensate
 FOLLOWUP_MIN_MONTHS = 6               # Lower than LTNS (12) — more proactive
 FOLLOWUP_GROUP_NAME = "FollowUp"

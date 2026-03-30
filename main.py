@@ -286,6 +286,8 @@ def cmd_fix(auto_mode=False, confidence_threshold=0.90, dry_run=False):
             msg += f", 📋 {len(skipped)} for review"
         send_macos_notification("Contacts Refiner", msg)
 
+    if result:
+        result["session_id"] = session_id
     return result
 
 

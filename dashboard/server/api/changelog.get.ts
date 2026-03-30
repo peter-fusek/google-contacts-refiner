@@ -26,6 +26,7 @@ export default defineEventHandler(async (event): Promise<GroupedChangelogRespons
   const search = (query.search as string || '').toLowerCase()
   const field = (query.field as string || '').toLowerCase()
   const confidence = (query.confidence as string || '').toLowerCase()
+  const sessionId = (query.sessionId as string || '')
 
   const [allEntries, nameMap] = await Promise.all([
     getChangelog(),
@@ -33,6 +34,11 @@ export default defineEventHandler(async (event): Promise<GroupedChangelogRespons
   ])
 
   let entries = allEntries
+
+  // Filter by session ID (for pipeline run drill-down)
+  if (sessionId) {
+    entries = entries.filter(e => e.session_id === sessionId)
+  }
 
   // Filter
   if (search) {

@@ -341,6 +341,7 @@ export interface PhaseDetail {
   analyze_elapsed_s?: number
   fix_elapsed_s?: number
   fix_changes_applied?: number
+  session_id?: string | null
 }
 
 export interface PipelineRun {

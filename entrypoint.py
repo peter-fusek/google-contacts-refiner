@@ -516,6 +516,7 @@ def run():
         "changes_applied": run_state["changes_applied"],
         "changes_failed": run_state["changes_failed"],
         "changes_skipped": fix_result.get("skipped", 0) if fix_result else 0,
+        "session_id": fix_result.get("session_id") if fix_result else None,
     }
 
     # ── Phase 2: AI review (checkpointed) ───────────────────────────
@@ -567,6 +568,7 @@ def run():
         "ai_cost_usd": _p2_ai_result.get("ai_cost_usd", 0.0) if _p2_ai_result else 0.0,
         "ai_tokens": _p2_ai_result.get("ai_tokens", 0) if _p2_ai_result else 0,
         "fix_changes_applied": _p2_fix_applied,
+        "session_id": p2_fix_result.get("session_id") if (promoted_count > 0 and p2_fix_result) else None,
     }
 
     # ── Phase 3 (optional): Activity Tagging ────────────────────────

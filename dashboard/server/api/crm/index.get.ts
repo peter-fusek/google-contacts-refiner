@@ -41,11 +41,20 @@ export default defineEventHandler(async (event): Promise<CRMResponse> => {
     })
   }
 
-  // Count per stage
+  // Cap inbox at 50: show all contacts with explicit stages, but only top 50 inbox contacts by score
+  const INBOX_CAP = 50
+  const inboxContacts = contacts.filter(c => c.stage === 'inbox')
+  const nonInboxContacts = contacts.filter(c => c.stage !== 'inbox')
+  const cappedInbox = inboxContacts
+    .sort((a, b) => b.score_total - a.score_total)
+    .slice(0, INBOX_CAP)
+  const result = [...cappedInbox, ...nonInboxContacts]
+
+  // Count per stage (using capped result)
   const stages = Object.fromEntries(ALL_STAGES.map(s => [s, 0])) as Record<CRMStage, number>
-  for (const c of contacts) {
+  for (const c of result) {
     stages[c.stage]++
   }
 
-  return { contacts, stages }
+  return { contacts: result, stages }
 })

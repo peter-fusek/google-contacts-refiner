@@ -17,6 +17,9 @@ interface GroupedResponse {
   pageSize: number
 }
 
+const route = useRoute()
+const sessionIdFilter = computed(() => (route.query.sessionId as string) || '')
+
 const search = ref('')
 const fieldFilter = ref('all')
 const confidenceFilter = ref('all')
@@ -48,8 +51,9 @@ const { data, status } = useFetch<GroupedResponse>('/api/changelog', {
     search: search.value,
     field: fieldFilter.value === 'all' ? '' : fieldFilter.value,
     confidence: confidenceFilter.value === 'all' ? '' : confidenceFilter.value,
+    sessionId: sessionIdFilter.value,
   })),
-  watch: [page, search, fieldFilter, confidenceFilter],
+  watch: [page, search, fieldFilter, confidenceFilter, sessionIdFilter],
 })
 
 const groups = computed(() => data.value?.groups ?? [])
@@ -139,6 +143,13 @@ function formatDate(ts: string): string {
       <div class="ml-auto text-xs text-neutral-500 self-center tabular-nums">
         {{ total }} changes across {{ totalGroups }} contacts
       </div>
+    </div>
+
+    <!-- Session filter banner -->
+    <div v-if="sessionIdFilter" class="flex items-center gap-2 px-3 py-2 rounded-lg border border-primary-500/30 bg-primary-500/10 text-xs text-primary-400">
+      <UIcon name="i-lucide-filter" class="size-3.5" />
+      <span>Filtered by pipeline run session</span>
+      <NuxtLink to="/changelog" class="ml-auto text-neutral-500 hover:text-neutral-300">Clear filter</NuxtLink>
     </div>
 
     <!-- Grouped by Contact -->
