@@ -1359,6 +1359,41 @@ def cmd_linkedin_scan(skip_scan=False, dry_run=False, limit=100, groups=None):
     return targets
 
 
+def cmd_crm_sync(dry_run=False):
+    """Sync CRM notes and tags from dashboard to Google Contacts."""
+    from crm_sync import run_crm_sync
+
+    print("🔄 CRM Sync — Notes & Tags → Google Contacts")
+    print("=" * 50)
+    print()
+
+    if dry_run:
+        print("ℹ️  DRY RUN — no contacts or groups will be updated")
+        print()
+
+    result = run_crm_sync(dry_run=dry_run)
+
+    notes = result["notes"]
+    tags = result["tags"]
+
+    print()
+    print("📝 Notes sync:")
+    print(f"   Synced: {notes['synced']}")
+    print(f"   Skipped (unchanged): {notes['skipped']}")
+    if notes["errors"]:
+        print(f"   Errors: {notes['errors']}")
+
+    print()
+    print("🏷️  Tags sync:")
+    print(f"   Groups created: {tags['groups_created']}")
+    print(f"   Memberships added: {tags['memberships_added']}")
+    if tags["errors"]:
+        print(f"   Errors: {tags['errors']}")
+
+    print()
+    print("Done.")
+
+
 def cmd_refresh_tables(table=None):
     """Refresh code tables from external sources."""
     from code_tables import tables
@@ -1410,7 +1445,7 @@ def main():
             "auth", "backup", "analyze", "analyse", "fix", "ai-review",
             "verify", "rollback", "resume", "info",
             "auth-activity", "tag-activity", "ltns", "followup",
-            "linkedin-match", "linkedin-scan", "refresh-tables",
+            "linkedin-match", "linkedin-scan", "crm-sync", "refresh-tables",
         ],
         help="Command to execute",
     )
@@ -1483,6 +1518,8 @@ def main():
                 dry_run=args.dry_run,
                 no_prompts=args.no_prompts,
             )
+        elif command == "crm-sync":
+            cmd_crm_sync(dry_run=args.dry_run)
         elif command in simple_commands:
             simple_commands[command]()
         else:

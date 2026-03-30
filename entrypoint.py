@@ -605,6 +605,27 @@ def run():
     else:
         logger.info("Phase 4 skipped (ENABLE_FOLLOWUP_SCORING not set)")
 
+    # ── Phase 5 (optional): CRM Sync ──────────────────────────────
+    enable_crm_sync = os.getenv("ENABLE_CRM_SYNC", "").lower() in ("1", "true", "yes")
+    if enable_crm_sync:
+        logger.info("Phase 5: CRM Sync (notes + tags → Google Contacts)")
+        _p5_start = datetime.now()
+        try:
+            from crm_sync import run_crm_sync
+            crm_result = run_crm_sync(dry_run=dry_run)
+            run_state["phases_completed"].append("phase5")
+            run_state["phases"]["phase5"] = {
+                "elapsed_s": int((datetime.now() - _p5_start).total_seconds()),
+                "notes_synced": crm_result["notes"]["synced"],
+                "tags_memberships": crm_result["tags"]["memberships_added"],
+            }
+        except Exception as e:
+            logger.error(f"CRM sync failed (non-fatal): {e}")
+            run_state["errors"].append(f"Phase 5: {e}")
+            traceback.print_exc()
+    else:
+        logger.info("Phase 5 skipped (ENABLE_CRM_SYNC not set)")
+
     # ── Record run & send digest ─────────────────────────────────
     _record_pipeline_run(run_state, start)
 

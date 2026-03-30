@@ -32,6 +32,7 @@ const phaseLabels: Record<string, string> = {
   phase2: 'AI Review',
   phase3: 'Activity Tagging',
   phase4: 'FollowUp Scoring',
+  phase5: 'CRM Sync',
 }
 
 function phaseStatParts(detail: PhaseDetail): Array<{ text: string; link?: string }> {
@@ -49,6 +50,8 @@ function phaseStatParts(detail: PhaseDetail): Array<{ text: string; link?: strin
     const link = detail.session_id ? `/changelog?sessionId=${detail.session_id}` : undefined
     parts.push({ text: `${detail.fix_changes_applied} fixes applied`, link })
   }
+  if ((detail as Record<string, unknown>).notes_synced) parts.push({ text: `${(detail as Record<string, unknown>).notes_synced} notes synced` })
+  if ((detail as Record<string, unknown>).tags_memberships) parts.push({ text: `${(detail as Record<string, unknown>).tags_memberships} tag memberships` })
   return parts
 }
 </script>

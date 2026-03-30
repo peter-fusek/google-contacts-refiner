@@ -4,7 +4,7 @@
 - Dashboard: `cd dashboard && GOOGLE_APPLICATION_CREDENTIALS=/tmp/dashboard-reader-key.json pnpm dev`
 - SA key may expire — restore with gcloud (see ops docs, not committed)
 - Python pipeline: `uv run python main.py analyze` / `uv run python main.py fix --auto`
-- Full Python CLI: `backup`, `analyze`, `fix`, `fix --auto`, `ai-review`, `followup`, `ltns`, `tag-activity`
+- Full Python CLI: `backup`, `analyze`, `fix`, `fix --auto`, `ai-review`, `followup`, `ltns`, `tag-activity`, `crm-sync`
 - Dashboard build: `cd dashboard && pnpm build` / `pnpm preview` (test prod locally)
 - **Dev server cleanup**: Global PreToolUse hook auto-kills stale Nuxt processes before starting new `pnpm dev`
 
@@ -26,8 +26,9 @@
 - Corrupt decision files go to `data/failed/` (not retried)
 
 ## Key Architecture
-- Pipeline phases: 0 (review feedback) → 1 (backup, analyze, fix HIGH) → 2 (AI review MEDIUM) → 3 (activity tagging) → 4 (FollowUp scoring)
+- Pipeline phases: 0 (review feedback) → 1 (backup, analyze, fix HIGH) → 2 (AI review MEDIUM) → 3 (activity tagging) → 4 (FollowUp scoring) → 5 (CRM sync)
 - Phase 4 gated by `ENABLE_FOLLOWUP_SCORING` env var (**enabled** in Cloud Run since 2026-03-23)
+- Phase 5 gated by `ENABLE_CRM_SYNC` env var — syncs CRM notes → biographies, tags → contact groups (additive only)
 - GCS is the message bus: workplan → analyze → queue → review → export → apply
 - Review sessions in `data/review_sessions/`, decisions in `data/review_decisions_*.json`
 - Review changeIds: hash `resourceName|field|newVal` only (NOT oldVal — it changes between re-analyses)
