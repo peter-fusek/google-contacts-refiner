@@ -10,6 +10,7 @@ export default defineNuxtConfig({
       title: 'Contact Refiner — AI-Powered Google Contacts Cleanup',
       meta: [
         { name: 'description', content: 'Automatically fix diacritics, formatting, and duplicates in your Google Contacts. AI-powered analysis with human review.' },
+        { name: 'theme-color', content: '#0a0a0a' },
         { property: 'og:site_name', content: 'Contact Refiner' },
         { property: 'og:locale', content: 'en_US' },
         { property: 'og:image', content: 'https://contactrefiner.com/og-image.png' },

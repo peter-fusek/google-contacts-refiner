@@ -4,6 +4,13 @@ import { isDemoMode } from '../../utils/demo'
 
 const VALID_STAGES: CRMStage[] = ['inbox', 'reached_out', 'in_conversation', 'opportunity', 'converted', 'dormant', 'unknown', 'ready_to_delete']
 
+// Extract #hashtags from notes text — supports Slovak diacritics (e.g. #zákazník, #partneri)
+function extractHashtags(text: string): string[] {
+  const matches = text.match(/#[\p{L}\p{N}_-]+/gu)
+  if (!matches) return []
+  return [...new Set(matches.map(m => m.slice(1)))]
+}
+
 export default defineEventHandler(async (event) => {
   if (await isDemoMode(event)) {
     throw createError({ statusCode: 403, statusMessage: 'Not authorized' })
@@ -43,8 +50,23 @@ export default defineEventHandler(async (event) => {
   if (notes !== undefined) existing.notes = notes
   if (tags !== undefined) existing.tags = tags
 
+  // Auto-extract #hashtags from notes and merge into tags (additive only)
+  const notesText = notes ?? existing.notes
+  if (notesText) {
+    const hashtags = extractHashtags(notesText)
+    if (hashtags.length) {
+      const existingLower = new Set(existing.tags.map(t => t.toLowerCase()))
+      for (const ht of hashtags) {
+        if (!existingLower.has(ht.toLowerCase())) {
+          existing.tags.push(ht)
+          existingLower.add(ht.toLowerCase())
+        }
+      }
+    }
+  }
+
   state.contacts[resourceName] = existing
   await saveCRMState(state)
 
-  return { ok: true }
+  return { ok: true, tags: existing.tags }
 })

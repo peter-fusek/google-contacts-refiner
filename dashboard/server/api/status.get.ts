@@ -10,12 +10,23 @@ import { isDemoMode } from '../utils/demo'
 
 export default defineEventHandler(async (event): Promise<StatusResponse> => {
   if (await isDemoMode(event)) {
+    // Show realistic demo data so visitors see a functioning dashboard
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000)
+    const completed = new Date(yesterday.getTime() + 142 * 1000)
     return {
-      status: 'idle', phase: 'idle',
-      currentBatch: 0, totalBatches: 0,
-      contactsProcessed: 0, contactsTotal: 0,
-      eta: null, lastRun: { startedAt: null, completedAt: null, duration: null, changesApplied: 0, changesFailed: 0, cost: null },
-      aiReview: null,
+      status: 'completed' as const, phase: 'phase2' as const,
+      currentBatch: 11, totalBatches: 11,
+      contactsProcessed: 5478, contactsTotal: 5478,
+      eta: null,
+      lastRun: {
+        startedAt: yesterday.toISOString(),
+        completedAt: completed.toISOString(),
+        duration: 142,
+        changesApplied: 37,
+        changesFailed: 2,
+        cost: 0.018,
+      },
+      aiReview: { reviewed: 14, total: 14, promoted: 9, demoted: 5 },
     }
   }
   const [checkpoint, aiCheckpoint, changelog, pipelineRuns] = await Promise.all([

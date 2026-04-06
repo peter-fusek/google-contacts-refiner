@@ -53,7 +53,71 @@ useHead({
               'priceCurrency': 'USD',
             },
             'author': { '@id': 'https://contactrefiner.com/#organization' },
+            'downloadUrl': 'https://github.com/peter-fusek/contactrefiner',
+            'screenshot': 'https://contactrefiner.com/og-image.png',
             'featureList': 'Diacritics restoration, Smart formatting, Contact cleanup, AI review, Learning system, Daily email digest, Interaction tracking, Privacy-first self-hosted',
+          },
+          {
+            '@type': 'HowTo',
+            'name': 'How to clean up your Google Contacts with AI',
+            'description': 'Set up Contact Refiner to automatically fix diacritics, formatting, and duplicates in your Google Contacts.',
+            'step': [
+              {
+                '@type': 'HowToStep',
+                'name': 'Authenticate',
+                'text': 'Connect your Google account with OAuth2. Read-only access to Contacts, Gmail, and Calendar.',
+                'position': 1,
+              },
+              {
+                '@type': 'HowToStep',
+                'name': 'Analyze',
+                'text': 'A 5-phase daily pipeline scans all contacts with 26 rule categories, AI reviews ambiguous cases, and scores reconnection candidates.',
+                'position': 2,
+              },
+              {
+                '@type': 'HowToStep',
+                'name': 'Review & Learn',
+                'text': 'Review changes on the dashboard. Approve, reject, or edit. The system learns from every decision — rejected changes never come back.',
+                'position': 3,
+              },
+            ],
+          },
+          {
+            '@type': 'FAQPage',
+            'mainEntity': [
+              {
+                '@type': 'Question',
+                'name': 'Is Contact Refiner free?',
+                'acceptedAnswer': {
+                  '@type': 'Answer',
+                  'text': 'Yes. Contact Refiner is open source and free to self-host. Your data stays in your own Google account and infrastructure.',
+                },
+              },
+              {
+                '@type': 'Question',
+                'name': 'Does it delete or modify contacts without my permission?',
+                'acceptedAnswer': {
+                  '@type': 'Answer',
+                  'text': 'No. Every change goes through a review queue. You approve or reject each change before it applies. The system learns from your decisions so rejected changes never come back.',
+                },
+              },
+              {
+                '@type': 'Question',
+                'name': 'What kind of fixes does it make?',
+                'acceptedAnswer': {
+                  '@type': 'Answer',
+                  'text': 'Contact Refiner fixes missing diacritics on Slovak and Czech names, normalizes phone numbers, standardizes titles and company names, flags low-value contacts for deletion, and uses AI to catch edge cases that rules miss.',
+                },
+              },
+              {
+                '@type': 'Question',
+                'name': 'How does the LinkedIn integration work?',
+                'acceptedAnswer': {
+                  '@type': 'Answer',
+                  'text': 'Contact Refiner scans LinkedIn profiles to detect job changes and activity. It scores your contacts for reconnection opportunities and surfaces the best candidates in a personal CRM board.',
+                },
+              },
+            ],
           },
         ],
       }),
@@ -134,6 +198,13 @@ const steps = [
   { num: '01', title: 'Authenticate', description: 'Connect your Google account with OAuth2. Read-only access to Contacts, Gmail, and Calendar.' },
   { num: '02', title: 'Analyze', description: 'A 5-phase daily pipeline scans all contacts with 26 rule categories, AI reviews ambiguous cases, and scores reconnection candidates.' },
   { num: '03', title: 'Review & Learn', description: 'Review changes on the dashboard. Approve, reject, or edit. The system learns from every decision — rejected changes never come back.' },
+]
+
+const faqs = [
+  { q: 'Is Contact Refiner free?', a: 'Yes. Contact Refiner is open source and free to self-host. Your data stays in your own Google account and infrastructure.' },
+  { q: 'Does it delete or modify contacts without my permission?', a: 'No. Every change goes through a review queue. You approve or reject each change before it applies. The system learns from your decisions so rejected changes never come back.' },
+  { q: 'What kind of fixes does it make?', a: 'Contact Refiner fixes missing diacritics on Slovak and Czech names, normalizes phone numbers, standardizes titles and company names, flags low-value contacts for deletion, and uses AI to catch edge cases that rules miss.' },
+  { q: 'How does the LinkedIn integration work?', a: 'Contact Refiner scans LinkedIn profiles to detect job changes and activity. It scores your contacts for reconnection opportunities and surfaces the best candidates in a personal CRM board.' },
 ]
 </script>
 
@@ -388,6 +459,32 @@ const steps = [
             <p class="text-sm text-neutral-400 leading-relaxed">See job changes, active profiles, and reconnection opportunities across your network. Scanned and scored automatically.</p>
             <span class="text-xs text-blue-400 group-hover:text-blue-300">View demo &rarr;</span>
           </NuxtLink>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="py-20 px-6 border-t border-neutral-800/50">
+      <div class="max-w-3xl mx-auto">
+        <div class="text-center mb-14">
+          <h2 class="text-2xl md:text-3xl font-bold text-neutral-100">
+            Frequently asked questions
+          </h2>
+        </div>
+        <div class="space-y-4">
+          <details
+            v-for="faq in faqs"
+            :key="faq.q"
+            class="rounded-xl border border-neutral-800 bg-neutral-900/50 group"
+          >
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer text-sm font-medium text-neutral-200 hover:text-neutral-100 transition-colors list-none">
+              {{ faq.q }}
+              <UIcon name="i-lucide-chevron-down" class="size-4 text-neutral-500 transition-transform group-open:rotate-180" />
+            </summary>
+            <div class="px-6 pb-4 text-sm text-neutral-400 leading-relaxed">
+              {{ faq.a }}
+            </div>
+          </details>
         </div>
       </div>
     </section>

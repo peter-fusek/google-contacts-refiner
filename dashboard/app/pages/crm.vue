@@ -72,6 +72,8 @@ async function handleDrop(resourceName: string, stage: CRMStage) {
     contact.stage = stage
     try {
       await $fetch('/api/crm/update', { method: 'POST', body: { resourceName, stage } })
+      // Refetch to auto-refill inbox with next top-scored contacts
+      if (oldStage === 'inbox' || stage === 'inbox') refresh()
     } catch {
       contact.stage = oldStage
       toast.add({ title: 'Failed to move contact', color: 'error', icon: 'i-lucide-alert-triangle' })
@@ -94,7 +96,7 @@ async function saveContact() {
   isSaving.value = true
   try {
     const tags = editTags.value.split(',').map(t => t.trim()).filter(Boolean)
-    await $fetch('/api/crm/update', {
+    const result = await $fetch('/api/crm/update', {
       method: 'POST',
       body: {
         resourceName: selectedContact.value.resourceName,
@@ -102,8 +104,11 @@ async function saveContact() {
         tags,
       },
     })
+    // Server merges #hashtags from notes into tags — use the merged result
+    const mergedTags = (result as { tags?: string[] }).tags ?? tags
     selectedContact.value.notes = editNotes.value
-    selectedContact.value.tags = tags
+    selectedContact.value.tags = mergedTags
+    editTags.value = mergedTags.join(', ')
     toast.add({ title: 'Contact saved', color: 'success', icon: 'i-lucide-check' })
   } catch {
     toast.add({ title: 'Failed to save contact', color: 'error', icon: 'i-lucide-alert-triangle' })
@@ -121,6 +126,8 @@ async function moveContact(stage: CRMStage) {
       method: 'POST',
       body: { resourceName: selectedContact.value.resourceName, stage },
     })
+    // Refetch to auto-refill inbox with next top-scored contacts
+    if (oldStage === 'inbox' || stage === 'inbox') refresh()
   } catch {
     selectedContact.value.stage = oldStage
     toast.add({ title: 'Failed to move contact', color: 'error', icon: 'i-lucide-alert-triangle' })
