@@ -654,6 +654,14 @@ onUnmounted(() => {
       <p class="text-neutral-500">Loading review data...</p>
     </div>
 
+    <!-- Error -->
+    <div v-else-if="status === 'error'" class="text-center py-16">
+      <UIcon name="i-lucide-alert-triangle" class="size-10 text-red-500 mx-auto mb-3" />
+      <p class="text-red-400">Failed to load review data</p>
+      <p class="text-xs text-neutral-600 mt-1">Check your connection or try again</p>
+      <UButton label="Retry" size="sm" variant="soft" class="mt-4" icon="i-lucide-refresh-cw" @click="refresh()" />
+    </div>
+
     <template v-else>
       <!-- Filters + Controls -->
       <div class="flex flex-wrap items-center gap-3">
@@ -661,14 +669,14 @@ onUnmounted(() => {
           v-model="fieldFilter"
           :items="fieldOptions"
           value-key="value"
-          class="w-48"
+          class="w-full sm:w-48"
           placeholder="Field"
         />
         <USelect
           v-model="categoryFilter"
           :items="categoryOptions"
           value-key="value"
-          class="w-48"
+          class="w-full sm:w-48"
           placeholder="Rule"
         />
         <label class="flex items-center gap-1.5 text-xs text-neutral-400 cursor-pointer">
@@ -676,7 +684,7 @@ onUnmounted(() => {
           Hide decided
         </label>
 
-        <div class="ml-auto flex items-center gap-2">
+        <div class="w-full sm:w-auto sm:ml-auto flex items-center gap-2 flex-wrap">
           <UFieldGroup size="xs">
             <UButton
               label="Contact"

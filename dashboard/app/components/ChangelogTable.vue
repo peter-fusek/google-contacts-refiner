@@ -123,21 +123,21 @@ function formatDate(ts: string): string {
         :model-value="search"
         placeholder="Search changes..."
         icon="i-lucide-search"
-        class="w-64"
+        class="w-full sm:w-64"
         @update:model-value="onSearchInput"
       />
       <USelect
         v-model="fieldFilter"
         :items="fieldOptions"
         value-key="value"
-        class="w-40"
+        class="w-[calc(50%-6px)] sm:w-40"
         @update:model-value="page = 1"
       />
       <USelect
         v-model="confidenceFilter"
         :items="confidenceOptions"
         value-key="value"
-        class="w-32"
+        class="w-[calc(50%-6px)] sm:w-32"
         @update:model-value="page = 1"
       />
       <div class="ml-auto text-xs text-neutral-500 self-center tabular-nums">
@@ -158,6 +158,12 @@ function formatDate(ts: string): string {
       <div v-if="status === 'pending'" class="text-center py-8">
         <UIcon name="i-lucide-loader" class="size-6 text-neutral-500 mx-auto mb-2 animate-spin" />
         <p class="text-neutral-500 text-xs">Loading changelog...</p>
+      </div>
+
+      <!-- Error -->
+      <div v-else-if="status === 'error'" class="text-center py-8">
+        <UIcon name="i-lucide-alert-triangle" class="size-6 text-red-500 mx-auto mb-2" />
+        <p class="text-red-400 text-xs">Failed to load changelog</p>
       </div>
 
       <!-- Empty -->
@@ -199,7 +205,7 @@ function formatDate(ts: string): string {
         </div>
 
         <!-- Entries Table -->
-        <div v-if="expanded[group.resourceName]">
+        <div v-if="expanded[group.resourceName]" class="overflow-x-auto">
           <table class="w-full text-xs">
             <tbody class="divide-y divide-neutral-800/50">
               <tr

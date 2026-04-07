@@ -62,7 +62,7 @@ function phaseStatParts(detail: PhaseDetail): Array<{ text: string; link?: strin
     <p class="text-neutral-500 text-sm">Loading runs...</p>
   </div>
 
-  <div v-else-if="runs.length" class="rounded-xl border border-neutral-800 bg-neutral-900/50 overflow-hidden">
+  <div v-else-if="runs.length" class="rounded-xl border border-neutral-800 bg-neutral-900/50 overflow-x-auto">
     <table class="w-full text-xs">
       <thead>
         <tr class="border-b border-neutral-800 text-neutral-500 uppercase tracking-wider">

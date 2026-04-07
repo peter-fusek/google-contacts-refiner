@@ -218,7 +218,7 @@ const memoryExplainer = [
           Phases, live stats, run history, and reference documentation.
         </p>
       </div>
-      <div class="flex items-center gap-3">
+      <div v-if="status" class="flex items-center gap-3">
         <div class="text-right text-xs">
           <div class="text-neutral-500">Next run</div>
           <div class="text-neutral-300 font-medium">{{ relativeLabel }}</div>
@@ -321,7 +321,11 @@ const memoryExplainer = [
         <UIcon name="i-lucide-play-circle" class="size-5 text-primary-400" />
         Run History
       </h2>
-      <RunHistoryTable :runs="runs ?? []" :loading="runsStatus === 'pending'" />
+      <div v-if="runsStatus === 'error'" class="text-center py-8">
+        <UIcon name="i-lucide-alert-triangle" class="size-6 text-red-500 mx-auto mb-2" />
+        <p class="text-red-400 text-xs">Failed to load run history</p>
+      </div>
+      <RunHistoryTable v-else :runs="runs ?? []" :loading="runsStatus === 'pending'" />
     </section>
 
     <!-- Reference Documentation -->

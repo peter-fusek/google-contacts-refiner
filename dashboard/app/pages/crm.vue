@@ -212,7 +212,7 @@ function signalColor(type: string | undefined): string {
         v-model="searchQuery"
         type="text"
         placeholder="Search contacts..."
-        class="bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-1.5 text-sm text-neutral-300 placeholder-neutral-600 w-64 focus:outline-none focus:border-neutral-700"
+        class="bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-1.5 text-sm text-neutral-300 placeholder-neutral-600 w-full sm:w-64 focus:outline-none focus:border-neutral-700"
       />
       <select
         v-if="viewMode === 'list'"
@@ -247,7 +247,7 @@ function signalColor(type: string | undefined): string {
     </div>
 
     <!-- Kanban View -->
-    <div v-else-if="viewMode === 'kanban'" class="flex gap-3 overflow-x-auto pb-4">
+    <div v-else-if="viewMode === 'kanban'" class="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory sm:snap-none">
       <CRMColumn
         v-for="sc in stageConfig"
         :key="sc.stage"

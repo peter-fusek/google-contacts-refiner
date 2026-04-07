@@ -7,9 +7,13 @@ useHead({
 })
 
 import type { StatusResponse } from '~/server/utils/types'
+import type { PipelineRun } from '~/server/utils/gcs'
 
 const { data: status, status: fetchStatus, refresh } = useFetch<StatusResponse>('/api/status')
+const { data: runs } = useFetch<PipelineRun[]>('/api/pipeline-runs')
 const { relativeLabel } = useNextRun(computed(() => status.value?.status))
+
+const recentRuns = computed(() => runs.value?.slice(0, 7) ?? [])
 
 // Poll every 5s when running
 const pollInterval = ref<ReturnType<typeof setInterval>>()
@@ -132,6 +136,35 @@ function formatTime(iso: string | null) {
         to="/runs"
       />
     </div>
+
+    <!-- Pipeline Health — recent runs -->
+    <NuxtLink v-if="recentRuns.length" to="/runs" class="block rounded-xl border border-neutral-800 bg-neutral-900/50 p-5 hover:border-neutral-700 transition-colors">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-xs uppercase tracking-wider text-neutral-500">
+          Pipeline Health
+        </p>
+        <span class="text-[10px] text-neutral-600">last {{ recentRuns.length }} runs</span>
+      </div>
+      <div class="flex gap-1.5 items-end">
+        <div
+          v-for="(run, i) in recentRuns"
+          :key="i"
+          class="flex-1 flex flex-col items-center gap-1"
+        >
+          <div
+            class="w-full rounded-sm transition-colors"
+            :class="run.errors.length ? 'bg-red-500/70' : 'bg-green-500/60'"
+            :style="{ height: `${Math.max(8, Math.min(40, run.duration_seconds / 10))}px` }"
+            :title="`${formatTime(run.date)} — ${formatDuration(run.duration_seconds)} — ${run.errors.length ? run.errors.length + ' errors' : 'OK'}`"
+          />
+          <span class="text-[9px] text-neutral-600 tabular-nums">{{ run.phases_completed?.length ?? 0 }}ph</span>
+        </div>
+      </div>
+      <div class="flex justify-between text-[9px] text-neutral-700 mt-1">
+        <span>{{ formatTime(recentRuns[recentRuns.length - 1]?.date ?? null) }}</span>
+        <span>{{ formatTime(recentRuns[0]?.date ?? null) }}</span>
+      </div>
+    </NuxtLink>
 
     <!-- Last Run Info -->
     <div v-if="fetchStatus !== 'pending'" class="rounded-xl border border-neutral-800 bg-neutral-900/50 p-5">

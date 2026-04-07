@@ -35,7 +35,7 @@ function onDrop(e: DragEvent, stage: CRMStage) {
 
 <template>
   <div
-    class="flex flex-col min-w-[260px] max-w-[300px] shrink-0 rounded-xl border transition-colors"
+    class="flex flex-col min-w-[80vw] sm:min-w-[260px] max-w-[300px] shrink-0 rounded-xl border transition-colors snap-center"
     :class="dragOver ? 'border-primary-500/50 bg-primary-500/5' : 'border-neutral-800 bg-neutral-900/30'"
     @dragover="onDragOver"
     @dragleave="onDragLeave"
