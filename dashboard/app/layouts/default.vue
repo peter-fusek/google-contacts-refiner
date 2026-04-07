@@ -97,7 +97,8 @@ watch(() => route.path, () => {
           />
           <span class="text-xs text-neutral-400 truncate flex-1">{{ user.name }}</span>
           <button
-            class="text-xs text-neutral-600 hover:text-neutral-400 transition-colors"
+            aria-label="Sign out"
+            class="p-1.5 -m-1 text-neutral-600 hover:text-neutral-400 transition-colors"
             @click="logout()"
           >
             <UIcon name="i-lucide-log-out" class="size-3.5" />
