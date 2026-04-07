@@ -2,5 +2,15 @@ User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /login
+Disallow: /dashboard
+Disallow: /review
+Disallow: /crm
+Disallow: /changelog
+Disallow: /runs
+Disallow: /pipeline
+Disallow: /config
+Disallow: /analytics
+Disallow: /followup
+Disallow: /social-signals
 
 Sitemap: https://contactrefiner.com/sitemap.xml

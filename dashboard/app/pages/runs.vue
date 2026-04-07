@@ -4,7 +4,7 @@ import type { PipelineRun } from '~/server/utils/gcs'
 useHead({
   title: 'Pipeline Runs — Contact Refiner',
   meta: [
-    { name: 'description', content: 'History of automated pipeline executions.' },
+    { name: 'description', content: 'Full history of automated Contact Refiner pipeline runs. See timestamps, phases completed, contacts processed, and errors for every daily execution.' },
   ],
 })
 

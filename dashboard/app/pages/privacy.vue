@@ -6,6 +6,9 @@ useHead({
   meta: [
     { name: 'description', content: 'How Contact Refiner processes your Google Contacts data. Self-hosted, no third-party sharing, full transparency.' },
   ],
+  link: [
+    { rel: 'canonical', href: 'https://contactrefiner.com/privacy' },
+  ],
 })
 </script>
 

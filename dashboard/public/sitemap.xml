@@ -2,45 +2,9 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://contactrefiner.com/</loc>
-    <lastmod>2026-04-06</lastmod>
+    <lastmod>2026-04-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://contactrefiner.com/dashboard</loc>
-    <lastmod>2026-04-06</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://contactrefiner.com/review</loc>
-    <lastmod>2026-04-06</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://contactrefiner.com/crm</loc>
-    <lastmod>2026-04-06</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://contactrefiner.com/analytics</loc>
-    <lastmod>2026-04-06</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://contactrefiner.com/changelog</loc>
-    <lastmod>2026-04-06</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://contactrefiner.com/runs</loc>
-    <lastmod>2026-04-06</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://contactrefiner.com/privacy</loc>

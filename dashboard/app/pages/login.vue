@@ -1,6 +1,11 @@
 <script setup lang="ts">
 definePageMeta({ layout: false })
 
+useHead({
+  title: 'Sign In — Contact Refiner',
+  meta: [{ name: 'robots', content: 'noindex, nofollow' }],
+})
+
 const { loggedIn } = useUserSession()
 
 // If already logged in, redirect to dashboard

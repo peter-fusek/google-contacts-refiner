@@ -14,11 +14,10 @@ export default defineNuxtConfig({
         { property: 'og:site_name', content: 'Contact Refiner' },
         { property: 'og:locale', content: 'en_US' },
         { property: 'og:image', content: 'https://contactrefiner.com/og-image.png' },
+        { property: 'og:image:alt', content: 'Contact Refiner — AI-powered Google Contacts cleanup dashboard' },
         { name: 'twitter:card', content: 'summary_large_image' },
       ],
-      link: [
-        { rel: 'canonical', href: 'https://contactrefiner.com' },
-      ],
+      link: [],
       script: [
         { src: 'https://www.googletagmanager.com/gtag/js?id=G-QFW0D3J3KV', async: true },
         { innerHTML: "window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-QFW0D3J3KV');" },
