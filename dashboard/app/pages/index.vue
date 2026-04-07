@@ -213,24 +213,24 @@ const features = [
           personal CRM, and a feedback learning loop. You approve every change.
         </p>
 
-        <div class="flex items-center justify-center gap-4 pt-2">
-          <a
-            href="https://github.com/peter-fusek/contactrefiner"
-            target="_blank"
-            rel="noopener"
-            class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-sm font-medium transition-colors"
-          >
-            <UIcon name="i-lucide-github" class="size-4" />
-            View on GitHub
-          </a>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
           <NuxtLink
             to="/dashboard"
-            class="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-neutral-700 hover:border-neutral-600 text-neutral-300 text-sm font-medium transition-colors"
+            class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-sm font-medium transition-colors"
             title="Browse the dashboard with masked demo data — no login required"
           >
             <UIcon name="i-lucide-play" class="size-4" />
             Try Live Demo
           </NuxtLink>
+          <a
+            href="https://github.com/peter-fusek/contactrefiner"
+            target="_blank"
+            rel="noopener"
+            class="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-neutral-700 hover:border-neutral-600 text-neutral-300 text-sm font-medium transition-colors"
+          >
+            <UIcon name="i-lucide-github" class="size-4" />
+            View on GitHub
+          </a>
         </div>
       </div>
 
@@ -286,15 +286,15 @@ const features = [
           <div class="label-refined mt-1">Rule categories</div>
         </div>
         <div>
-          <div class="text-2xl md:text-3xl font-bold text-neutral-100 tabular-nums">8</div>
-          <div class="label-refined mt-1">CRM stages</div>
+          <div class="text-2xl md:text-3xl font-bold text-neutral-100 tabular-nums">5,500+</div>
+          <div class="label-refined mt-1">Contacts managed</div>
         </div>
         <div>
-          <div class="text-2xl md:text-3xl font-bold text-cyan-400 tabular-nums">3</div>
-          <div class="label-refined mt-1">AI agents</div>
+          <div class="text-2xl md:text-3xl font-bold text-cyan-400 tabular-nums">&lt;$0.02</div>
+          <div class="label-refined mt-1">Daily AI cost</div>
         </div>
         <div>
-          <div class="text-2xl md:text-3xl font-bold text-neutral-100 tabular-nums">100%</div>
+          <div class="text-2xl md:text-3xl font-bold text-green-400 tabular-nums">100%</div>
           <div class="label-refined mt-1">Self-hosted</div>
         </div>
       </div>
@@ -369,7 +369,7 @@ const features = [
           </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           <NuxtLink
             to="/review"
             class="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 space-y-3 hover:border-primary-500/40 transition-colors group"
@@ -416,6 +416,30 @@ const features = [
             </div>
             <p class="text-sm text-neutral-400 leading-relaxed">See job changes, active profiles, and reconnection opportunities across your network. Scanned and scored automatically.</p>
             <span class="text-xs text-blue-400 group-hover:text-blue-300">View demo &rarr;</span>
+          </NuxtLink>
+
+          <NuxtLink
+            to="/crm"
+            class="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 space-y-3 hover:border-purple-500/40 transition-colors group"
+          >
+            <div class="flex items-center gap-2">
+              <UIcon name="i-lucide-kanban" class="size-5 text-purple-400" />
+              <h3 class="text-sm font-semibold text-neutral-100">Personal CRM</h3>
+            </div>
+            <p class="text-sm text-neutral-400 leading-relaxed">Kanban board for managing reconnections. AI-generated reach-out prompts, notes, tags, and stage tracking across your network.</p>
+            <span class="text-xs text-purple-400 group-hover:text-purple-300">View demo &rarr;</span>
+          </NuxtLink>
+
+          <NuxtLink
+            to="/pipeline"
+            class="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 space-y-3 hover:border-green-500/40 transition-colors group"
+          >
+            <div class="flex items-center gap-2">
+              <UIcon name="i-lucide-workflow" class="size-5 text-green-400" />
+              <h3 class="text-sm font-semibold text-neutral-100">Pipeline</h3>
+            </div>
+            <p class="text-sm text-neutral-400 leading-relaxed">See all 5 phases, normalizer rules, AI prompts, learning system details, and live run stats in one place.</p>
+            <span class="text-xs text-green-400 group-hover:text-green-300">View demo &rarr;</span>
           </NuxtLink>
         </div>
       </div>
