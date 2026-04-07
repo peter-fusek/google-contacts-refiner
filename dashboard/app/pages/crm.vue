@@ -20,6 +20,7 @@ const selectedContact = ref<CRMContact | null>(null)
 const editNotes = ref('')
 const editTags = ref('')
 const isSaving = ref(false)
+const isCopied = ref(false)
 const toast = useToast()
 
 const stageConfig: Array<{ stage: CRMStage; label: string; color: string }> = [
@@ -81,10 +82,36 @@ async function handleDrop(resourceName: string, stage: CRMStage) {
   }
 }
 
+async function handleReachOut(resourceName: string) {
+  const contact = data.value?.contacts.find(c => c.resourceName === resourceName)
+  if (!contact || contact.stage === 'reached_out') return
+  const oldStage = contact.stage
+  contact.stage = 'reached_out'
+  try {
+    await $fetch('/api/crm/update', { method: 'POST', body: { resourceName, stage: 'reached_out' } })
+    if (oldStage === 'inbox') refresh()
+  } catch {
+    contact.stage = oldStage
+    toast.add({ title: 'Failed to move contact', color: 'error', icon: 'i-lucide-alert-triangle' })
+  }
+}
+
+async function copyPrompt() {
+  if (!selectedContact.value?.followup_prompt) return
+  try {
+    await navigator.clipboard.writeText(selectedContact.value.followup_prompt)
+    isCopied.value = true
+    setTimeout(() => { isCopied.value = false }, 2000)
+  } catch {
+    toast.add({ title: 'Copy failed', color: 'error', icon: 'i-lucide-alert-triangle' })
+  }
+}
+
 function selectContact(contact: CRMContact) {
   selectedContact.value = contact
   editNotes.value = contact.notes
   editTags.value = contact.tags.join(', ')
+  isCopied.value = false
 }
 
 function closeDetail() {
@@ -230,6 +257,7 @@ function signalColor(type: string | undefined): string {
         :contacts="contactsByStage(sc.stage)"
         @drop="handleDrop"
         @select="selectContact"
+        @reach-out="handleReachOut"
       />
     </div>
 
@@ -340,8 +368,18 @@ function signalColor(type: string | undefined): string {
 
             <!-- FollowUp prompt -->
             <div v-if="selectedContact.followup_prompt">
-              <p class="text-xs text-neutral-500 mb-2">AI Reconnect Suggestion</p>
-              <p class="text-sm text-neutral-300 italic bg-neutral-900 border border-neutral-800 rounded-lg p-3">
+              <div class="flex items-center justify-between mb-2">
+                <p class="text-xs text-neutral-500">AI Reconnect Suggestion</p>
+                <button
+                  class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] rounded border transition-colors"
+                  :class="isCopied ? 'border-green-700 text-green-400 bg-green-500/10' : 'border-neutral-800 text-neutral-500 hover:text-neutral-300 hover:border-neutral-700'"
+                  @click="copyPrompt"
+                >
+                  <UIcon :name="isCopied ? 'i-lucide-check' : 'i-lucide-copy'" class="size-3" />
+                  {{ isCopied ? 'Copied' : 'Copy' }}
+                </button>
+              </div>
+              <p class="text-sm text-neutral-300 italic bg-neutral-900 border border-neutral-800 rounded-lg p-3 select-all">
                 {{ selectedContact.followup_prompt }}
               </p>
             </div>

@@ -11,6 +11,7 @@ defineProps<{
 const emit = defineEmits<{
   drop: [resourceName: string, stage: CRMStage]
   select: [contact: CRMContact]
+  'reach-out': [resourceName: string]
 }>()
 
 const dragOver = ref(false)
@@ -56,6 +57,7 @@ function onDrop(e: DragEvent, stage: CRMStage) {
         :key="c.resourceName"
         :contact="c"
         @select="emit('select', $event)"
+        @reach-out="emit('reach-out', $event)"
       />
       <p v-if="!contacts.length" class="text-center text-[10px] text-neutral-700 py-4">
         Drop contacts here
