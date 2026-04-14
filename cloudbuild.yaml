@@ -26,7 +26,7 @@ steps:
       - '--region'
       - 'europe-west1'
       - '--update-env-vars'
-      - 'ENVIRONMENT=cloud,ENABLE_FOLLOWUP_SCORING=true'
+      - 'ENVIRONMENT=cloud,ENABLE_FOLLOWUP_SCORING=true,ENABLE_CRM_SYNC=true'
 
 substitutions:
   _IMAGE: 'europe-west1-docker.pkg.dev/${PROJECT_ID}/app/refiner:${SHORT_SHA}'

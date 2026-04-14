@@ -427,8 +427,7 @@ def run():
             run_state["errors"].append(f"Phase 2 resume: {e}")
             traceback.print_exc()
             sys.exit(1)
-        _record_pipeline_run(run_state, start)
-        _log_elapsed(start)
+        _finalize_run(run_state, start)
         return
 
     # Priority 2: Fix checkpoint (Phase 1 step 3 or Phase 2 fix was interrupted)
@@ -443,8 +442,7 @@ def run():
             run_state["errors"].append(f"Fix resume: {e}")
             traceback.print_exc()
             sys.exit(1)
-        _record_pipeline_run(run_state, start)
-        _log_elapsed(start)
+        _finalize_run(run_state, start)
         return
 
     # ── Phase 1: Fast mechanical pass ───────────────────────────────
@@ -522,8 +520,7 @@ def run():
     # ── Phase 2: AI review (checkpointed) ───────────────────────────
     if skip_ai:
         logger.info("Phase 2 skipped (SKIP_AI_REVIEW=true)")
-        _record_pipeline_run(run_state, start)
-        _log_elapsed(start)
+        _finalize_run(run_state, start)
         return
 
     logger.info("Phase 2: AI review of MEDIUM changes")
@@ -627,15 +624,7 @@ def run():
         logger.info("Phase 5 skipped (ENABLE_CRM_SYNC not set)")
 
     # ── Record run & send digest ─────────────────────────────────
-    _record_pipeline_run(run_state, start)
-
-    try:
-        from notifier import send_email_digest
-        send_email_digest(run_state, start)
-    except Exception as e:
-        logger.warning(f"Email digest failed (non-fatal): {e}")
-
-    _log_elapsed(start)
+    _finalize_run(run_state, start)
 
 
 def _record_queue_stats() -> int:
@@ -704,6 +693,19 @@ def _record_queue_stats() -> int:
     except Exception as e:
         logger.warning(f"Queue stats recording failed (non-fatal): {e}")
         return 0
+
+
+def _finalize_run(run_state: dict, start: datetime):
+    """Record run, send email digest, and log elapsed time."""
+    _record_pipeline_run(run_state, start)
+
+    try:
+        from notifier import send_email_digest
+        send_email_digest(run_state, start)
+    except Exception as e:
+        logger.warning(f"Email digest failed (non-fatal): {e}")
+
+    _log_elapsed(start)
 
 
 def _record_pipeline_run(run_state: dict, start: datetime):
