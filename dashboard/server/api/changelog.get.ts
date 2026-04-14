@@ -1,5 +1,5 @@
 import type { ChangelogEntry } from '../utils/types'
-import { getChangelog, getContactNameMap } from '../utils/gcs'
+import { getChangelog, getChangelogWithMarkers, getContactNameMap } from '../utils/gcs'
 import { isDemoMode, maskChangelogEntry } from '../utils/demo'
 
 interface ContactGroup {
@@ -28,16 +28,18 @@ export default defineEventHandler(async (event): Promise<GroupedChangelogRespons
   const confidence = (query.confidence as string || '').toLowerCase()
   const sessionId = (query.sessionId as string || '')
 
-  const [allEntries, nameMap] = await Promise.all([
-    getChangelog(),
+  const [nameMap] = await Promise.all([
     getContactNameMap(),
   ])
 
-  let entries = allEntries
-
-  // Filter by session ID (for pipeline run drill-down)
+  // When filtering by session ID, skip dedup — identical changes across sessions
+  // must remain visible for per-run drill-down (dedup collapses repeated fixes)
+  let entries: ChangelogEntry[]
   if (sessionId) {
-    entries = entries.filter(e => e.session_id === sessionId)
+    const raw = await getChangelogWithMarkers()
+    entries = (raw.filter((e): e is ChangelogEntry => !('type' in e) && e.session_id === sessionId))
+  } else {
+    entries = await getChangelog()
   }
 
   // Filter
