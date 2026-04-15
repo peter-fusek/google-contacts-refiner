@@ -17,7 +17,9 @@ function signalColor(type: string | undefined): string {
 }
 
 function dragStart(e: DragEvent) {
-  e.dataTransfer?.setData('text/plain', props.contact.resourceName)
+  if (!e.dataTransfer) return
+  e.dataTransfer.setData('text/plain', props.contact.resourceName)
+  e.dataTransfer.effectAllowed = 'move'
 }
 </script>
 

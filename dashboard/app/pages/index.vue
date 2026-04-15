@@ -205,6 +205,12 @@ const features = [
           </a>
           <NuxtLink
             to="/dashboard"
+            class="text-xs text-neutral-500 hover:text-neutral-300 transition-colors"
+          >
+            Dashboard
+          </NuxtLink>
+          <NuxtLink
+            to="/dashboard"
             class="text-xs px-3 py-1.5 rounded-lg border border-neutral-700 text-neutral-400 hover:text-neutral-200 hover:border-neutral-600 transition-colors"
           >
             Live Demo

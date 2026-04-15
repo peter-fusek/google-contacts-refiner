@@ -15,14 +15,19 @@ const emit = defineEmits<{
 }>()
 
 const dragOver = ref(false)
+const columnRef = ref<HTMLElement>()
 
 function onDragOver(e: DragEvent) {
   e.preventDefault()
+  if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'
   dragOver.value = true
 }
 
-function onDragLeave() {
-  dragOver.value = false
+function onDragLeave(e: DragEvent) {
+  // Only clear when truly leaving the column — dragleave fires on every child element
+  if (columnRef.value && !columnRef.value.contains(e.relatedTarget as Node)) {
+    dragOver.value = false
+  }
 }
 
 function onDrop(e: DragEvent, stage: CRMStage) {
@@ -35,6 +40,7 @@ function onDrop(e: DragEvent, stage: CRMStage) {
 
 <template>
   <div
+    ref="columnRef"
     class="flex flex-col min-w-[80vw] sm:min-w-[260px] max-w-[300px] shrink-0 rounded-xl border transition-colors snap-center"
     :class="dragOver ? 'border-primary-500/50 bg-primary-500/5' : 'border-neutral-800 bg-neutral-900/30'"
     @dragover="onDragOver"
