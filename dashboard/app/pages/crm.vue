@@ -265,7 +265,7 @@ function signalColor(type: string | undefined): string {
     </div>
 
     <!-- Kanban View -->
-    <div v-else-if="viewMode === 'kanban'" ref="kanbanRef" class="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory sm:snap-none" @dragover="onKanbanDragOver">
+    <div v-else-if="viewMode === 'kanban'" ref="kanbanRef" class="flex gap-3 overflow-x-auto pb-4 snap-x sm:snap-none" @dragover="onKanbanDragOver">
       <CRMColumn
         v-for="sc in stageConfig"
         :key="sc.stage"

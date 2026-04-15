@@ -15,23 +15,32 @@ const emit = defineEmits<{
 }>()
 
 const dragOver = ref(false)
-const columnRef = ref<HTMLElement>()
+// Counter-based drag tracking — relatedTarget is unreliable on drag events in Chrome
+// Increment on dragenter, decrement on dragleave, highlight when > 0
+let dragCounter = 0
+
+function onDragEnter(e: DragEvent) {
+  e.preventDefault()
+  dragCounter++
+  dragOver.value = true
+}
 
 function onDragOver(e: DragEvent) {
   e.preventDefault()
   if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'
-  dragOver.value = true
 }
 
-function onDragLeave(e: DragEvent) {
-  // Only clear when truly leaving the column — dragleave fires on every child element
-  if (columnRef.value && !columnRef.value.contains(e.relatedTarget as Node)) {
+function onDragLeave() {
+  dragCounter--
+  if (dragCounter <= 0) {
+    dragCounter = 0
     dragOver.value = false
   }
 }
 
 function onDrop(e: DragEvent, stage: CRMStage) {
   e.preventDefault()
+  dragCounter = 0
   dragOver.value = false
   const resourceName = e.dataTransfer?.getData('text/plain')
   if (resourceName) emit('drop', resourceName, stage)
@@ -40,9 +49,9 @@ function onDrop(e: DragEvent, stage: CRMStage) {
 
 <template>
   <div
-    ref="columnRef"
     class="flex flex-col min-w-[80vw] sm:min-w-[260px] max-w-[300px] shrink-0 rounded-xl border transition-colors snap-center"
     :class="dragOver ? 'border-primary-500/50 bg-primary-500/5' : 'border-neutral-800 bg-neutral-900/30'"
+    @dragenter="onDragEnter"
     @dragover="onDragOver"
     @dragleave="onDragLeave"
     @drop="onDrop($event, stage)"
