@@ -65,6 +65,22 @@ function contactsByStage(stage: CRMStage): CRMContact[] {
   return filteredContacts.value.filter(c => c.stage === stage)
 }
 
+// Auto-scroll kanban container when dragging near edges
+const kanbanRef = ref<HTMLElement>()
+const SCROLL_ZONE = 80 // px from edge to start scrolling
+const SCROLL_SPEED = 12 // px per frame
+
+function onKanbanDragOver(e: DragEvent) {
+  if (!kanbanRef.value) return
+  const rect = kanbanRef.value.getBoundingClientRect()
+  const x = e.clientX - rect.left
+  if (x < SCROLL_ZONE) {
+    kanbanRef.value.scrollLeft -= SCROLL_SPEED
+  } else if (x > rect.width - SCROLL_ZONE) {
+    kanbanRef.value.scrollLeft += SCROLL_SPEED
+  }
+}
+
 async function handleDrop(resourceName: string, stage: CRMStage) {
   // Optimistic update
   const contact = data.value?.contacts.find(c => c.resourceName === resourceName)
@@ -249,7 +265,7 @@ function signalColor(type: string | undefined): string {
     </div>
 
     <!-- Kanban View -->
-    <div v-else-if="viewMode === 'kanban'" class="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory sm:snap-none">
+    <div v-else-if="viewMode === 'kanban'" ref="kanbanRef" class="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory sm:snap-none" @dragover="onKanbanDragOver">
       <CRMColumn
         v-for="sc in stageConfig"
         :key="sc.stage"
