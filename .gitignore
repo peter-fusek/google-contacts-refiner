@@ -8,6 +8,8 @@ token*.json
 
 # Data directory (backups, workplans, changelogs — large, contain PII)
 data/
+!dashboard/server/data/
+!dashboard/server/data/linkedin-crm.json
 
 # Machine-learned memory (user-specific, gitignored)
 memory.json

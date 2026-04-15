@@ -1,0 +1,1022 @@
+{
+  "contacts": [
+    {
+      "id": "peter-fusek",
+      "name": "Peter Fusek",
+      "role": "CEO instarea, Oncofiles creator",
+      "linkedinUrl": "https://www.linkedin.com/in/peterfusek",
+      "tier": "T0",
+      "source": "Self",
+      "status": "CONNECTED",
+      "notes": "18,623 followers, primary channel"
+    },
+    {
+      "id": "marek-ovcacek",
+      "name": "Marek Ovcacek",
+      "role": "(check role)",
+      "linkedinUrl": "",
+      "tier": "T0",
+      "source": "LinkedIn messaging",
+      "status": "CONNECTED",
+      "notes": "Close contact, active in messaging"
+    },
+    {
+      "id": "miroslav-tomas",
+      "name": "Miroslav Tomas",
+      "role": "Surgical oncologist, National Cancer Institute",
+      "linkedinUrl": "https://www.linkedin.com/in/miroslav-tomáš-baa6a1285",
+      "tier": "T1",
+      "source": "Post reactor (Run #3)",
+      "status": "CREATOR_MODE",
+      "notes": "Head of Central OR Complex, HPB & breast oncology"
+    },
+    {
+      "id": "milica-piskaninova",
+      "name": "Milica Piskaninova",
+      "role": "Gynaecologist & Obstetrician",
+      "linkedinUrl": "https://www.linkedin.com/in/milica-piskaninova-a389a025",
+      "tier": "T1",
+      "source": "Post reactor (Run #2)",
+      "status": "CREATOR_MODE",
+      "notes": ""
+    },
+    {
+      "id": "monika-sramkova",
+      "name": "Monika Sramkova",
+      "role": "Research Scientist, Cancer Research Institute",
+      "linkedinUrl": "https://www.linkedin.com/in/monika-sramkova-91b437122",
+      "tier": "T1",
+      "source": "Post reactor (Run #2)",
+      "status": "CREATOR_MODE",
+      "notes": ""
+    },
+    {
+      "id": "katarina-kruspig",
+      "name": "Katarina Kruspig",
+      "role": "Molecular Biology, IMB",
+      "linkedinUrl": "https://www.linkedin.com/in/katarina-kruspig-169a8131a",
+      "tier": "T1",
+      "source": "Post reactor (Run #2)",
+      "status": "CREATOR_MODE",
+      "notes": "PhD, Institute of Molecular Biology"
+    },
+    {
+      "id": "katarina-staronova",
+      "name": "Katarina Staronova",
+      "role": "Assoc. Professor, Public Policy, Comenius Univ",
+      "linkedinUrl": "https://www.linkedin.com/in/katarina-staronova-63061b26",
+      "tier": "T1",
+      "source": "Post reactor (Run #2)",
+      "status": "CREATOR_MODE",
+      "notes": "Health policy angle"
+    },
+    {
+      "id": "andrej-vrsansky",
+      "name": "Andrej Vrsansky",
+      "role": "President, Mental Health Europe / CEO League for MH in SK",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "Post reactor (Run #2)",
+      "status": "PENDING",
+      "notes": "Mental health cross-over"
+    },
+    {
+      "id": "zuzana-novakova",
+      "name": "Zuzana Novakova",
+      "role": "MH reform regulator, Ministry of Health SK",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "Post reactor (Run #2)",
+      "status": "PENDING",
+      "notes": "Ministry of Health — regulatory angle",
+      "dmSentDate": "2026-04-12",
+      "dmTemplate": "Template A"
+    },
+    {
+      "id": "radovan-tomasovsky",
+      "name": "Radovan Tomasovsky",
+      "role": "Medical Partner, PharmD, PhD",
+      "linkedinUrl": "https://www.linkedin.com/in/radovan-tomasovsky",
+      "tier": "T1",
+      "source": "Post reactor (Run #3)",
+      "status": "REQUEST_SENT",
+      "notes": "Pharma/med background"
+    },
+    {
+      "id": "pavol-dravecky",
+      "name": "Pavol Dravecky",
+      "role": "McKinsey — data-informed action",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "Post reactor (Run #2)",
+      "status": "PENDING",
+      "notes": "Data analytics at McKinsey"
+    },
+    {
+      "id": "adam-remias",
+      "name": "Adam Remias",
+      "role": "Sr. Manager InfoSec, @Eset",
+      "linkedinUrl": "https://www.linkedin.com/in/aremias",
+      "tier": "T1",
+      "source": "Post reactor (Run #2)",
+      "status": "CREATOR_MODE",
+      "notes": "Security angle for health data"
+    },
+    {
+      "id": "dominika-vermirovska",
+      "name": "Dominika Vermirovska",
+      "role": "Data & BI Analyst, SQL/Power BI/Python",
+      "linkedinUrl": "https://www.linkedin.com/in/dominika-vermirovska",
+      "tier": "T1",
+      "source": "Post reactor (Run #3)",
+      "status": "REQUEST_SENT",
+      "notes": "Healthcare + Economics background, CZ"
+    },
+    {
+      "id": "kristina-majorova",
+      "name": "Kristina Majorova",
+      "role": "SAP BRIM Consultant, SINN Consulting",
+      "linkedinUrl": "https://www.linkedin.com/in/kristinamajorova",
+      "tier": "T1",
+      "source": "Post reactor (Run #3)",
+      "status": "REQUEST_SENT",
+      "notes": "Enterprise systems expertise"
+    },
+    {
+      "id": "marek-bencat",
+      "name": "Marek Bencat",
+      "role": "CCO, Member of the Board",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "Post reactor (Run #2)",
+      "status": "PENDING",
+      "notes": "C-level contact"
+    },
+    {
+      "id": "rudolf-turecek",
+      "name": "Rudolf Turecek",
+      "role": "COO, Erste Asset Management SK",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "Post reactor (Run #2)",
+      "status": "PENDING",
+      "notes": "Financial sector, health insurance angle"
+    },
+    {
+      "id": "alena-kaceriakova",
+      "name": "Alena Kaceriakova FCCA",
+      "role": "CFO/Deputy Head, Erste AM GmbH SK",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "Post reactor (Run #2)",
+      "status": "PENDING",
+      "notes": "Financial/insurance angle"
+    },
+    {
+      "id": "jozef-fulop",
+      "name": "Jozef Fulop",
+      "role": "Team Lead Solution Management, Innovatrics",
+      "linkedinUrl": "https://www.linkedin.com/in/jozef-fulop-1904915",
+      "tier": "T2",
+      "source": "Post reactor (Run #2)",
+      "status": "CREATOR_MODE",
+      "notes": "Identity/biometrics tech"
+    },
+    {
+      "id": "jan-lunter",
+      "name": "Jan Lunter",
+      "role": "CEO/CTO, Innovatrics",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "Manual send",
+      "status": "PENDING",
+      "notes": "AI/biometrics leader"
+    },
+    {
+      "id": "helena-heskova",
+      "name": "Helena Heskova",
+      "role": "(check role)",
+      "linkedinUrl": "https://www.linkedin.com/in/helenaheskova",
+      "tier": "T3",
+      "source": "Post reactor (Run #3)",
+      "status": "CREATOR_MODE",
+      "notes": ""
+    },
+    {
+      "id": "maros-korman",
+      "name": "Maros Korman",
+      "role": "(check role)",
+      "linkedinUrl": "https://www.linkedin.com/in/maros-korman",
+      "tier": "T3",
+      "source": "Post reactor (Run #3)",
+      "status": "REQUEST_SENT",
+      "notes": ""
+    },
+    {
+      "id": "tatiana-resovska",
+      "name": "Tatiana Resovska",
+      "role": "(check role)",
+      "linkedinUrl": "https://www.linkedin.com/in/tatiana-ondercova",
+      "tier": "T3",
+      "source": "Post reactor (Run #3)",
+      "status": "REQUEST_SENT",
+      "notes": ""
+    },
+    {
+      "id": "juraj-bugala",
+      "name": "Juraj Bugala",
+      "role": "(check role)",
+      "linkedinUrl": "https://www.linkedin.com/in/juraj-bugala-56873088",
+      "tier": "T3",
+      "source": "Post reactor (Run #3)",
+      "status": "CREATOR_MODE",
+      "notes": ""
+    },
+    {
+      "id": "viktoria-jakubovicova",
+      "name": "Viktória Jakubovičová",
+      "role": "CEO Skyro.ai",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "DM Batch #1",
+      "status": "DM_SENT",
+      "notes": "Custom tykanie DM",
+      "dmSentDate": "2026-04-14",
+      "dmTemplate": "Custom"
+    },
+    {
+      "id": "viera-kovacova",
+      "name": "Viera Kovacova",
+      "role": "Bioinformatics",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "DM Batch #1",
+      "status": "DM_SENT",
+      "notes": "",
+      "dmSentDate": "2026-04-14",
+      "dmTemplate": "DM-T1-SK-02"
+    },
+    {
+      "id": "tomas-strecansky",
+      "name": "Tomáš Strečanský",
+      "role": "Molecular Biomedicine",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "DM Batch #1",
+      "status": "DM_SENT",
+      "notes": "",
+      "dmSentDate": "2026-04-14",
+      "dmTemplate": "DM-T1-SK-02"
+    },
+    {
+      "id": "juraj-drusc",
+      "name": "Juraj Drusc",
+      "role": "IT Architect NCZI",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "DM Batch #1",
+      "status": "DM_SENT",
+      "notes": "",
+      "dmSentDate": "2026-04-14",
+      "dmTemplate": "DM-T2-SK-01"
+    },
+    {
+      "id": "martina-oravcova",
+      "name": "Martina Oravcova",
+      "role": "Data/AI Databricks",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "DM Batch #1",
+      "status": "DM_SENT",
+      "notes": "Custom rewritten DM",
+      "dmSentDate": "2026-04-14",
+      "dmTemplate": "Custom"
+    },
+    {
+      "id": "robert-novotny",
+      "name": "Robert Novotny",
+      "role": "Microsoft",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "DM Batch #1",
+      "status": "DM_SENT",
+      "notes": "",
+      "dmSentDate": "2026-04-14",
+      "dmTemplate": "DM-T1-EN-01"
+    },
+    {
+      "id": "philipp-miotti",
+      "name": "Philipp Miotti",
+      "role": "KInIT/ETH Zurich",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "DM Batch #1",
+      "status": "DM_SENT",
+      "notes": "",
+      "dmSentDate": "2026-04-14",
+      "dmTemplate": "DM-T1-EN-01"
+    },
+    {
+      "id": "filip-stano",
+      "name": "Filip Staňo",
+      "role": "ableneo",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "DM Batch #1",
+      "status": "DM_SKIPPED",
+      "notes": "",
+      "skipReason": "competitor"
+    },
+    {
+      "id": "matus-jurak",
+      "name": "Matúš Jurák",
+      "role": "GenAI",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "DM Batch #1",
+      "status": "DM_SKIPPED",
+      "notes": "",
+      "skipReason": "not relevant"
+    },
+    {
+      "id": "zuzana-hurtukova",
+      "name": "Zuzana Hurtuková",
+      "role": "Klinický fyzik - nukleárna medicína",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "Reactor scan (#108)",
+      "status": "DM_SENT",
+      "notes": "Prepája medicínu a technológie",
+      "dmSentDate": "2026-04-12",
+      "dmTemplate": "Template A"
+    },
+    {
+      "id": "lucia-cesnakova",
+      "name": "Lucia Cesnakova",
+      "role": "Program Lead @ Digital Medicine Society (DiMe)",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "Reactor scan (#108)",
+      "status": "DM_SENT",
+      "notes": "",
+      "dmSentDate": "2026-04-12",
+      "dmTemplate": "Template A"
+    },
+    {
+      "id": "ivana-vyrva",
+      "name": "Ivana Vyrva",
+      "role": "ENT Doctor, Med-Tech & Telemedicine, Top Female Founders 2025",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "Reactor scan (#108)",
+      "status": "DM_SENT",
+      "notes": "",
+      "dmSentDate": "2026-04-12",
+      "dmTemplate": "Template A"
+    },
+    {
+      "id": "michaela-siskova",
+      "name": "Michaela Šišková",
+      "role": "Co-CEO Diagnose.Me, ex DNA ERA, Genetics, Forbes 30Under30",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "Reactor scan (#108)",
+      "status": "DM_SENT",
+      "notes": "",
+      "dmSentDate": "2026-04-12",
+      "dmTemplate": "Template A"
+    },
+    {
+      "id": "marika-dognerova",
+      "name": "Marika Dognerová",
+      "role": "Pharmacoeconomist, Medical Affairs",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "Reactor scan (#108)",
+      "status": "DM_SENT",
+      "notes": "",
+      "dmSentDate": "2026-04-12",
+      "dmTemplate": "Template A"
+    },
+    {
+      "id": "miroslav-beblavy",
+      "name": "Miroslav Beblavy",
+      "role": "CEO of ZHIVA, Healthcare Innovator, Social Impact Investor",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "Reactor scan (#108)",
+      "status": "DM_SENT",
+      "notes": "",
+      "dmSentDate": "2026-04-12",
+      "dmTemplate": "Template B"
+    },
+    {
+      "id": "robert-babela",
+      "name": "Robert Babela",
+      "role": "Professor and Health Economist",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "Reactor scan (#108)",
+      "status": "DM_SENT",
+      "notes": "Already key lead",
+      "dmSentDate": "2026-04-12",
+      "dmTemplate": "Template A"
+    },
+    {
+      "id": "dusan-haban",
+      "name": "Dušan Habán",
+      "role": "Pharmacist, MPharm",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "Reactor scan (#108)",
+      "status": "DM_SENT",
+      "notes": "",
+      "dmSentDate": "2026-04-12",
+      "dmTemplate": "Template A"
+    },
+    {
+      "id": "matus-pukanec",
+      "name": "Matúš Pukanec",
+      "role": "Data scientist, Medicine biochemistry, MedTech Lifbee 2024",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "Reactor scan (#108)",
+      "status": "DM_SENT",
+      "notes": "",
+      "dmSentDate": "2026-04-12",
+      "dmTemplate": "Template A"
+    },
+    {
+      "id": "matej-misik",
+      "name": "Matej Misik",
+      "role": "Health Economist, Health Policy",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "Reactor scan (#108)",
+      "status": "DM_SENT",
+      "notes": "",
+      "dmSentDate": "2026-04-12",
+      "dmTemplate": "Template A"
+    },
+    {
+      "id": "tomas-bertok",
+      "name": "Tomas BERTOK",
+      "role": "Senior research scientist BioTech, Forbes 30Under30",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "Reactor scan (#108)",
+      "status": "DM_SENT",
+      "notes": "",
+      "dmSentDate": "2026-04-12",
+      "dmTemplate": "Template B"
+    },
+    {
+      "id": "roman-varga",
+      "name": "Roman Varga",
+      "role": "Healthcare Cybersecurity Expert, CISO",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "Reactor scan (#108)",
+      "status": "DM_SENT",
+      "notes": "",
+      "dmSentDate": "2026-04-12",
+      "dmTemplate": "Template B"
+    },
+    {
+      "id": "emma-zemanova",
+      "name": "Emma Zemanová",
+      "role": "Biotechnology Student (medical applications)",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "Reactor scan (#108)",
+      "status": "DM_SENT",
+      "notes": "",
+      "dmSentDate": "2026-04-12",
+      "dmTemplate": "Template A"
+    },
+    {
+      "id": "tomas-kral",
+      "name": "Tomas Kral",
+      "role": "Communication & Marketing at Penta Hospitals SK",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "Signal-based (#101)",
+      "status": "PENDING",
+      "notes": "Largest private hospital group in SK/CZ — can distribute to hospital network"
+    },
+    {
+      "id": "frantisek-kvarda",
+      "name": "Frantisek Kvarda",
+      "role": "Deputy Editor, Hospodárske noviny",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "Signal-based (#101)",
+      "status": "PENDING",
+      "notes": "Media — can write an article about Oncofiles"
+    },
+    {
+      "id": "rasto-kulich",
+      "name": "Rasto Kulich",
+      "role": "Country Director at Google SK",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "Signal-based (#101)",
+      "status": "PENDING",
+      "notes": "Massive SK tech network, Harvard MBA, ~10K+ reach"
+    },
+    {
+      "id": "johann-hansmann",
+      "name": "Johann Hansi Hansmann",
+      "role": "Serial Entrepreneur & Business Angel",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "Signal-based (#101)",
+      "status": "PENDING",
+      "notes": "Austrian angel investor, health-tech interest"
+    },
+    {
+      "id": "michal-reiter",
+      "name": "Michal Reiter",
+      "role": "Technical Editor at TOUCHIT",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "Signal-based (#101)",
+      "status": "PENDING",
+      "notes": "Tech media — can review and cover Oncofiles"
+    },
+    {
+      "id": "jana-hyzova",
+      "name": "Jana Hyžová",
+      "role": "PR & Media Relations at Jenewein",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "Signal-based (#101)",
+      "status": "PENDING",
+      "notes": "PR professional, warm contact (88mo gap), can craft messaging. Score: 180.5"
+    },
+    {
+      "id": "matej-ftacnik",
+      "name": "Matej Ftacnik",
+      "role": "Entrepreneur & Investor (The Spot)",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "Signal-based (#101)",
+      "status": "PENDING",
+      "notes": "Health-tech / impact investing angle"
+    },
+    {
+      "id": "michal-matus",
+      "name": "Michal Matus",
+      "role": "Investor, Founder, Impact Enthusiast",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "Signal-based (#101)",
+      "status": "PENDING",
+      "notes": "Impact investing angle — Oncofiles is open-source for patients"
+    },
+    {
+      "id": "peter-hutta",
+      "name": "Peter Hutta",
+      "role": "Co-founder Axolt, ex-Amazon/Uber/Google",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "Signal-based (#101)",
+      "status": "PENDING",
+      "notes": "Tech community credibility"
+    },
+    {
+      "id": "martina-jamrichova",
+      "name": "Martina Jamrichova",
+      "role": "Communication Director at IMMOCAP",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "Signal-based (#101)",
+      "status": "PENDING",
+      "notes": "Comms professional — can amplify through network"
+    },
+    {
+      "id": "martin-kostic",
+      "name": "Martin Kostic",
+      "role": "Founder at INPHINITY and EMARK",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "Signal-based (#101)",
+      "status": "PENDING",
+      "notes": "Data analytics founder, tech community"
+    },
+    {
+      "id": "miroslav-sys",
+      "name": "Miroslav Sys",
+      "role": "Swiss Re (ex-Orange SK)",
+      "linkedinUrl": "",
+      "tier": "T3",
+      "source": "Signal-based (#101)",
+      "status": "PENDING",
+      "notes": "Score: 201.0, 82mo gap, warm personal reconnect"
+    },
+    {
+      "id": "martin-brezina",
+      "name": "Martin Brezina",
+      "role": "Policy Analyst, Útvar hodnoty za peniaze",
+      "linkedinUrl": "",
+      "tier": "T3",
+      "source": "Signal-based (#101)",
+      "status": "PENDING",
+      "notes": "Ex-Instarea, 77mo gap"
+    },
+    {
+      "id": "peter-barlik",
+      "name": "Peter Barlik",
+      "role": "Reporting strategy, MF SR",
+      "linkedinUrl": "",
+      "tier": "T3",
+      "source": "Signal-based (#101)",
+      "status": "PENDING",
+      "notes": "Ex-Instarea, 77mo gap"
+    },
+    {
+      "id": "david-lazar",
+      "name": "David Lazar",
+      "role": "Head of Digital Marketing at Binance",
+      "linkedinUrl": "",
+      "tier": "T3",
+      "source": "Signal-based (#101)",
+      "status": "PENDING",
+      "notes": "Ex-Instarea, 77mo gap, marketing insight"
+    },
+    {
+      "id": "marek-hrabcak",
+      "name": "Marek Hrabčák",
+      "role": "IT Security Architect at CSOB",
+      "linkedinUrl": "",
+      "tier": "T3",
+      "source": "Signal-based (#101)",
+      "status": "PENDING",
+      "notes": "Score: 135.7, 64mo gap"
+    },
+    {
+      "id": "matus-kudlac",
+      "name": "Matus Kudlac",
+      "role": "Full-Stack Developer at FM Consulting",
+      "linkedinUrl": "",
+      "tier": "T3",
+      "source": "Signal-based (#101)",
+      "status": "PENDING",
+      "notes": "Ex-Instarea, 77mo gap"
+    },
+    {
+      "id": "pavol-sojak",
+      "name": "Pavol Sojak",
+      "role": "B2B SW Business with AWS",
+      "linkedinUrl": "",
+      "tier": "T3",
+      "source": "Signal-based (#101)",
+      "status": "PENDING",
+      "notes": "Score: 114.9, 77mo gap"
+    },
+    {
+      "id": "peter-tomasovic",
+      "name": "Peter Tomašovič",
+      "role": "Data Architect at CTP",
+      "linkedinUrl": "",
+      "tier": "T3",
+      "source": "Signal-based (#101)",
+      "status": "PENDING",
+      "notes": "Score: 92.8, 27mo gap"
+    }
+  ],
+  "institutions": [
+    {
+      "id": "nou",
+      "name": "Narodny onkologicky ustav (NOÚ)",
+      "city": "Bratislava",
+      "tier": "A",
+      "category": "cancer_center",
+      "contactStrategy": "Via Miroslav Tomas (T1, surgical oncologist there)",
+      "status": "TODO",
+      "notes": "All departments"
+    },
+    {
+      "id": "ou-sv-alzbety",
+      "name": "Onkologicky ustav sv. Alzbety",
+      "city": "Bratislava",
+      "tier": "A",
+      "category": "cancer_center",
+      "contactStrategy": "Find department head on LinkedIn",
+      "status": "TODO",
+      "notes": "Clinical oncology"
+    },
+    {
+      "id": "voou",
+      "name": "Vychodoslovensky onkologicky ustav",
+      "city": "Kosice",
+      "tier": "A",
+      "category": "cancer_center",
+      "contactStrategy": "Find contacts via LinkedIn",
+      "status": "TODO",
+      "notes": "Clinical oncology"
+    },
+    {
+      "id": "fn-ba-onko",
+      "name": "FN Bratislava — Onkologicka klinika",
+      "city": "Bratislava",
+      "tier": "A",
+      "category": "cancer_center",
+      "contactStrategy": "Find contacts",
+      "status": "TODO",
+      "notes": "Oncology clinic"
+    },
+    {
+      "id": "un-martin-onko",
+      "name": "UN Martin — Onkologicka klinika",
+      "city": "Martin",
+      "tier": "A",
+      "category": "cancer_center",
+      "contactStrategy": "University hospital, research angle",
+      "status": "TODO",
+      "notes": "Oncology"
+    },
+    {
+      "id": "liga-proti-rakovine",
+      "name": "Liga proti rakovine SR",
+      "city": null,
+      "tier": "A",
+      "category": "patient_org",
+      "contactStrategy": "LinkedIn + website contact",
+      "status": "TODO",
+      "notes": "Cancer prevention & support"
+    },
+    {
+      "id": "nadacia-vyskum-rakoviny",
+      "name": "Nadacia Výskum Rakoviny",
+      "city": null,
+      "tier": "A",
+      "category": "patient_org",
+      "contactStrategy": "Research collaboration angle",
+      "status": "TODO",
+      "notes": "Cancer research foundation"
+    },
+    {
+      "id": "oz-amazonky",
+      "name": "OZ Amazonky",
+      "city": null,
+      "tier": "A",
+      "category": "patient_org",
+      "contactStrategy": "Patient advocate angle",
+      "status": "TODO",
+      "notes": "Breast cancer support"
+    },
+    {
+      "id": "svetielko-nadeje",
+      "name": "Svetielko nadeje",
+      "city": null,
+      "tier": "A",
+      "category": "patient_org",
+      "contactStrategy": "Pediatric oncology",
+      "status": "TODO",
+      "notes": "Children's cancer"
+    },
+    {
+      "id": "vszp",
+      "name": "Vseobecna zdravotna poistovna (VsZP)",
+      "city": null,
+      "tier": "B",
+      "category": "insurance",
+      "contactStrategy": "CTO/Innovation — patient data management pitch",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": "dovera",
+      "name": "Dovera zdravotna poistovna",
+      "city": null,
+      "tier": "B",
+      "category": "insurance",
+      "contactStrategy": "Digital health team — innovation angle",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": "union-zp",
+      "name": "Union zdravotna poistovna",
+      "city": null,
+      "tier": "B",
+      "category": "insurance",
+      "contactStrategy": "International parent company (Achmea) angle",
+      "status": "TODO",
+      "notes": ""
+    },
+    {
+      "id": "un-ba",
+      "name": "UN Bratislava",
+      "city": "Bratislava",
+      "tier": "B",
+      "category": "hospital",
+      "contactStrategy": "",
+      "status": "TODO",
+      "notes": "Largest university hospital"
+    },
+    {
+      "id": "fn-nitra",
+      "name": "FN Nitra",
+      "city": "Nitra",
+      "tier": "B",
+      "category": "hospital",
+      "contactStrategy": "",
+      "status": "TODO",
+      "notes": "Regional center"
+    },
+    {
+      "id": "fn-trnava",
+      "name": "FN Trnava",
+      "city": "Trnava",
+      "tier": "B",
+      "category": "hospital",
+      "contactStrategy": "",
+      "status": "TODO",
+      "notes": "Regional center"
+    },
+    {
+      "id": "fn-trencin",
+      "name": "FN Trencin",
+      "city": "Trencin",
+      "tier": "B",
+      "category": "hospital",
+      "contactStrategy": "",
+      "status": "TODO",
+      "notes": "Regional center"
+    },
+    {
+      "id": "nczi",
+      "name": "NCZI (Narodni centrum zdravotnickych informacii)",
+      "city": null,
+      "tier": "C",
+      "category": "health_it",
+      "contactStrategy": "eHealth integration",
+      "status": "TODO",
+      "notes": "National health data authority"
+    },
+    {
+      "id": "mz-sr",
+      "name": "Ministerstvo zdravotnictva SR",
+      "city": null,
+      "tier": "C",
+      "category": "health_it",
+      "contactStrategy": "Via Zuzana Novakova (T1, MH reform regulator)",
+      "status": "TODO",
+      "notes": "Regulatory awareness"
+    },
+    {
+      "id": "imi-sk",
+      "name": "Innovative Medicines Initiative (SK chapter)",
+      "city": null,
+      "tier": "C",
+      "category": "health_it",
+      "contactStrategy": "Research partnerships",
+      "status": "TODO",
+      "notes": "Pharma innovation"
+    },
+    {
+      "id": "lf-uk-ba",
+      "name": "LF UK Bratislava",
+      "city": "Bratislava",
+      "tier": "C",
+      "category": "medical_school",
+      "contactStrategy": "Research collaboration, student testers",
+      "status": "TODO",
+      "notes": "Oncology dept"
+    },
+    {
+      "id": "jlf-uk-martin",
+      "name": "JLF UK Martin",
+      "city": "Martin",
+      "tier": "C",
+      "category": "medical_school",
+      "contactStrategy": "University hospital partnership",
+      "status": "TODO",
+      "notes": "Oncology dept"
+    },
+    {
+      "id": "upjs-kosice",
+      "name": "UPJS Kosice — LF",
+      "city": "Kosice",
+      "tier": "C",
+      "category": "medical_school",
+      "contactStrategy": "",
+      "status": "TODO",
+      "notes": "Eastern SK coverage"
+    }
+  ],
+  "posts": [
+    {
+      "date": "2026-04-08",
+      "description": "Oncofiles launch story",
+      "language": "SK",
+      "reactions": 179,
+      "impressions": 11521,
+      "activityUrn": "7447619793500938240"
+    },
+    {
+      "date": "2026-04-09",
+      "description": "Oncofiles launch story",
+      "language": "EN",
+      "reactions": 1,
+      "activityUrn": "7447910100482330624"
+    },
+    {
+      "date": "2026-04-10",
+      "description": "Oncologist time pressure",
+      "language": "SK",
+      "reactions": 34,
+      "activityUrn": "7448277172252954624"
+    },
+    {
+      "date": "2026-04-10",
+      "description": "HomeGrif product story",
+      "language": "EN",
+      "reactions": 4,
+      "activityUrn": "7448295038385831936"
+    },
+    {
+      "date": "2026-04-14",
+      "description": "WhatsApp Oncoteam workflow",
+      "language": "SK",
+      "reactions": 22,
+      "comments": 1,
+      "reposts": 0,
+      "impressions": 918,
+      "activityUrn": "TBD"
+    },
+    {
+      "date": "2026-04-14",
+      "description": "Oncofiles landing page explainer",
+      "language": "SK",
+      "reactions": 9,
+      "comments": 0,
+      "reposts": 0,
+      "impressions": 462,
+      "activityUrn": "TBD"
+    },
+    {
+      "date": "2026-04-14",
+      "description": "HomeGrif AI teams (do more with less)",
+      "language": "SK",
+      "reactions": 4,
+      "comments": 2,
+      "reposts": 0,
+      "impressions": 148,
+      "activityUrn": "TBD"
+    }
+  ],
+  "miningRuns": [
+    { "date": "2026-04-09", "run": 1, "post": "Oncofiles SK (157)", "reactions": 157, "nonFirst": 39, "sent": 37, "rate": "~45%+" },
+    { "date": "2026-04-10", "run": 2, "post": "Oncofiles SK (168)", "reactions": 168, "nonFirst": 23, "sent": 5 },
+    { "date": "2026-04-10", "run": 3, "post": "Oncofiles SK (179)", "reactions": 179, "nonFirst": 28, "sent": 5 },
+    { "date": "2026-04-12", "run": 4, "post": "Oncologist SK (80)", "reactions": 80, "nonFirst": 29, "sent": 12 },
+    { "date": "2026-04-13", "run": 5, "post": "Oncofiles SK (199)", "reactions": 199, "nonFirst": 36, "sent": 8 },
+    { "date": "2026-04-14", "run": 6, "post": "Mixed (low-reaction + re-mine)", "reactions": 0, "nonFirst": 20, "sent": 14 }
+  ],
+  "dmLog": [
+    { "date": "2026-04-12", "contactName": "Zuzana Hurtuková", "contactId": "zuzana-hurtukova", "tier": "T1", "template": "Template A", "status": "SENT", "followUpDate": "2026-04-19" },
+    { "date": "2026-04-12", "contactName": "Lucia Cesnakova", "contactId": "lucia-cesnakova", "tier": "T1", "template": "Template A", "status": "SENT", "followUpDate": "2026-04-19" },
+    { "date": "2026-04-12", "contactName": "Ivana Vyrva", "contactId": "ivana-vyrva", "tier": "T1", "template": "Template A", "status": "SENT", "followUpDate": "2026-04-19" },
+    { "date": "2026-04-12", "contactName": "Michaela Šišková", "contactId": "michaela-siskova", "tier": "T1", "template": "Template A", "status": "SENT", "followUpDate": "2026-04-19" },
+    { "date": "2026-04-12", "contactName": "Marika Dognerová", "contactId": "marika-dognerova", "tier": "T1", "template": "Template A", "status": "SENT", "followUpDate": "2026-04-19" },
+    { "date": "2026-04-12", "contactName": "Miroslav Beblavy", "contactId": "miroslav-beblavy", "tier": "T1", "template": "Template B", "status": "SENT", "followUpDate": "2026-04-19" },
+    { "date": "2026-04-12", "contactName": "Robert Babela", "contactId": "robert-babela", "tier": "T1", "template": "Template A", "status": "SENT", "followUpDate": "2026-04-19" },
+    { "date": "2026-04-12", "contactName": "Zuzana Novakova", "contactId": "zuzana-novakova", "tier": "T1", "template": "Template A", "status": "SENT", "followUpDate": "2026-04-19" },
+    { "date": "2026-04-12", "contactName": "Dušan Habán", "contactId": "dusan-haban", "tier": "T1", "template": "Template A", "status": "SENT", "followUpDate": "2026-04-19" },
+    { "date": "2026-04-12", "contactName": "Matúš Pukanec", "contactId": "matus-pukanec", "tier": "T1", "template": "Template A", "status": "SENT", "followUpDate": "2026-04-19" },
+    { "date": "2026-04-12", "contactName": "Matej Misik", "contactId": "matej-misik", "tier": "T1", "template": "Template A", "status": "SENT", "followUpDate": "2026-04-19" },
+    { "date": "2026-04-12", "contactName": "Tomas BERTOK", "contactId": "tomas-bertok", "tier": "T1", "template": "Template B", "status": "SENT", "followUpDate": "2026-04-19" },
+    { "date": "2026-04-12", "contactName": "Roman Varga", "contactId": "roman-varga", "tier": "T1", "template": "Template B", "status": "SENT", "followUpDate": "2026-04-19" },
+    { "date": "2026-04-12", "contactName": "Emma Zemanová", "contactId": "emma-zemanova", "tier": "T1", "template": "Template A", "status": "SENT", "followUpDate": "2026-04-19" },
+    { "date": "2026-04-14", "contactName": "Viktória Jakubovičová", "contactId": "viktoria-jakubovicova", "tier": "T2", "template": "Custom (tykanie)", "status": "SENT", "followUpDate": "2026-04-21" },
+    { "date": "2026-04-14", "contactName": "Viera Kovacova", "contactId": "viera-kovacova", "tier": "T1", "template": "DM-T1-SK-02", "status": "SENT", "followUpDate": "2026-04-21" },
+    { "date": "2026-04-14", "contactName": "Tomáš Strečanský", "contactId": "tomas-strecansky", "tier": "T1", "template": "DM-T1-SK-02", "status": "SENT", "followUpDate": "2026-04-21" },
+    { "date": "2026-04-14", "contactName": "Juraj Drusc", "contactId": "juraj-drusc", "tier": "T2", "template": "DM-T2-SK-01", "status": "SENT", "followUpDate": "2026-04-21" },
+    { "date": "2026-04-14", "contactName": "Martina Oravcova", "contactId": "martina-oravcova", "tier": "T1", "template": "Custom (rewritten)", "status": "SENT", "followUpDate": "2026-04-21" },
+    { "date": "2026-04-14", "contactName": "Robert Novotny", "contactId": "robert-novotny", "tier": "T1", "template": "DM-T1-EN-01", "status": "SENT", "followUpDate": "2026-04-21" },
+    { "date": "2026-04-14", "contactName": "Philipp Miotti", "contactId": "philipp-miotti", "tier": "T1", "template": "DM-T1-EN-01", "status": "SENT", "followUpDate": "2026-04-21" },
+    { "date": "2026-04-14", "contactName": "Filip Staňo", "contactId": "filip-stano", "tier": "T1", "template": "SKIPPED", "status": "SKIPPED", "skipReason": "competitor (ableneo)" },
+    { "date": "2026-04-14", "contactName": "Matúš Jurák", "contactId": "matus-jurak", "tier": "T1", "template": "SKIPPED", "status": "SKIPPED", "skipReason": "not relevant" }
+  ],
+  "followerSnapshots": [
+    { "date": "2026-04-09", "followers": 18535, "notes": "Baseline" },
+    { "date": "2026-04-10", "followers": 18563, "delta": 28, "notes": "After Run #1+2" },
+    { "date": "2026-04-10", "followers": 18568, "delta": 5, "notes": "After Run #3" },
+    { "date": "2026-04-13", "followers": 18608, "delta": 40, "notes": "After Run #5" },
+    { "date": "2026-04-14", "followers": 18623, "delta": 15, "notes": "After Run #6 + DM batch #1" }
+  ],
+  "milestones": [
+    { "name": "First viral post", "targetDate": "2026-04-08", "metric": "100+ reactions", "status": "EXCEEDED" },
+    { "name": "50 connection requests sent", "targetDate": "2026-04-10", "metric": "106 sent", "status": "EXCEEDED" },
+    { "name": "20% acceptance rate", "targetDate": "2026-04-10", "metric": "~88%", "status": "EXCEEDED" },
+    { "name": "First DM outreach batch", "targetDate": "2026-04-14", "metric": "21 DMs sent", "status": "DONE" },
+    { "name": "First demo scheduled", "targetDate": "2026-04-18", "metric": "1 demo", "status": "TODO" },
+    { "name": "5 pilot users", "targetDate": "2026-04-25", "metric": "5 active users", "status": "TODO" },
+    { "name": "10 pilot users", "targetDate": "2026-04-30", "metric": "10 active users", "status": "TODO" },
+    { "name": "First case study", "targetDate": "2026-05-15", "metric": "1 written", "status": "TODO" }
+  ],
+  "updatedAt": "2026-04-15T12:00:00Z"
+}

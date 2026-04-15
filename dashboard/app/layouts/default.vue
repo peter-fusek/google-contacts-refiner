@@ -9,6 +9,7 @@ const navItems = [
   { label: 'Status', icon: 'i-lucide-activity', to: '/dashboard' },
   { label: 'Review', icon: 'i-lucide-check-circle', to: '/review', highlight: true },
   { label: 'CRM', icon: 'i-lucide-kanban', to: '/crm' },
+  { label: 'LinkedIn', icon: 'i-lucide-linkedin', to: '/linkedin-crm' },
   { label: 'Changelog', icon: 'i-lucide-file-diff', to: '/changelog' },
   { label: 'Runs', icon: 'i-lucide-play-circle', to: '/runs' },
   { label: 'Pipeline', icon: 'i-lucide-workflow', to: '/pipeline' },

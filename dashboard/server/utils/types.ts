@@ -365,3 +365,111 @@ export interface CRMResponse {
   contacts: CRMContact[]
   stages: Record<CRMStage, number>
 }
+
+// --- LinkedIn CRM ---
+
+export type LIContactStatus = 'PENDING' | 'REQUEST_SENT' | 'CREATOR_MODE' | 'CONNECTED' | 'DM_SENT' | 'DM_SKIPPED' | 'RESPONDED'
+export type LITier = 'T0' | 'T1' | 'T2' | 'T3'
+export type LIInstitutionTier = 'A' | 'B' | 'C'
+
+export interface LIContact {
+  id: string
+  name: string
+  role: string
+  linkedinUrl: string
+  tier: LITier
+  source: string
+  status: LIContactStatus
+  notes: string
+  dmSentDate?: string
+  dmTemplate?: string
+  dmResponse?: string
+  skipReason?: string
+}
+
+export interface LIInstitution {
+  id: string
+  name: string
+  city?: string
+  tier: LIInstitutionTier
+  category: string
+  contactStrategy: string
+  status: string
+  notes: string
+}
+
+export interface LIPost {
+  date: string
+  description: string
+  language: string
+  reactions: number
+  comments?: number
+  reposts?: number
+  impressions?: number
+  activityUrn: string
+}
+
+export interface LIMiningRun {
+  date: string
+  run: number
+  post: string
+  reactions: number
+  nonFirst: number
+  sent: number
+  accepted?: number
+  rate?: string
+}
+
+export interface LIDMLog {
+  date: string
+  contactName: string
+  contactId: string
+  tier: LITier
+  template: string
+  status: 'SENT' | 'SKIPPED'
+  skipReason?: string
+  response?: string
+  followUpDate?: string
+  outcome?: string
+}
+
+export interface LIFollowerSnapshot {
+  date: string
+  followers: number
+  delta?: number
+  notes?: string
+}
+
+export interface LIMilestone {
+  name: string
+  targetDate: string
+  metric: string
+  status: 'DONE' | 'EXCEEDED' | 'TODO' | 'IN_PROGRESS'
+}
+
+export interface LICRMData {
+  contacts: LIContact[]
+  institutions: LIInstitution[]
+  posts: LIPost[]
+  miningRuns: LIMiningRun[]
+  dmLog: LIDMLog[]
+  followerSnapshots: LIFollowerSnapshot[]
+  milestones: LIMilestone[]
+  updatedAt: string
+}
+
+export interface LICRMResponse {
+  data: LICRMData
+  stats: {
+    totalContacts: number
+    connected: number
+    pending: number
+    creatorMode: number
+    dmsSent: number
+    dmsSkipped: number
+    responded: number
+    followers: number
+    followerDelta: number
+    acceptanceRate: string
+  }
+}
