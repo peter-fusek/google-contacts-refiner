@@ -1,5 +1,5 @@
 import type { LICRMData, LICRMResponse, LIContactStatus } from '../utils/types'
-import { isDemoMode, maskName } from '../utils/demo'
+import { isDemoMode, maskFullName } from '../utils/demo'
 import { getLinkedInCRMData } from '../utils/linkedin-crm-data'
 
 function maskLICRMData(data: LICRMData): LICRMData {
@@ -7,13 +7,13 @@ function maskLICRMData(data: LICRMData): LICRMData {
     ...data,
     contacts: data.contacts.map(c => ({
       ...c,
-      name: maskName(c.name),
+      name: maskFullName(c.name),
       linkedinUrl: c.linkedinUrl ? 'https://www.linkedin.com/in/***' : '',
       notes: c.notes ? '[hidden in demo]' : '',
     })),
     dmLog: data.dmLog.map(d => ({
       ...d,
-      contactName: maskName(d.contactName),
+      contactName: maskFullName(d.contactName),
     })),
     institutions: data.institutions.map(inst => ({
       ...inst,

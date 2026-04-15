@@ -36,7 +36,7 @@ function maskPhone(phone: string): string {
 /**
  * Mask a full name: "Peter Fusek" → "Peter F."
  */
-export function maskName(fullName: string): string {
+export function maskFullName(fullName: string): string {
   const parts = fullName.split(' ')
   if (parts.length <= 1) return fullName
   parts[parts.length - 1] = maskLastName(parts[parts.length - 1]!)
