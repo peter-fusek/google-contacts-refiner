@@ -1,3 +1,5 @@
+import { Storage } from '@google-cloud/storage'
+
 const MAX_PAYLOAD_BYTES = 2 * 1024 * 1024 // 2 MB
 const MAX_DESCRIPTION_LENGTH = 2000
 
@@ -45,21 +47,44 @@ export default defineEventHandler(async (event) => {
   const description = body.description.trim().slice(0, MAX_DESCRIPTION_LENGTH)
   const pagePath = sanitizePath(body.pageUrl)
 
-  // Validate screenshot: prefix check + sampled base64 validation (avoids full-string regex on ~2MB)
+  // Upload screenshot to GCS and generate a signed URL for the GitHub issue
+  // Base64 data URLs are too large for GitHub issue bodies (65536 char limit)
   let screenshotMarkdown = ''
   const SCREENSHOT_PREFIX = /^data:image\/(png|jpeg|webp);base64,/
   if (body.screenshot && body.screenshot.length <= 3 * 1024 * 1024 && SCREENSHOT_PREFIX.test(body.screenshot)) {
     const data = body.screenshot.slice(body.screenshot.indexOf(',') + 1)
     const SAMPLE_RE = /^[A-Za-z0-9+/]+=*$/
     if (SAMPLE_RE.test(data.slice(0, 100)) && SAMPLE_RE.test(data.slice(-100))) {
-      screenshotMarkdown = [
-        '## Screenshot',
-        '<details><summary>Click to view screenshot</summary>',
-        '',
-        `<img src="${body.screenshot}" width="100%" />`,
-        '',
-        '</details>',
-      ].join('\n')
+      try {
+        const mimeMatch = body.screenshot.match(/^data:image\/(png|jpeg|webp);/)
+        const ext = mimeMatch?.[1] || 'png'
+        const mimeType = `image/${ext}`
+        const timestamp = Date.now()
+        const gcsPath = `data/bug-screenshots/bug-${timestamp}.${ext}`
+
+        const bucket = new Storage().bucket(String(config.gcsBucket))
+        const file = bucket.file(gcsPath)
+        await file.save(Buffer.from(data, 'base64'), {
+          contentType: mimeType,
+          resumable: false,
+        })
+
+        const [signedUrl] = await file.getSignedUrl({
+          action: 'read',
+          expires: Date.now() + 90 * 24 * 60 * 60 * 1000, // 90 days
+        })
+
+        screenshotMarkdown = [
+          '## Screenshot',
+          '',
+          `![Bug screenshot](${signedUrl})`,
+          '',
+        ].join('\n')
+      }
+      catch (uploadErr) {
+        console.error('Screenshot upload to GCS failed:', uploadErr instanceof Error ? uploadErr.message : uploadErr)
+        screenshotMarkdown = '## Screenshot\n\n*Screenshot was captured but could not be uploaded.*\n'
+      }
     }
   }
 
@@ -127,7 +152,18 @@ export default defineEventHandler(async (event) => {
     )
   }
   catch (err: unknown) {
-    console.error('GitHub issue creation failed:', err instanceof Error ? err.message : err)
+    const errMsg = err instanceof Error ? err.message : String(err)
+    // Log response details from GitHub API for debugging
+    const statusCode = (err as { statusCode?: number })?.statusCode
+      || (err as { response?: { status?: number } })?.response?.status
+    const responseData = (err as { data?: unknown })?.data
+    console.error('GitHub issue creation failed:', {
+      message: errMsg,
+      statusCode,
+      responseData: responseData ? JSON.stringify(responseData).slice(0, 500) : undefined,
+      bodySize: issueBody.length,
+      hasScreenshot: !!screenshotMarkdown,
+    })
     throw createError({ statusCode: 502, message: 'Bug report could not be submitted' })
   }
 
