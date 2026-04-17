@@ -20,9 +20,18 @@ from typing import Optional
 from config import (
     DATA_DIR,
     FOLLOWUP_COMPLETENESS_WEIGHT,
+    FOLLOWUP_EXEC_TITLE_BONUS,
+    FOLLOWUP_EXEC_TITLE_KEYWORDS,
     FOLLOWUP_LINKEDIN_WEIGHTS,
+    FOLLOWUP_MAX_AGE_MONTHS,
+    FOLLOWUP_MAX_MONTHS_CONTRIBUTION,
     FOLLOWUP_MIN_INTERACTIONS,
+    FOLLOWUP_MIN_JOB_CHANGE_HEADLINE_LEN,
     FOLLOWUP_MIN_MONTHS,
+    FOLLOWUP_OWN_COMPANY_DOMAINS,
+    FOLLOWUP_OWN_COMPANY_ORG_KEYWORDS,
+    FOLLOWUP_PERSONAL_EMAIL_DOMAINS,
+    FOLLOWUP_PERSONAL_PENALTY,
     FOLLOWUP_SCORES_FILE,
     FOLLOWUP_TOP_N,
 )
@@ -67,10 +76,15 @@ class FollowUpScore:
     has_phone: bool
     has_org: bool
     has_linkedin_url: bool
+    # Business relevance
+    is_exec: bool
+    is_likely_personal: bool
     # Score components
     score_interaction: float
     score_linkedin: float
     score_completeness: float
+    score_exec: float
+    personal_multiplier: float
     score_total: float
     # Contact metadata
     org: str
@@ -80,6 +94,41 @@ class FollowUpScore:
     # Set after scoring
     rank: int = 0
     followup_prompt: Optional[str] = None
+
+
+def _is_exec_title(title: str, headline: str, current_role: str) -> bool:
+    """Title or LinkedIn role contains C-level/founder/director keyword."""
+    hay = " ".join(filter(None, [title, headline, current_role])).lower()
+    return any(kw in hay for kw in FOLLOWUP_EXEC_TITLE_KEYWORDS)
+
+
+def _is_likely_personal(
+    has_org: bool, has_linkedin_url: bool, title: str, emails: set[str],
+) -> bool:
+    """Contact looks personal: no company, no title, no LinkedIn, personal-only email domain."""
+    if has_org or has_linkedin_url or title:
+        return False
+    if not emails:
+        return True
+    domains = {e.split("@")[-1].lower() for e in emails if "@" in e}
+    return bool(domains) and all(d in FOLLOWUP_PERSONAL_EMAIL_DOMAINS for d in domains)
+
+
+def _is_own_company(org: str, emails: set[str]) -> bool:
+    """Contact is Peter's own company — exclude from lead digest."""
+    org_lower = (org or "").lower()
+    if any(kw in org_lower for kw in FOLLOWUP_OWN_COMPANY_ORG_KEYWORDS):
+        return True
+    domains = {e.split("@")[-1].lower() for e in emails if "@" in e}
+    return any(d in FOLLOWUP_OWN_COMPANY_DOMAINS for d in domains)
+
+
+def _is_valid_job_change(li_signal: dict) -> bool:
+    """Reject junk job_change signals (empty or too-short headlines like 'Oh yeah')."""
+    if li_signal.get("signal_type") != "job_change":
+        return False
+    headline = (li_signal.get("headline") or "").strip()
+    return len(headline) >= FOLLOWUP_MIN_JOB_CHANGE_HEADLINE_LEN
 
 
 def _compute_completeness(
@@ -159,7 +208,9 @@ def score_contacts(
         last_date, interaction_count = _get_last_activity(rn, emails, interactions)
         li_signal = linkedin_signals.get(rn, {})
         li_type = li_signal.get("signal_type")
-        is_job_change = li_type == "job_change"
+        is_job_change = _is_valid_job_change(li_signal)
+        if li_type == "job_change" and not is_job_change:
+            li_type = "profile"  # downgrade junk job_change to profile-only
 
         # Calculate months gap
         if last_date:
@@ -181,6 +232,10 @@ def score_contacts(
             if interaction_count < min_interactions:
                 continue
 
+        # Filter: drop very-old-only contacts (5+ years silent) unless LinkedIn job_change
+        if not is_job_change and last_date and months_gap > FOLLOWUP_MAX_AGE_MONTHS:
+            continue
+
         # Extract contact info
         contact = contacts_by_rn.get(rn, {})
         names = contact.get("names", [{}])
@@ -191,6 +246,10 @@ def score_contacts(
         orgs = contact.get("organizations", [])
         org = orgs[0].get("name", "") if orgs else ""
         title = orgs[0].get("title", "") if orgs else ""
+
+        # Filter: exclude Peter's own company — they're colleagues, not leads
+        if _is_own_company(org, emails):
+            continue
 
         urls = []
         for url_entry in contact.get("urls", []):
@@ -203,11 +262,23 @@ def score_contacts(
             contact, linkedin_signals,
         )
 
-        # Score components (additive)
-        score_interaction = interaction_count * months_gap
+        # Business relevance flags
+        li_headline = li_signal.get("headline") or ""
+        li_current_role = li_signal.get("current_role") or ""
+        is_exec = _is_exec_title(title, li_headline, li_current_role)
+        is_likely_personal = _is_likely_personal(has_org, has_linkedin_url, title, emails)
+
+        # Score components
+        # Cap gap contribution: 7-year silence is not 3.5× more actionable than 2 years
+        capped_gap = min(months_gap, FOLLOWUP_MAX_MONTHS_CONTRIBUTION)
+        score_interaction = interaction_count * capped_gap
         score_linkedin = FOLLOWUP_LINKEDIN_WEIGHTS.get(li_type, 0.0) if li_type else 0.0
         score_completeness = completeness * FOLLOWUP_COMPLETENESS_WEIGHT
-        score_total = score_interaction + score_linkedin + score_completeness
+        score_exec = FOLLOWUP_EXEC_TITLE_BONUS if is_exec else 0.0
+        personal_multiplier = FOLLOWUP_PERSONAL_PENALTY if is_likely_personal else 1.0
+
+        base_score = score_interaction + score_linkedin + score_completeness + score_exec
+        score_total = base_score * personal_multiplier
 
         # LinkedIn metadata
         li_url = li_signal.get("linkedin_url")
@@ -232,9 +303,13 @@ def score_contacts(
             has_phone=has_phone,
             has_org=has_org,
             has_linkedin_url=has_linkedin_url,
+            is_exec=is_exec,
+            is_likely_personal=is_likely_personal,
             score_interaction=round(score_interaction, 1),
             score_linkedin=score_linkedin,
             score_completeness=score_completeness,
+            score_exec=score_exec,
+            personal_multiplier=personal_multiplier,
             score_total=round(score_total, 1),
             org=org,
             title=title,
@@ -270,6 +345,12 @@ def build_followup_scores_json(scored_list: list[FollowUpScore]) -> dict:
                 "interaction": s.score_interaction,
                 "linkedin": s.score_linkedin,
                 "completeness": s.score_completeness,
+                "exec_bonus": s.score_exec,
+                "personal_multiplier": s.personal_multiplier,
+            },
+            "flags": {
+                "is_exec": s.is_exec,
+                "is_likely_personal": s.is_likely_personal,
             },
             "interaction": {
                 "last_date": s.last_date,

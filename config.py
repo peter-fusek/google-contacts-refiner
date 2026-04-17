@@ -670,6 +670,25 @@ FOLLOWUP_LINKEDIN_WEIGHTS: dict[str, float] = {
     "no_activity": 0.0,
 }
 FOLLOWUP_COMPLETENESS_WEIGHT = 2.0    # Per completeness point (0-4 scale)
+FOLLOWUP_MAX_MONTHS_CONTRIBUTION = 24.0   # Cap gap-aging bonus; 7-year silence is not 3.5× more actionable than 2-year
+FOLLOWUP_EXEC_TITLE_BONUS = 15.0          # Bonus for C-level/founder/director titles
+FOLLOWUP_PERSONAL_PENALTY = 0.3           # Multiplier when no org, no title, no LinkedIn (likely personal)
+FOLLOWUP_MIN_JOB_CHANGE_HEADLINE_LEN = 15 # "Oh yeah" (7 chars) should not count as a job_change signal
+FOLLOWUP_EXEC_TITLE_KEYWORDS = (
+    "ceo", "cto", "cfo", "coo", "cmo", "cpo", "ciso", "cro",
+    "founder", "co-founder", "cofounder", "owner", "president",
+    "managing director", "managing partner", "partner",
+    "head of", "vp ", "vice president", "director",
+    "zakladatel", "majitel", "spolumajitel", "riaditel", "konatel",  # SK
+)
+FOLLOWUP_PERSONAL_EMAIL_DOMAINS = (
+    "gmail.com", "hotmail.com", "yahoo.com", "icloud.com", "me.com",
+    "zoznam.sk", "azet.sk", "pobox.sk", "centrum.sk", "centrum.cz",
+    "seznam.cz", "post.cz", "email.cz",
+)
+FOLLOWUP_OWN_COMPANY_DOMAINS = ("instarea.com", "instarea.sk")  # Peter's own — exclude from lead digest
+FOLLOWUP_OWN_COMPANY_ORG_KEYWORDS = ("instarea",)
+FOLLOWUP_MAX_AGE_MONTHS = 60.0  # Drop contacts whose last interaction is older than 5 years
 
 # ── PSČ Patterns ───────────────────────────────────────────────────────────
 # Slovak PSČ: 0xxxx, 8xxxx, 9xxxx
