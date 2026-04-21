@@ -70,6 +70,18 @@
 - Bug report API: sanitize all user input, wrap text in code blocks, validate screenshot as image data URL
 - GITHUB_TOKEN on Render: fine-grained PAT, Issues RW only, scoped to repo, 90-day expiry
 
+## Omnichannel Harvester (Sprint 3.32+, #149/#150)
+- Python package at `harvester/` — **no `__init__.py`** on purpose (PEP 420 namespace package) so the parallel kernel session can add modules without merge conflict
+- All harvester modules stdlib + existing deps only (phonenumbers, rapidfuzz, unidecode) — no new requirements
+- Beeper Desktop API is **localhost-only** (`remote_access:false`). Cannot run on Cloud Run — schedule via launchd on Mac. See `launchagents/*.plist` + `scripts/install-launchd.sh`
+- OAuth2 PKCE + Dynamic Client Registration in `harvester/beeper_oauth.py`. Token at `data/token_beeper.json` (gitignored), override via `BEEPER_TOKEN_PATH` env. Reachability probe before any OAuth call via `is_beeper_reachable()`
+- iMessage reader uses NSArchiver **typed stream** decoder (NOT plistlib). Length encoding is `0x81 + 2 bytes LITTLE-endian` for messages > 127 chars
+- Chat.db opened `mode=ro` only — **don't** set `immutable=1` (lies about concurrent writer on WAL db)
+- ContactKPI scoring weights in `config.py` `FOLLOWUP_BEEPER_*` capped to ±40 so Beeper signals never drown LinkedIn context. Pure functions in `harvester/scoring_signals.py`
+- Biography write-back **never contains message content** — only counts, dates, channel abbrevs, awaiting-reply side. Hard privacy red line enforced in `harvester/crm_omnichannel.build_block`; `strip_block` has 20-line safety window to prevent eating adjacent `── CRM Notes` blocks
+- Rollback CLIs: `scripts/restore_biographies.py` (full / `--omnichannel-only` mode) + `scripts/strip_omnichannel_blocks.py` (forward-only). Both `--dry-run` default; `_AuthAbort` on 401/403 to prevent silent run-through-auth-failure
+- Integration patch docs at `docs/patches/*.md` — line-accurate diffs for Sprint 3.33 S3 (followup_scorer) + 3.34 S1 (crm_sync)
+
 ## LinkedIn Scanning
 - `scan_batch.py` helper: `pending` (show unscanned), `record` (save signal), `stats` (counts by type), `upload` (push to GCS)
 - Browser automation: navigate to profile → `get_page_text` → parse name/headline/company → detect job change vs known org → record
