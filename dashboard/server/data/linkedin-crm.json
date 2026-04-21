@@ -891,6 +891,283 @@
       "source": "Accidental sidebar click during 2026-04-21 auto-connect sweep (Peter elected to keep)",
       "status": "REQUEST_SENT",
       "notes": "Unintended invite from auto-connect selector bug. Kept per Peter 2026-04-21. Student — no active product angle."
+    },
+    {
+      "id": "badr-almarshoud",
+      "name": "Badr Almarshoud",
+      "role": "Business Development & Partnerships GM @ stc (Saudi Telecom)",
+      "linkedinUrl": "https://www.linkedin.com/in/balmarshoud/",
+      "tier": "T1",
+      "source": "Warm — Peter friend, LTNS",
+      "status": "DM_SENT",
+      "country": "SA",
+      "notes": "2026-04-21 RGL pitch drafted (warm LTNS). 3-angle: branch / monetization / dev API. Screenshots in ~/Downloads/rgl-outreach-2026-04-21/. 9 mutuals. Follow up 2026-04-28 if silent. | DM_SENT 2026-04-21 with CAMARA/Aduna P.S. + 3 screenshots attached.",
+      "lastContactedAt": "2026-04-21"
+    },
+    {
+      "id": "franklin-pieterse",
+      "name": "Franklin Pieterse (MBA, CRP)",
+      "role": "CEO @ Terbigen — Business Reinvention Coach / Transaction Advisor (Africa frontier markets)",
+      "linkedinUrl": "https://www.linkedin.com/in/franklin-pieterse-mba-crp-96425324/",
+      "tier": "T0",
+      "source": "Warm — Peter friend, LTNS",
+      "status": "DM_SENT",
+      "country": "ZA",
+      "notes": "2026-04-21 RGL pitch drafted (warm LTNS + advisor/referral angle — he's at Terbigen advisory, not telco). 3-angle. Screenshots in ~/Downloads/rgl-outreach-2026-04-21/. Mutuals Gary, Reuben + 8. Follow up 2026-04-28 if silent. | DM_SENT 2026-04-21 with CAMARA-dominant framing + local partner/proxy ask. Tier upgraded T1→T0. Aduna JV landscape named. Commercial structure TBD.",
+      "partnerRole": "Local partner / proxy — SA region (MNO board-level network)",
+      "lastContactedAt": "2026-04-21"
+    },
+    {
+      "id": "martin-mosny",
+      "name": "Martin Mosny",
+      "role": "CSO and BoD member @ Orange Slovensko",
+      "linkedinUrl": "https://www.linkedin.com/in/martinmosny/",
+      "tier": "T1",
+      "priority": "P0",
+      "source": "MNO 1st-degree harvest 2026-04-21 (RGL batch)",
+      "status": "SKIPPED",
+      "country": "SK",
+      "camara": "insider",
+      "notes": "SKIPPED — Orange SK handled separately by Hana Kvartová | RGL MNO batch 2026-04-21. Group=Orange. Draft=martinmosny. Hook=As a BoD member, the Aduna / CAMARA roadmap is the kind of strategic frame that'..."
+    },
+    {
+      "id": "igor-toth",
+      "name": "Igor Toth",
+      "role": "CEO @ O2 Slovakia",
+      "linkedinUrl": "https://www.linkedin.com/in/igortoth/",
+      "tier": "T1",
+      "priority": "P0",
+      "source": "MNO 1st-degree harvest 2026-04-21 (RGL batch)",
+      "status": "SKIPPED",
+      "country": "SK",
+      "camara": "outsider",
+      "notes": "SKIPPED — O2 SK relationship not warm | RGL MNO batch 2026-04-21. Group=PPF / Telefónica CZ. Draft=igortoth. Hook=PPF group sits outside Aduna, which puts O2 Slovakia in the interesting 'build /..."
+    },
+    {
+      "id": "martina-kandera",
+      "name": "Martina Kandera",
+      "role": "Chief Commercial Officer for B2C @ Slovak Telekom",
+      "linkedinUrl": "https://www.linkedin.com/in/martina-kandera/",
+      "tier": "T1",
+      "priority": "P1",
+      "source": "MNO 1st-degree harvest 2026-04-21 (RGL batch)",
+      "status": "SKIPPED",
+      "country": "SK",
+      "camara": "insider",
+      "notes": "SKIPPED — Telekom SK (per Peter 2026-04-21 review) | RGL MNO batch 2026-04-21. Group=Deutsche Telekom. Draft=martina-kandera. Hook=On the B2C side, the footfall + monetization plays are the ones that usually res..."
+    },
+    {
+      "id": "pavel-hornacek",
+      "name": "Pavel Hornacek",
+      "role": "Business Development Manager @ Orange Wholesale International",
+      "linkedinUrl": "https://www.linkedin.com/in/pavelhornacek/",
+      "tier": "T1",
+      "priority": "P1",
+      "source": "MNO 1st-degree harvest 2026-04-21 (RGL batch)",
+      "status": "SKIPPED",
+      "country": "AT",
+      "camara": "insider",
+      "notes": "SKIPPED — Orange group (per Peter 2026-04-21 review) | RGL MNO batch 2026-04-21. Group=Orange. Draft=pavelhornacek. Hook=Wholesale international is exactly the layer where CAMARA compatibility starts m..."
+    },
+    {
+      "id": "blanka-mo-n",
+      "name": "Blanka Možná",
+      "role": "Head of SME Sales @ Orange Slovensko",
+      "linkedinUrl": "https://www.linkedin.com/in/blanka-mo%C5%BEn%C3%A1-52a6a2169/",
+      "tier": "T1",
+      "priority": "P1",
+      "source": "MNO 1st-degree harvest 2026-04-21 (RGL batch)",
+      "status": "SKIPPED",
+      "country": "SK",
+      "camara": "insider",
+      "notes": "SKIPPED — Orange SK (see Hana Kvartová) | RGL MNO batch 2026-04-21. Group=Orange. Draft=blanka-mo%C5%BEn%C3%A1-52a6a2169. Hook=The 'own-branch footfall driver' play is something SME customers consistently as..."
+    },
+    {
+      "id": "tom-elbl",
+      "name": "Tomáš Elbl",
+      "role": "Head of Strategy @ Vodafone Czech Republic",
+      "linkedinUrl": "https://www.linkedin.com/in/tomaselbl/",
+      "tier": "T1",
+      "priority": "P1",
+      "source": "MNO 1st-degree harvest 2026-04-21 (RGL batch)",
+      "status": "DM_SENT",
+      "country": "CZ",
+      "camara": "insider",
+      "notes": "DM_SENT 2026-04-21 (Vodafone CZ Head of Strategy) | RGL MNO batch 2026-04-21. Group=Vodafone. Draft=tomaselbl. Hook=Given your strategy seat, the CAMARA 'build vs partner' call is exactly the kind...",
+      "lastContactedAt": "2026-04-21"
+    },
+    {
+      "id": "marek-nekvasil",
+      "name": "Marek Nekvasil",
+      "role": "Head of Base Growth Tribe @ Vodafone Czech Republic",
+      "linkedinUrl": "https://www.linkedin.com/in/mareknekvasil/",
+      "tier": "T1",
+      "priority": "P1",
+      "source": "MNO 1st-degree harvest 2026-04-21 (RGL batch)",
+      "status": "SKIPPED",
+      "country": "CZ",
+      "camara": "insider",
+      "notes": "SKIPPED — Head of Base Growth Tribe is B2C base growth, not B2B/partnerships/wholesale focus | RGL MNO batch 2026-04-21. Group=Vodafone. Draft=mareknekvasil. Hook=Base growth via geofenced offers is one of the classic RGL plays — with Vodafone..."
+    },
+    {
+      "id": "otakar-mr-z",
+      "name": "Otakar Mráz",
+      "role": "Tribe Lead of Products, Devices and Mobile Network @ T-Mobile Czech Republic",
+      "linkedinUrl": "https://www.linkedin.com/in/otakarmraz/",
+      "tier": "T1",
+      "priority": "P1",
+      "source": "MNO 1st-degree harvest 2026-04-21 (RGL batch)",
+      "status": "SKIPPED",
+      "country": "CZ",
+      "camara": "insider",
+      "notes": "SKIPPED — T-Mobile CZ (per Peter 2026-04-21 review) | RGL MNO batch 2026-04-21. Group=Deutsche Telekom. Draft=otakarmraz. Hook=Tribe Lead for products + network is exactly the seat where RGL would land — CAM..."
+    },
+    {
+      "id": "jan-hirs",
+      "name": "Jan Hirs",
+      "role": "Head of Industry 4.0 Domain @ T-Mobile Czech Republic",
+      "linkedinUrl": "https://www.linkedin.com/in/jan-hirs-03a27510/",
+      "tier": "T1",
+      "priority": "P1",
+      "source": "MNO 1st-degree harvest 2026-04-21 (RGL batch)",
+      "status": "SKIPPED",
+      "country": "CZ",
+      "camara": "insider",
+      "notes": "SKIPPED — T-Mobile CZ (per Peter 2026-04-21 review) | RGL MNO batch 2026-04-21. Group=Deutsche Telekom. Draft=jan-hirs-03a27510. Hook=Industry 4.0 + location services via CAMARA is a natural pairing (5G campus / lo..."
+    },
+    {
+      "id": "juraj-budisk",
+      "name": "Juraj Budiský",
+      "role": "Lead Project Manager @ O2 Business Services",
+      "linkedinUrl": "https://www.linkedin.com/in/juraj-budisk%C3%BD-879b8985/",
+      "tier": "T1",
+      "priority": "P1",
+      "source": "MNO 1st-degree harvest 2026-04-21 (RGL batch)",
+      "status": "SKIPPED",
+      "country": "AT",
+      "camara": "outsider",
+      "notes": "SKIPPED — O2 Business Services (O2 SK side, relationship not warm) | RGL MNO batch 2026-04-21. Group=PPF / Telefónica CZ. Draft=juraj-budisk%C3%BD-879b8985. Hook=On the B2B Services side, RGL slots in as a ready product for enterprise clients..."
+    },
+    {
+      "id": "rudolf-koncok",
+      "name": "Rudolf Koncok",
+      "role": "International Commercial Manager, IoT Centre of Excellence @ Magenta Telekom",
+      "linkedinUrl": "https://www.linkedin.com/in/rudolf-koncok-5b986922/",
+      "tier": "T1",
+      "priority": "P1",
+      "source": "MNO 1st-degree harvest 2026-04-21 (RGL batch)",
+      "status": "SKIPPED",
+      "country": "AT",
+      "camara": "insider",
+      "notes": "SKIPPED — per Peter 2026-04-21 review | RGL MNO batch 2026-04-21. Group=Deutsche Telekom. Draft=rudolf-koncok-5b986922. Hook=IoT CoE + International Commercial is exactly the lens where CAMARA + RGL make s..."
+    },
+    {
+      "id": "matej-streba",
+      "name": "Matej Streba",
+      "role": "Product Manager for Magenta 1 @ Magenta Telekom",
+      "linkedinUrl": "https://www.linkedin.com/in/matej-streba-ab129633/",
+      "tier": "T1",
+      "priority": "P1",
+      "source": "MNO 1st-degree harvest 2026-04-21 (RGL batch)",
+      "status": "SKIPPED",
+      "country": "AT",
+      "camara": "insider",
+      "notes": "SKIPPED — Magenta 1 PM is consumer convergent bundle, not B2B/wholesale | RGL MNO batch 2026-04-21. Group=Deutsche Telekom. Draft=matej-streba-ab129633. Hook=On the Magenta 1 product side, the footfall-for-retail + monetization plays usua..."
+    },
+    {
+      "id": "robert-slezak",
+      "name": "Robert Slezak",
+      "role": "ICT consultant for 5G and IoT @ Slovak Telekom",
+      "linkedinUrl": "https://www.linkedin.com/in/robert-slezak-147a53143/",
+      "tier": "T1",
+      "priority": "P1",
+      "source": "MNO 1st-degree harvest 2026-04-21 (RGL batch)",
+      "status": "SKIPPED",
+      "country": "SK",
+      "camara": "insider",
+      "notes": "SKIPPED — Telekom SK (per Peter 2026-04-21 review) | RGL MNO batch 2026-04-21. Group=Deutsche Telekom. Draft=robert-slezak-147a53143. Hook=5G + IoT is literally the lane RGL lives in — curious if you've seen how the CAM..."
+    },
+    {
+      "id": "daniel-havlik",
+      "name": "Daniel Havlik",
+      "role": "Senior Corporate Strategy Analyst @ Orange Slovensko",
+      "linkedinUrl": "https://www.linkedin.com/in/daniel-havlik-06637635/",
+      "tier": "T2",
+      "priority": "P2",
+      "source": "MNO 1st-degree harvest 2026-04-21 (RGL batch)",
+      "status": "SKIPPED",
+      "country": "SK",
+      "camara": "insider",
+      "notes": "SKIPPED — Orange SK (see Hana Kvartová) | RGL MNO batch 2026-04-21. Group=Orange. Draft=daniel-havlik-06637635. Hook=On the corporate-strategy side, the CAMARA / Aduna frame is a useful lens for th..."
+    },
+    {
+      "id": "anna-durczokov",
+      "name": "Anna Durczoková",
+      "role": "Senior Marketing Specialist @ Slovak Telekom",
+      "linkedinUrl": "https://www.linkedin.com/in/durczokova-anna-92341a110/",
+      "tier": "T2",
+      "priority": "P2",
+      "source": "MNO 1st-degree harvest 2026-04-21 (RGL batch)",
+      "status": "SKIPPED",
+      "country": "SK",
+      "camara": "insider",
+      "notes": "SKIPPED — Telekom SK (per Peter 2026-04-21 review) | RGL MNO batch 2026-04-21. Group=Deutsche Telekom. Draft=durczokova-anna-92341a110. Hook=From a marketing angle, geofenced coupon / branch-visit campaigns are one of the..."
+    },
+    {
+      "id": "pravesh-arora",
+      "name": "Pravesh Arora",
+      "role": "Regional Sales Director @ Proximus Global",
+      "linkedinUrl": "https://www.linkedin.com/in/pravesharora/",
+      "tier": "T1",
+      "priority": "P0",
+      "source": "MNO 1st-degree harvest 2026-04-21 (RGL batch v1 EU-expand)",
+      "status": "DM_SENT",
+      "country": "BE",
+      "camara": "insider",
+      "notes": "DM_SENT 2026-04-21 | Proximus Global = CPaaS/wholesale API arm. Direct fit for CAMARA/Aduna conversation. EN DM ready.",
+      "lastContactedAt": "2026-04-21"
+    },
+    {
+      "id": "jiri-laznicka",
+      "name": "Jiri Laznicka",
+      "role": "Group CTIO (GCC operator — likely Ooredoo, Doha)",
+      "linkedinUrl": "https://www.linkedin.com/in/jiri-laznicka-ctio-cio-cto/",
+      "tier": "T1",
+      "priority": "P0",
+      "source": "MNO 1st-degree harvest 2026-04-21 (RGL batch v1 MEA-expand)",
+      "status": "DM_SENT",
+      "country": "QA",
+      "camara": "outsider",
+      "notes": "DM_SENT 2026-04-21 | SK language | MarketLocator-lineage opener + CAMARA MENA consultation ask + Slovak Telekom TSH pilot details + video-call CTA. | CTIO-level contact at GCC operator. Czech origin (likely from Peter CZ telecom circles). Ooredoo / GCC is outside Aduna founding 10 — outsider variant. EN DM ready.",
+      "lastContactedAt": "2026-04-21"
+    },
+    {
+      "id": "adeel-akram",
+      "name": "Adeel Akram",
+      "role": "Lead expert — multi-cloud / Emerging Tech / IoT / Digital Platforms @ Solutions by STC (STCS)",
+      "linkedinUrl": "https://www.linkedin.com/in/adeelakramtanoli/",
+      "tier": "T1",
+      "priority": "P1",
+      "source": "MNO 1st-degree harvest 2026-04-21 (MEA-expand) — in Badr Almarshoud mutuals",
+      "status": "DM_SENT",
+      "country": "SA",
+      "camara": "outsider",
+      "notes": "DM_SENT 2026-04-21 | EN | Badr-triangulation angle + STCS IoT/platforms hook. | STCS = Solutions by STC = stc Saudi enterprise/ICT arm. Mutual of Badr. IoT/platforms role. EN DM references Badr-triangulation.",
+      "lastContactedAt": "2026-04-21"
+    },
+    {
+      "id": "anand-venkatasamy",
+      "name": "Anand Venkatasamy",
+      "role": "at e& (etisalat / UAE, role unspecified in LinkedIn snippet)",
+      "linkedinUrl": "https://www.linkedin.com/in/anand-venkatasamy-bb8b2415/",
+      "tier": "T2",
+      "priority": "P2",
+      "source": "MNO 1st-degree harvest 2026-04-21 (MEA-expand)",
+      "status": "DM_SENT",
+      "country": "AE",
+      "camara": "outsider",
+      "notes": "DM_SENT 2026-04-21 | EN | e& / etisalat UAE — Aduna-outsider framing + UAE+Maroc+PPF group context. Role verified by Peter before send. | e& = rebranded etisalat. UAE + Maroc Telecom + PPF stake. Aduna-outside. Role at e& not specified in search — verify before send.",
+      "lastContactedAt": "2026-04-21"
     }
   ],
   "institutions": [
@@ -1538,6 +1815,72 @@
       "template": "",
       "status": "SKIPPED",
       "skipReason": "HomeGrif-insurance angle too tenuous (Swiss Re reinsurance vs equity release not direct enough)"
+    },
+    {
+      "contactId": "badr-almarshoud",
+      "date": "2026-04-21",
+      "template": "rgl-outreach-bard-stcs-2026-04-21",
+      "channel": "linkedin_dm",
+      "outcome": "sent",
+      "screenshotsAttached": [
+        "01-rgl-homepage-branch.png",
+        "02-rgl-homepage-monetization.png",
+        "03-rgl-product-page-hero.png"
+      ],
+      "notes": "Warm LTNS, 3-angle RGL pitch, CAMARA/Aduna P.S. FU due 2026-04-28."
+    },
+    {
+      "contactId": "franklin-pieterse",
+      "date": "2026-04-21",
+      "template": "rgl-outreach-franklin-pieterse-2026-04-21",
+      "channel": "linkedin_dm",
+      "outcome": "sent",
+      "screenshotsAttached": [
+        "01-rgl-homepage-branch.png",
+        "02-rgl-homepage-monetization.png",
+        "03-rgl-product-page-hero.png"
+      ],
+      "notes": "Warm LTNS, direct local-partner/proxy ask, CAMARA-dominant (Aduna JV framing). FU due 2026-04-28."
+    },
+    {
+      "contactId": "tom-elbl",
+      "date": "2026-04-21",
+      "template": "rgl-mno-batch-insider-EN-2026-04-21",
+      "channel": "linkedin_dm",
+      "outcome": "sent",
+      "notes": "MNO batch v1 — Vodafone CZ Head of Strategy. CAMARA-insider framing. FU 2026-04-28."
+    },
+    {
+      "contactId": "pravesh-arora",
+      "date": "2026-04-21",
+      "template": "rgl-mno-batch-insider-EN-2026-04-21",
+      "channel": "linkedin_dm",
+      "outcome": "sent",
+      "notes": "Proximus Global — CPaaS/wholesale API. CAMARA-Aduna framing. FU 2026-04-28."
+    },
+    {
+      "contactId": "jiri-laznicka",
+      "date": "2026-04-21",
+      "template": "rgl-mno-batch-consult-SK-2026-04-21",
+      "channel": "linkedin_dm",
+      "outcome": "sent",
+      "notes": "GCC Group CTIO (Doha). Slovak DM with MarketLocator/Orange-SK continuity. FU 2026-04-28."
+    },
+    {
+      "contactId": "adeel-akram",
+      "date": "2026-04-21",
+      "template": "rgl-mno-batch-outsider-EN-2026-04-21",
+      "channel": "linkedin_dm",
+      "outcome": "sent",
+      "notes": "STCS Riyadh — IoT / multi-cloud / digital platforms lead. Badr mutual. Triangulation angle. FU 2026-04-28."
+    },
+    {
+      "contactId": "anand-venkatasamy",
+      "date": "2026-04-21",
+      "template": "rgl-mno-batch-outsider-EN-2026-04-21",
+      "channel": "linkedin_dm",
+      "outcome": "sent",
+      "notes": "e& UAE. FU 2026-04-28."
     }
   ],
   "followerSnapshots": [
@@ -1636,5 +1979,5 @@
       "status": "TODO"
     }
   ],
-  "updatedAt": "2026-04-21T06:00:00Z"
+  "updatedAt": "2026-04-21T12:39:08.001264Z"
 }
