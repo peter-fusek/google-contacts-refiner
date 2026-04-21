@@ -27,8 +27,12 @@
       "linkedinUrl": "https://www.linkedin.com/in/miroslav-tomáš-baa6a1285",
       "tier": "T1",
       "source": "Post reactor (Run #3)",
-      "status": "CREATOR_MODE",
-      "notes": "Head of Central OR Complex, HPB & breast oncology"
+      "status": "MEETING_SCHEDULED",
+      "notes": "Head of Central OR Complex, HPB & breast oncology | 2026-04-18: DM sent. 2026-04-19: REPLIED warmly — wife suggested joint meeting. **MEETING SCHEDULED: Friday 2026-04-24 with Miroslav + his wife.** High-leverage: surgical oncologist at NOÚ + spouse.",
+      "dmSentDate": "2026-04-18",
+      "dmTemplate": "physician-warm-intro-v1",
+      "dmResponse": "2026-04-19: warm positive, wife suggested joint meeting",
+      "meetingDate": "2026-04-24"
     },
     {
       "id": "milica-piskaninova",
@@ -57,8 +61,8 @@
       "linkedinUrl": "https://www.linkedin.com/in/katarina-kruspig-169a8131a",
       "tier": "T1",
       "source": "Post reactor (Run #2)",
-      "status": "CREATOR_MODE",
-      "notes": "PhD, Institute of Molecular Biology"
+      "status": "CONNECTED",
+      "notes": "PhD, Institute of Molecular Biology. Accepted connection 2026-04-19 (was CREATOR_MODE until then)."
     },
     {
       "id": "katarina-staronova",
@@ -239,10 +243,11 @@
       "linkedinUrl": "",
       "tier": "T2",
       "source": "DM Batch #1",
-      "status": "DM_SENT",
-      "notes": "Custom tykanie DM",
+      "status": "RESPONDED",
+      "notes": "Custom tykanie DM sent 2026-04-14. 2026-04-20: REPLIED positively, meeting being scheduled — Peter asked her for 2 time slots (\"Jasne, rad, prosim daj 2 termíny daky vyberieme, Diky moc\"). Awaiting her proposed times.",
       "dmSentDate": "2026-04-14",
-      "dmTemplate": "Custom"
+      "dmTemplate": "Custom",
+      "dmResponse": "2026-04-20: accepted, meeting scheduling in progress"
     },
     {
       "id": "viera-kovacova",
@@ -357,10 +362,12 @@
       "linkedinUrl": "",
       "tier": "T1",
       "source": "Reactor scan (#108)",
-      "status": "DM_SENT",
-      "notes": "",
+      "status": "DEMO_SCHEDULED",
+      "notes": "DM sent 2026-04-12 (Template A). 2026-04-20: active discussion — Peter described Oncoteam demo. **DEMO SCHEDULED: Wednesday 2026-04-23 at 10:00.** DiMe program lead — strong Digital Medicine Society channel.",
       "dmSentDate": "2026-04-12",
-      "dmTemplate": "Template A"
+      "dmTemplate": "Template A",
+      "dmResponse": "2026-04-20: active discussion, Oncoteam demo shared",
+      "meetingDate": "2026-04-23T10:00"
     },
     {
       "id": "ivana-vyrva",
@@ -417,10 +424,11 @@
       "linkedinUrl": "",
       "tier": "T1",
       "source": "Reactor scan (#108)",
-      "status": "DM_SENT",
-      "notes": "Already key lead",
+      "status": "RESPONDED",
+      "notes": "Already key lead. DM sent 2026-04-12 (Template A). 2026-04-20: REPLIED — \"Velmi pekne dakujem za rychlu odpoved - ako som pisal, nesuri to a ja mam teraz toho viac, no ak sa nenahnevate ked budem mat viac casu, napisem Vam.\" Soft positive: busy now, will reach out when calmer. No action — awaiting his initiation.",
       "dmSentDate": "2026-04-12",
-      "dmTemplate": "Template A"
+      "dmTemplate": "Template A",
+      "dmResponse": "2026-04-20: positive, busy now, will re-engage later"
     },
     {
       "id": "dusan-haban",
@@ -683,6 +691,206 @@
       "source": "Signal-based (#101)",
       "status": "PENDING",
       "notes": "Score: 92.8, 27mo gap"
+    },
+    {
+      "id": "monika-schedlbauerova",
+      "name": "Monika Schedlbauerová",
+      "role": "Local Patient Safety Lead Slovakia",
+      "linkedinUrl": "https://www.linkedin.com/in/monika-schedlbauerová-0a884a95/",
+      "tier": "T2",
+      "source": "Organic connection accept 2026-04-17",
+      "status": "RESPONDED",
+      "notes": "2026-04-18: DM sent (patient-safety-warm-intro-v1). 2026-04-20: REPLIED — engaged positively but busy this week. Peter replied \"do stredy sa mne bohuzial neda, naplanujeme neskor. Vdaka zatial, pripadne odporuct dalej ak niekoho viete.\" Scheduling deferred; asked her to refer anyone relevant. Follow-up late April.",
+      "dmSentDate": "2026-04-18",
+      "dmTemplate": "patient-safety-warm-intro-v1",
+      "dmResponse": "2026-04-20: positive, busy this week, deferred meeting"
+    },
+    {
+      "id": "jakub-kiedron",
+      "name": "Kiedroń Jakub",
+      "role": "Head of CRM Partners",
+      "linkedinUrl": "https://www.linkedin.com/in/jakubkiedron/",
+      "tier": "T3",
+      "source": "Organic connection accept 2026-04-16",
+      "status": "DM_SKIPPED",
+      "notes": "2026-04-18: CRM-fit on paper but Peter is already engaging him on HomeGrif. Hold DM.",
+      "skipReason": "Active HomeGrif discussion already in progress — do not re-approach cold."
+    },
+    {
+      "id": "milos-malejcik",
+      "name": "Miloš Malejčík",
+      "role": "Medicine 3.0 & Longevity Physician, founder Doktor Narovinu",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "Commented on Oncofiles \"3 pacienti\" post 2026-04-17",
+      "status": "RESPONDED",
+      "notes": "2026-04-17: two rounds of public critique on Oncofiles (validation + brainstorm of risks). Peter replied humbly both times. Miloš closed with \"kontaktujem Vás do DM\" — waiting for his DM. Red-line convo on patient-advocate vs quasi-diagnostic use."
+    },
+    {
+      "id": "martin-kucharik",
+      "name": "Martin Kucharík",
+      "role": "Consultant neurologist, acute stroke care; HIS/EHR enthusiast",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "Commented on Oncofiles \"3 pacienti\" post 2026-04-17",
+      "status": "RESPONDED",
+      "notes": "2026-04-17: asked GDPR question about patient data handling. Peter replied with OAuth + Frankfurt EU hosting + FAQ link. No follow-up — treating as nod-and-done."
+    },
+    {
+      "id": "ondrej-bosik",
+      "name": "Ondrej Bosík",
+      "role": "Data Engineer Consultant at Allianz",
+      "linkedinUrl": "",
+      "tier": "T3",
+      "source": "Commented on Oncofiles \"3 pacienti\" post 2026-04-17",
+      "status": "RESPONDED",
+      "notes": "2026-04-17: short GDPR question (\"A GDPR ?\"). Peter pointed to oncofiles.com FAQ. Low-touch."
+    },
+    {
+      "id": "tomas-sklarcik",
+      "name": "Tomáš Sklárčik",
+      "role": "Ex-CEO → Interim C-Level | CEE & UA Expansion Expert",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "Commented on Oncofiles \"3 pacienti\" post 2026-04-17",
+      "status": "RESPONDED",
+      "notes": "2026-04-17: short supportive comment \"Vysoko nápomocný tool 🙏\". Peter thanked. No further action."
+    },
+    {
+      "id": "miloslava-burikova",
+      "name": "Miloslava Burikova",
+      "role": "Regulatory Affairs Manager at Ewopharma (pharma)",
+      "linkedinUrl": "https://www.linkedin.com/in/miloslava-burikova-b7022384/",
+      "tier": "T1",
+      "source": "Organic connection accept 2026-04-20",
+      "status": "DM_SENT",
+      "notes": "Regulatory angle — Oncofiles compliance fit. Based in Bratislava, 166 connections, ~11 mutuals. Ewopharma + Comenius Univ Faculty of Natural Sciences. DM sent 2026-04-21 asking for regulatory review on Oncofiles data handling.",
+      "dmSentDate": "2026-04-21",
+      "dmTemplate": "oncofiles-regulatory-intro-v1"
+    },
+    {
+      "id": "kristina-gomoryova",
+      "name": "Kristína Gomoryová",
+      "role": "Scientific Researcher at RECETOX (Masaryk Univ, Brno)",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "Organic connection accept 2026-04-20",
+      "status": "DM_SENT",
+      "notes": "RECETOX research institute (env health + cancer). Brno, CZ. Mutuals: Erik Adler, Ladislav Bóna + 2. DM sent 2026-04-21 — asked if she sees patients drowning in papers; requested 15min call.",
+      "dmSentDate": "2026-04-21",
+      "dmTemplate": "oncofiles-research-intro-v1"
+    },
+    {
+      "id": "anna-kolegova",
+      "name": "Anna Kolegová",
+      "role": "Senior IT Business Analyst at Swiss Re",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "Organic connection accept 2026-04-20",
+      "status": "DM_SKIPPED",
+      "notes": "Initial HomeGrif angle too much of a stretch (Swiss Re reinsurance vs equity release — adjacent but not direct). 47+ mutuals suggest value for relationship build, but no specific product fit right now. Hold DM — revisit if new angle emerges.",
+      "skipReason": "HomeGrif-insurance angle too tenuous per Peter's judgment (2026-04-21)"
+    },
+    {
+      "id": "matej-janas",
+      "name": "Matej Janás",
+      "role": "CEO at RemPace | Co-Founder Ticketpie",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "Organic connection accept 2026-04-20",
+      "status": "CONNECTED",
+      "notes": "Peer SK founder, AI/digitalization. Relationship build, not immediate product fit."
+    },
+    {
+      "id": "waleed-ahmed",
+      "name": "Waleed Ahmed",
+      "role": "Technical Product Manager | Solution Architect (Golang, Rust, Node, React)",
+      "linkedinUrl": "",
+      "tier": "T3",
+      "source": "Organic connection accept 2026-04-20",
+      "status": "CONNECTED",
+      "notes": "Dev-leaning generic tech connection. No product fit."
+    },
+    {
+      "id": "barbora-hockova",
+      "name": "Barbora Hocková",
+      "role": "(headline empty)",
+      "linkedinUrl": "",
+      "tier": "T3",
+      "source": "Organic connection accept 2026-04-20",
+      "status": "CONNECTED",
+      "notes": "No headline — classify later if profile enriched."
+    },
+    {
+      "id": "erik-soltes",
+      "name": "Erik Šoltés",
+      "role": "Dean, Faculty of Economic Informatics (likely EU Bratislava)",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "Organic connection accept 2026-04-18..20",
+      "status": "CONNECTED",
+      "notes": "Academic leadership. Possible research/student pilot angle."
+    },
+    {
+      "id": "tibor-barta",
+      "name": "Tibor Barta, MD, PhD",
+      "role": "Chief physician, Univ. Dept. of ORL/Head & Neck Surgery, University Hospital Bratislava",
+      "linkedinUrl": "https://www.linkedin.com/in/tibor-barta-md-phd-23823334/",
+      "tier": "T0",
+      "source": "Non-1st reactor on Oncofiles \"3 pacienti\" post 2026-04-17 (detected 2026-04-21)",
+      "status": "REQUEST_SENT",
+      "notes": "2nd-degree MD PhD. Head & Neck Surgery covers oncology. 10+ mutuals (Michal Truban, Jana Palencarova). REACTED to Oncofiles post → pre-qualified signal. Connection request sent 2026-04-21 (auto via /linkedin sweep reactor scan). Creator-mode profile — Connect reached via custom-invite link flow."
+    },
+    {
+      "id": "maros-kompas",
+      "name": "Maroš Kompas",
+      "role": "NGS Specialist (next-generation sequencing / molecular diagnostics)",
+      "linkedinUrl": "https://www.linkedin.com/in/kompasm/",
+      "tier": "T1",
+      "source": "Non-1st reactor on Oncofiles \"3 pacienti\" post 2026-04-17 (detected 2026-04-21)",
+      "status": "REQUEST_SENT",
+      "notes": "2nd-degree, Prague. 2 mutuals (Tomáš Sklárčik, Pavol Cekan). NGS = oncology-genomics fit. REACTED to Oncofiles post. Connection request sent 2026-04-21 (auto via /linkedin sweep)."
+    },
+    {
+      "id": "raphael-buck",
+      "name": "Raphael Buck",
+      "role": "CEO & Founder, \"get inspired\" (life coaching)",
+      "linkedinUrl": "",
+      "tier": "T3",
+      "source": "Non-1st reactor on Oncofiles \"3 pacienti\" post 2026-04-17 (detected 2026-04-21)",
+      "status": "DM_SKIPPED",
+      "notes": "2nd-degree, Zurich, 60K followers. 2 mutuals (Armin M. Kittl, Tomas Bel). Life coaching — no product fit. Relationship-only potential (follower amplifier) but not a connection-request priority.",
+      "skipReason": "No product fit per B.0 angle-fit gate — life coaching not adjacent to Oncofiles/HomeGrif/Geo Location/contactrefiner"
+    },
+    {
+      "id": "michaela-tarabusova",
+      "name": "Michaela Tarabusová",
+      "role": "Student at Univerzita Mateja Bela v Banskej Bystrici",
+      "linkedinUrl": "",
+      "tier": "T3",
+      "source": "Accidental sidebar click during 2026-04-21 auto-connect sweep (Peter elected to keep)",
+      "status": "REQUEST_SENT",
+      "notes": "Unintended invite from auto-connect selector bug (sidebar \"People You May Know\" on Maroš Kompas profile). Kept per Peter 2026-04-21. Student — no active product angle."
+    },
+    {
+      "id": "ema-kubincova",
+      "name": "Ema Kubincová",
+      "role": "Student at LEAF Academy / Future Founders / Vicepresident Youth Parliament Zvolen",
+      "linkedinUrl": "",
+      "tier": "T3",
+      "source": "Accidental sidebar click during 2026-04-21 auto-connect sweep (Peter elected to keep)",
+      "status": "REQUEST_SENT",
+      "notes": "Unintended invite from auto-connect selector bug. Kept per Peter 2026-04-21. High-signal student (LEAF, MEP Slovakia, DofE) — possible future relationship."
+    },
+    {
+      "id": "fanny-fodorova",
+      "name": "Fanny Fodorová",
+      "role": "Student at Ekonomická univerzita v Bratislave",
+      "linkedinUrl": "",
+      "tier": "T3",
+      "source": "Accidental sidebar click during 2026-04-21 auto-connect sweep (Peter elected to keep)",
+      "status": "REQUEST_SENT",
+      "notes": "Unintended invite from auto-connect selector bug. Kept per Peter 2026-04-21. Student — no active product angle."
     }
   ],
   "institutions": [
@@ -969,54 +1177,464 @@
     }
   ],
   "miningRuns": [
-    { "date": "2026-04-09", "run": 1, "post": "Oncofiles SK (157)", "reactions": 157, "nonFirst": 39, "sent": 37, "rate": "~45%+" },
-    { "date": "2026-04-10", "run": 2, "post": "Oncofiles SK (168)", "reactions": 168, "nonFirst": 23, "sent": 5 },
-    { "date": "2026-04-10", "run": 3, "post": "Oncofiles SK (179)", "reactions": 179, "nonFirst": 28, "sent": 5 },
-    { "date": "2026-04-12", "run": 4, "post": "Oncologist SK (80)", "reactions": 80, "nonFirst": 29, "sent": 12 },
-    { "date": "2026-04-13", "run": 5, "post": "Oncofiles SK (199)", "reactions": 199, "nonFirst": 36, "sent": 8 },
-    { "date": "2026-04-14", "run": 6, "post": "Mixed (low-reaction + re-mine)", "reactions": 0, "nonFirst": 20, "sent": 14 }
+    {
+      "date": "2026-04-09",
+      "run": 1,
+      "post": "Oncofiles SK (157)",
+      "reactions": 157,
+      "nonFirst": 39,
+      "sent": 37,
+      "rate": "~45%+"
+    },
+    {
+      "date": "2026-04-10",
+      "run": 2,
+      "post": "Oncofiles SK (168)",
+      "reactions": 168,
+      "nonFirst": 23,
+      "sent": 5
+    },
+    {
+      "date": "2026-04-10",
+      "run": 3,
+      "post": "Oncofiles SK (179)",
+      "reactions": 179,
+      "nonFirst": 28,
+      "sent": 5
+    },
+    {
+      "date": "2026-04-12",
+      "run": 4,
+      "post": "Oncologist SK (80)",
+      "reactions": 80,
+      "nonFirst": 29,
+      "sent": 12
+    },
+    {
+      "date": "2026-04-13",
+      "run": 5,
+      "post": "Oncofiles SK (199)",
+      "reactions": 199,
+      "nonFirst": 36,
+      "sent": 8
+    },
+    {
+      "date": "2026-04-14",
+      "run": 6,
+      "post": "Mixed (low-reaction + re-mine)",
+      "reactions": 0,
+      "nonFirst": 20,
+      "sent": 14
+    }
   ],
   "dmLog": [
-    { "date": "2026-04-12", "contactName": "Zuzana Hurtuková", "contactId": "zuzana-hurtukova", "tier": "T1", "template": "Template A", "status": "SENT", "followUpDate": "2026-04-19" },
-    { "date": "2026-04-12", "contactName": "Lucia Cesnakova", "contactId": "lucia-cesnakova", "tier": "T1", "template": "Template A", "status": "SENT", "followUpDate": "2026-04-19" },
-    { "date": "2026-04-12", "contactName": "Ivana Vyrva", "contactId": "ivana-vyrva", "tier": "T1", "template": "Template A", "status": "SENT", "followUpDate": "2026-04-19" },
-    { "date": "2026-04-12", "contactName": "Michaela Šišková", "contactId": "michaela-siskova", "tier": "T1", "template": "Template A", "status": "SENT", "followUpDate": "2026-04-19" },
-    { "date": "2026-04-12", "contactName": "Marika Dognerová", "contactId": "marika-dognerova", "tier": "T1", "template": "Template A", "status": "SENT", "followUpDate": "2026-04-19" },
-    { "date": "2026-04-12", "contactName": "Miroslav Beblavy", "contactId": "miroslav-beblavy", "tier": "T1", "template": "Template B", "status": "SENT", "followUpDate": "2026-04-19" },
-    { "date": "2026-04-12", "contactName": "Robert Babela", "contactId": "robert-babela", "tier": "T1", "template": "Template A", "status": "SENT", "followUpDate": "2026-04-19" },
-    { "date": "2026-04-12", "contactName": "Zuzana Novakova", "contactId": "zuzana-novakova", "tier": "T1", "template": "Template A", "status": "SENT", "followUpDate": "2026-04-19" },
-    { "date": "2026-04-12", "contactName": "Dušan Habán", "contactId": "dusan-haban", "tier": "T1", "template": "Template A", "status": "SENT", "followUpDate": "2026-04-19" },
-    { "date": "2026-04-12", "contactName": "Matúš Pukanec", "contactId": "matus-pukanec", "tier": "T1", "template": "Template A", "status": "SENT", "followUpDate": "2026-04-19" },
-    { "date": "2026-04-12", "contactName": "Matej Misik", "contactId": "matej-misik", "tier": "T1", "template": "Template A", "status": "SENT", "followUpDate": "2026-04-19" },
-    { "date": "2026-04-12", "contactName": "Tomas BERTOK", "contactId": "tomas-bertok", "tier": "T1", "template": "Template B", "status": "SENT", "followUpDate": "2026-04-19" },
-    { "date": "2026-04-12", "contactName": "Roman Varga", "contactId": "roman-varga", "tier": "T1", "template": "Template B", "status": "SENT", "followUpDate": "2026-04-19" },
-    { "date": "2026-04-12", "contactName": "Emma Zemanová", "contactId": "emma-zemanova", "tier": "T1", "template": "Template A", "status": "SENT", "followUpDate": "2026-04-19" },
-    { "date": "2026-04-14", "contactName": "Viktória Jakubovičová", "contactId": "viktoria-jakubovicova", "tier": "T2", "template": "Custom (tykanie)", "status": "SENT", "followUpDate": "2026-04-21" },
-    { "date": "2026-04-14", "contactName": "Viera Kovacova", "contactId": "viera-kovacova", "tier": "T1", "template": "DM-T1-SK-02", "status": "SENT", "followUpDate": "2026-04-21" },
-    { "date": "2026-04-14", "contactName": "Tomáš Strečanský", "contactId": "tomas-strecansky", "tier": "T1", "template": "DM-T1-SK-02", "status": "SENT", "followUpDate": "2026-04-21" },
-    { "date": "2026-04-14", "contactName": "Juraj Drusc", "contactId": "juraj-drusc", "tier": "T2", "template": "DM-T2-SK-01", "status": "SENT", "followUpDate": "2026-04-21" },
-    { "date": "2026-04-14", "contactName": "Martina Oravcova", "contactId": "martina-oravcova", "tier": "T1", "template": "Custom (rewritten)", "status": "SENT", "followUpDate": "2026-04-21" },
-    { "date": "2026-04-14", "contactName": "Robert Novotny", "contactId": "robert-novotny", "tier": "T1", "template": "DM-T1-EN-01", "status": "SENT", "followUpDate": "2026-04-21" },
-    { "date": "2026-04-14", "contactName": "Philipp Miotti", "contactId": "philipp-miotti", "tier": "T1", "template": "DM-T1-EN-01", "status": "SENT", "followUpDate": "2026-04-21" },
-    { "date": "2026-04-14", "contactName": "Filip Staňo", "contactId": "filip-stano", "tier": "T1", "template": "SKIPPED", "status": "SKIPPED", "skipReason": "competitor (ableneo)" },
-    { "date": "2026-04-14", "contactName": "Matúš Jurák", "contactId": "matus-jurak", "tier": "T1", "template": "SKIPPED", "status": "SKIPPED", "skipReason": "not relevant" }
+    {
+      "date": "2026-04-12",
+      "contactName": "Zuzana Hurtuková",
+      "contactId": "zuzana-hurtukova",
+      "tier": "T1",
+      "template": "Template A",
+      "status": "SENT",
+      "followUpDate": "2026-04-19"
+    },
+    {
+      "date": "2026-04-12",
+      "contactName": "Lucia Cesnakova",
+      "contactId": "lucia-cesnakova",
+      "tier": "T1",
+      "template": "Template A",
+      "status": "SENT",
+      "followUpDate": "2026-04-19"
+    },
+    {
+      "date": "2026-04-12",
+      "contactName": "Ivana Vyrva",
+      "contactId": "ivana-vyrva",
+      "tier": "T1",
+      "template": "Template A",
+      "status": "SENT",
+      "followUpDate": "2026-04-19"
+    },
+    {
+      "date": "2026-04-12",
+      "contactName": "Michaela Šišková",
+      "contactId": "michaela-siskova",
+      "tier": "T1",
+      "template": "Template A",
+      "status": "SENT",
+      "followUpDate": "2026-04-19"
+    },
+    {
+      "date": "2026-04-12",
+      "contactName": "Marika Dognerová",
+      "contactId": "marika-dognerova",
+      "tier": "T1",
+      "template": "Template A",
+      "status": "SENT",
+      "followUpDate": "2026-04-19"
+    },
+    {
+      "date": "2026-04-12",
+      "contactName": "Miroslav Beblavy",
+      "contactId": "miroslav-beblavy",
+      "tier": "T1",
+      "template": "Template B",
+      "status": "SENT",
+      "followUpDate": "2026-04-19"
+    },
+    {
+      "date": "2026-04-12",
+      "contactName": "Robert Babela",
+      "contactId": "robert-babela",
+      "tier": "T1",
+      "template": "Template A",
+      "status": "SENT",
+      "followUpDate": "2026-04-19"
+    },
+    {
+      "date": "2026-04-12",
+      "contactName": "Zuzana Novakova",
+      "contactId": "zuzana-novakova",
+      "tier": "T1",
+      "template": "Template A",
+      "status": "SENT",
+      "followUpDate": "2026-04-19"
+    },
+    {
+      "date": "2026-04-12",
+      "contactName": "Dušan Habán",
+      "contactId": "dusan-haban",
+      "tier": "T1",
+      "template": "Template A",
+      "status": "SENT",
+      "followUpDate": "2026-04-19"
+    },
+    {
+      "date": "2026-04-12",
+      "contactName": "Matúš Pukanec",
+      "contactId": "matus-pukanec",
+      "tier": "T1",
+      "template": "Template A",
+      "status": "SENT",
+      "followUpDate": "2026-04-19"
+    },
+    {
+      "date": "2026-04-12",
+      "contactName": "Matej Misik",
+      "contactId": "matej-misik",
+      "tier": "T1",
+      "template": "Template A",
+      "status": "SENT",
+      "followUpDate": "2026-04-19"
+    },
+    {
+      "date": "2026-04-12",
+      "contactName": "Tomas BERTOK",
+      "contactId": "tomas-bertok",
+      "tier": "T1",
+      "template": "Template B",
+      "status": "SENT",
+      "followUpDate": "2026-04-19"
+    },
+    {
+      "date": "2026-04-12",
+      "contactName": "Roman Varga",
+      "contactId": "roman-varga",
+      "tier": "T1",
+      "template": "Template B",
+      "status": "SENT",
+      "followUpDate": "2026-04-19"
+    },
+    {
+      "date": "2026-04-12",
+      "contactName": "Emma Zemanová",
+      "contactId": "emma-zemanova",
+      "tier": "T1",
+      "template": "Template A",
+      "status": "SENT",
+      "followUpDate": "2026-04-19"
+    },
+    {
+      "date": "2026-04-14",
+      "contactName": "Viktória Jakubovičová",
+      "contactId": "viktoria-jakubovicova",
+      "tier": "T2",
+      "template": "Custom (tykanie)",
+      "status": "SENT",
+      "followUpDate": "2026-04-21"
+    },
+    {
+      "date": "2026-04-14",
+      "contactName": "Viera Kovacova",
+      "contactId": "viera-kovacova",
+      "tier": "T1",
+      "template": "DM-T1-SK-02",
+      "status": "SENT",
+      "followUpDate": "2026-04-21"
+    },
+    {
+      "date": "2026-04-14",
+      "contactName": "Tomáš Strečanský",
+      "contactId": "tomas-strecansky",
+      "tier": "T1",
+      "template": "DM-T1-SK-02",
+      "status": "SENT",
+      "followUpDate": "2026-04-21"
+    },
+    {
+      "date": "2026-04-14",
+      "contactName": "Juraj Drusc",
+      "contactId": "juraj-drusc",
+      "tier": "T2",
+      "template": "DM-T2-SK-01",
+      "status": "SENT",
+      "followUpDate": "2026-04-21"
+    },
+    {
+      "date": "2026-04-14",
+      "contactName": "Martina Oravcova",
+      "contactId": "martina-oravcova",
+      "tier": "T1",
+      "template": "Custom (rewritten)",
+      "status": "SENT",
+      "followUpDate": "2026-04-21"
+    },
+    {
+      "date": "2026-04-14",
+      "contactName": "Robert Novotny",
+      "contactId": "robert-novotny",
+      "tier": "T1",
+      "template": "DM-T1-EN-01",
+      "status": "SENT",
+      "followUpDate": "2026-04-21"
+    },
+    {
+      "date": "2026-04-14",
+      "contactName": "Philipp Miotti",
+      "contactId": "philipp-miotti",
+      "tier": "T1",
+      "template": "DM-T1-EN-01",
+      "status": "SENT",
+      "followUpDate": "2026-04-21"
+    },
+    {
+      "date": "2026-04-14",
+      "contactName": "Filip Staňo",
+      "contactId": "filip-stano",
+      "tier": "T1",
+      "template": "SKIPPED",
+      "status": "SKIPPED",
+      "skipReason": "competitor (ableneo)"
+    },
+    {
+      "date": "2026-04-14",
+      "contactName": "Matúš Jurák",
+      "contactId": "matus-jurak",
+      "tier": "T1",
+      "template": "SKIPPED",
+      "status": "SKIPPED",
+      "skipReason": "not relevant"
+    },
+    {
+      "date": "2026-04-18",
+      "contactName": "Miroslav Tomáš",
+      "contactId": "miroslav-tomas",
+      "tier": "T1",
+      "template": "physician-warm-intro-v1",
+      "status": "SENT",
+      "followUpDate": "2026-04-25"
+    },
+    {
+      "date": "2026-04-18",
+      "contactName": "Monika Schedlbauerová",
+      "contactId": "monika-schedlbauerova",
+      "tier": "T2",
+      "template": "patient-safety-warm-intro-v1",
+      "status": "SENT",
+      "followUpDate": "2026-04-25"
+    },
+    {
+      "date": "2026-04-18",
+      "contactName": "Kiedroń Jakub",
+      "contactId": "jakub-kiedron",
+      "tier": "T3",
+      "template": "",
+      "status": "SKIPPED",
+      "skipReason": "Active HomeGrif discussion already in progress"
+    },
+    {
+      "date": "2026-04-19",
+      "contactName": "Miroslav Tomáš",
+      "contactId": "miroslav-tomas",
+      "tier": "T1",
+      "template": "physician-warm-intro-v1",
+      "status": "SENT",
+      "response": "Wife mentioned joint meeting idea — warm positive",
+      "outcome": "RESPONDED_POSITIVE"
+    },
+    {
+      "date": "2026-04-20",
+      "contactName": "Monika Schedlbauerová",
+      "contactId": "monika-schedlbauerova",
+      "tier": "T2",
+      "template": "patient-safety-warm-intro-v1",
+      "status": "SENT",
+      "response": "Positive but busy; deferred meeting. Peter asked for referrals.",
+      "outcome": "RESPONDED_POSITIVE_DEFERRED"
+    },
+    {
+      "date": "2026-04-20",
+      "contactName": "Viktória Jakubovičová",
+      "contactId": "viktoria-jakubovicova",
+      "tier": "T2",
+      "template": "Custom (tykanie)",
+      "status": "SENT",
+      "response": "Accepted — meeting being scheduled, Peter asked for 2 time slots",
+      "outcome": "RESPONDED_MEETING_SCHEDULING"
+    },
+    {
+      "date": "2026-04-20",
+      "contactName": "Robert Babela",
+      "contactId": "robert-babela",
+      "tier": "T1",
+      "template": "Template A",
+      "status": "SENT",
+      "response": "Thanked Peter; busy now, will reach out when calmer",
+      "outcome": "RESPONDED_SOFT_POSITIVE"
+    },
+    {
+      "date": "2026-04-20",
+      "contactName": "Lucia Cesnakova",
+      "contactId": "lucia-cesnakova",
+      "tier": "T1",
+      "template": "Template A",
+      "status": "SENT",
+      "response": "Active discussion — Peter described Oncoteam demo. DiMe program lead engaged.",
+      "outcome": "RESPONDED_ACTIVE_DISCUSSION"
+    },
+    {
+      "date": "2026-04-21",
+      "contactName": "Miloslava Burikova",
+      "contactId": "miloslava-burikova",
+      "tier": "T1",
+      "template": "oncofiles-regulatory-intro-v1",
+      "status": "SENT",
+      "followUpDate": "2026-04-28"
+    },
+    {
+      "date": "2026-04-21",
+      "contactName": "Kristína Gomoryová",
+      "contactId": "kristina-gomoryova",
+      "tier": "T1",
+      "template": "oncofiles-research-intro-v1",
+      "status": "SENT",
+      "followUpDate": "2026-04-28"
+    },
+    {
+      "date": "2026-04-21",
+      "contactName": "Anna Kolegová",
+      "contactId": "anna-kolegova",
+      "tier": "T2",
+      "template": "",
+      "status": "SKIPPED",
+      "skipReason": "HomeGrif-insurance angle too tenuous (Swiss Re reinsurance vs equity release not direct enough)"
+    }
   ],
   "followerSnapshots": [
-    { "date": "2026-04-09", "followers": 18535, "notes": "Baseline" },
-    { "date": "2026-04-10", "followers": 18563, "delta": 28, "notes": "After Run #1+2" },
-    { "date": "2026-04-10", "followers": 18568, "delta": 5, "notes": "After Run #3" },
-    { "date": "2026-04-13", "followers": 18608, "delta": 40, "notes": "After Run #5" },
-    { "date": "2026-04-14", "followers": 18623, "delta": 15, "notes": "After Run #6 + DM batch #1" }
+    {
+      "date": "2026-04-09",
+      "followers": 18535,
+      "notes": "Baseline"
+    },
+    {
+      "date": "2026-04-10",
+      "followers": 18563,
+      "delta": 28,
+      "notes": "After Run #1+2"
+    },
+    {
+      "date": "2026-04-10",
+      "followers": 18568,
+      "delta": 5,
+      "notes": "After Run #3"
+    },
+    {
+      "date": "2026-04-13",
+      "followers": 18608,
+      "delta": 40,
+      "notes": "After Run #5"
+    },
+    {
+      "date": "2026-04-14",
+      "followers": 18623,
+      "delta": 15,
+      "notes": "After Run #6 + DM batch #1"
+    },
+    {
+      "date": "2026-04-18",
+      "followers": 18646,
+      "delta": 23,
+      "notes": "Organic growth; no paid promo this week"
+    },
+    {
+      "date": "2026-04-21",
+      "followers": 18654,
+      "connections": 18640,
+      "pendingInvites": 145,
+      "delta": 8,
+      "notes": "Full sweep + 2-week comments + A.5 harvest pulse. +8 followers in 3d (organic). +8 connections (7 new people + Katarina Kruspig CREATOR_MODE→CONNECTED). Archived inbox recovered 5 DM responses: Miroslav Tomáš RESPONDED (meeting scheduled Fri 04-24 w/ wife), Monika Schedlbauerová RESPONDED (busy, deferred), Viktória Jakubovičová RESPONDED (times pending), Robert Babela RESPONDED (soft positive), Lucia Cesnakova RESPONDED (demo Wed 04-23 10:00). Oncofiles \"3 pacienti\" post fully replied to; Miloš Malejčík ethical challenge answered, he committed to DM. Sent new DMs: Miloslava Burikova, Kristína Gomoryová (both Oncofiles T1). Skipped: Anna Kolegová (Swiss Re → HomeGrif too tenuous). Harvest pulse: 145 pending invites (was 150 at Run #7), ~5 accepted in 4 days."
+    }
   ],
   "milestones": [
-    { "name": "First viral post", "targetDate": "2026-04-08", "metric": "100+ reactions", "status": "EXCEEDED" },
-    { "name": "50 connection requests sent", "targetDate": "2026-04-10", "metric": "106 sent", "status": "EXCEEDED" },
-    { "name": "20% acceptance rate", "targetDate": "2026-04-10", "metric": "~88%", "status": "EXCEEDED" },
-    { "name": "First DM outreach batch", "targetDate": "2026-04-14", "metric": "21 DMs sent", "status": "DONE" },
-    { "name": "First demo scheduled", "targetDate": "2026-04-18", "metric": "1 demo", "status": "TODO" },
-    { "name": "5 pilot users", "targetDate": "2026-04-25", "metric": "5 active users", "status": "TODO" },
-    { "name": "10 pilot users", "targetDate": "2026-04-30", "metric": "10 active users", "status": "TODO" },
-    { "name": "First case study", "targetDate": "2026-05-15", "metric": "1 written", "status": "TODO" }
+    {
+      "name": "First viral post",
+      "targetDate": "2026-04-08",
+      "metric": "100+ reactions",
+      "status": "EXCEEDED"
+    },
+    {
+      "name": "50 connection requests sent",
+      "targetDate": "2026-04-10",
+      "metric": "106 sent",
+      "status": "EXCEEDED"
+    },
+    {
+      "name": "20% acceptance rate",
+      "targetDate": "2026-04-10",
+      "metric": "~88%",
+      "status": "EXCEEDED"
+    },
+    {
+      "name": "First DM outreach batch",
+      "targetDate": "2026-04-14",
+      "metric": "21 DMs sent",
+      "status": "DONE"
+    },
+    {
+      "name": "First demo scheduled",
+      "targetDate": "2026-04-18",
+      "metric": "1 demo",
+      "status": "DONE",
+      "notes": "Lucia Cesnakova (DiMe) demo 2026-04-23 10:00 + Miroslav Tomáš + wife meeting 2026-04-24"
+    },
+    {
+      "name": "5 pilot users",
+      "targetDate": "2026-04-25",
+      "metric": "5 active users",
+      "status": "TODO"
+    },
+    {
+      "name": "10 pilot users",
+      "targetDate": "2026-04-30",
+      "metric": "10 active users",
+      "status": "TODO"
+    },
+    {
+      "name": "First case study",
+      "targetDate": "2026-05-15",
+      "metric": "1 written",
+      "status": "TODO"
+    }
   ],
-  "updatedAt": "2026-04-15T12:00:00Z"
+  "updatedAt": "2026-04-21T06:00:00Z"
 }
