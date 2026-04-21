@@ -302,13 +302,33 @@ def score_contacts(
     contacts_by_rn = {c.get("resourceName", ""): c for c in contacts}
     candidates: list[FollowUpScore] = []
 
-    for rn, emails in contact_emails.items():
+    # Iterate the UNION of contacts with email history AND contacts with
+    # Beeper KPIs. Previously we only iterated `contact_emails.items()`, so a
+    # Slack/WhatsApp/LinkedIn-DM-only contact with live Beeper activity but
+    # no Gmail/Calendar touchpoint never entered the scoring loop — making
+    # them invisible on /crm and /followup no matter how hot the chat thread
+    # was. See #162.
+    all_resource_names = set(contact_emails.keys()) | set(contact_kpis.keys())
+
+    for rn in all_resource_names:
+        emails = contact_emails.get(rn, set())
         last_date, interaction_count = _get_last_activity(rn, emails, interactions)
         li_signal = linkedin_signals.get(rn, {})
         li_type = li_signal.get("signal_type")
         is_job_change = _is_valid_job_change(li_signal)
         if li_type == "job_change" and not is_job_change:
             li_type = "profile"  # downgrade junk job_change to profile-only
+
+        # A Beeper KPI with actual 30d activity is a bypass signal — equivalent
+        # to a LinkedIn job_change in that it surfaces a contact who would
+        # otherwise be filtered out for having no recent email/meeting
+        # touchpoint. Without this, the iteration above would still skip them
+        # at the min_months / min_interactions / max_age gates below.
+        kpi_probe = contact_kpis.get(rn)
+        w30 = kpi_probe.windows.get("30d") if kpi_probe else None
+        has_active_beeper = bool(
+            w30 and (w30.messages_in + w30.messages_out) > 0
+        )
 
         # Calculate months gap
         if last_date:
@@ -318,20 +338,24 @@ def score_contacts(
             except ValueError:
                 months_gap = 0.0
         else:
-            # No interaction history — only surface if job_change
+            # No email/calendar history — only surface if job_change OR if
+            # Beeper shows real cross-channel activity we'd otherwise miss.
             months_gap = 0.0
-            if not is_job_change:
+            if not is_job_change and not has_active_beeper:
                 continue
 
-        # Filter: min_months and min_interactions (bypassed for job_change)
-        if not is_job_change:
+        # Filter: min_months and min_interactions (bypassed for job_change
+        # OR for contacts with live Beeper activity)
+        if not is_job_change and not has_active_beeper:
             if last_date and months_gap < min_months:
                 continue
             if interaction_count < min_interactions:
                 continue
 
-        # Filter: drop very-old-only contacts (5+ years silent) unless LinkedIn job_change
-        if not is_job_change and last_date and months_gap > FOLLOWUP_MAX_AGE_MONTHS:
+        # Filter: drop very-old-only contacts (5+ years silent) unless they
+        # have a LinkedIn job_change OR a live Beeper thread
+        if (not is_job_change and not has_active_beeper
+                and last_date and months_gap > FOLLOWUP_MAX_AGE_MONTHS):
             continue
 
         # Extract contact info
