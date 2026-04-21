@@ -95,15 +95,47 @@ async function accept(signal: LeadSignal) {
 async function dismiss(signal: LeadSignal, reason: LeadDismissalReason) {
   if (busyIds.value.has(signal.resourceName)) return
   busyIds.value.add(signal.resourceName)
+
+  // Optimistic update — move the contact from candidates/backlog to dismissed
+  // BEFORE the network round-trip. Fixes #143: without this, the contact is
+  // still visible in the list while refresh() is in flight, so a second
+  // Dismiss click lands in the `busyIds` guard and silently no-ops.
+  // Reassign `data.value` with a new object per Nuxt useFetch gotcha #147 —
+  // nested-property mutation can miss reactivity after hydration.
+  const snapshot = data.value
+  if (snapshot) {
+    const nowIso = new Date().toISOString()
+    const nextSignal: LeadSignal = {
+      ...signal,
+      stage: 'dismissed',
+      dismissal: { reason, note: '', dismissedAt: nowIso },
+    }
+    data.value = {
+      ...snapshot,
+      candidates: snapshot.candidates.filter((s: LeadSignal) => s.resourceName !== signal.resourceName),
+      backlog: snapshot.backlog.filter((s: LeadSignal) => s.resourceName !== signal.resourceName),
+      dismissed: [nextSignal, ...snapshot.dismissed.filter((s: LeadSignal) => s.resourceName !== signal.resourceName)],
+      stats: {
+        ...snapshot.stats,
+        candidates: Math.max(0, snapshot.stats.candidates - (signal.stage === 'candidate' ? 1 : 0)),
+        dismissed: snapshot.stats.dismissed + (signal.stage === 'dismissed' ? 0 : 1),
+      },
+    }
+  }
+
   try {
     await $fetch('/api/signals/dismiss', {
       method: 'POST',
       body: { resourceName: signal.resourceName, reason, note: '' },
     })
-    await refresh()
+    // Post-write refresh reconciles any server-computed fields (rank, etc.)
+    // but the user's next interaction is no longer blocked by it.
+    refresh().catch(e => console.warn('Signals refresh after dismiss failed', e))
   } catch (e) {
     console.error('Dismiss failed', e)
     alert('Dismiss failed — check console')
+    // Restore the snapshot so the UI reflects the actual server state.
+    if (snapshot) data.value = snapshot
   } finally {
     busyIds.value.delete(signal.resourceName)
   }
