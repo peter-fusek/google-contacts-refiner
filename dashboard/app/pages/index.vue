@@ -7,20 +7,62 @@ const steps = [
   { num: '03', title: 'Review & Learn', description: 'Review changes on the dashboard. Approve, reject, or edit. The system learns from every decision — rejected changes never come back.' },
 ]
 
+// Recently shipped — last ~2 weeks, surfaced on the landing page so visitors see momentum.
+// Dates are real; each item links to the PR / issue that landed it.
+const recentlyShipped = [
+  {
+    date: '2026-04-21',
+    title: 'Omnichannel biography writeback',
+    description: 'WhatsApp / Signal / LinkedIn / iMessage activity rolls up into a fenced "Omnichannel" block on each Google Contact — primary channel, 30-day message count, awaiting-reply side. Zero message content, metadata only.',
+    url: 'https://github.com/peter-fusek/contactrefiner/pull/161',
+  },
+  {
+    date: '2026-04-21',
+    title: 'Dashboard awaiting-reply pills + harvest chip',
+    description: 'CRM kanban cards now show a red "you owe reply" pill when a contact is waiting on your response via any channel. Sidebar harvest chip shows freshness at a glance.',
+    url: 'https://github.com/peter-fusek/contactrefiner/pull/165',
+  },
+  {
+    date: '2026-04-21',
+    title: 'Beeper-only contacts surface on /crm',
+    description: 'Contacts that only exist on messaging networks (not yet in Google Contacts) now appear in the follow-up queue, so messaging threads never drop from view.',
+    url: 'https://github.com/peter-fusek/contactrefiner/pull/163',
+  },
+  {
+    date: '2026-04-19',
+    title: 'Business-first lead scoring',
+    description: 'Lead scorer promotes executive titles (+15), penalises personal-email-only contacts (×0.3), caps the silent-period window at 24mo, and excludes your own company. Top-of-funnel is now actually business-shaped.',
+    url: 'https://github.com/peter-fusek/contactrefiner/pull/141',
+  },
+  {
+    date: '2026-04-17',
+    title: 'Signals page: 7 derived signal types',
+    description: 'New /signals view groups leads by signal type (job change, new C-level, dm-awaiting-reply, …) and caps actionable batch at 100/week. Candidates / backlog / dismissed tabs.',
+    url: 'https://github.com/peter-fusek/contactrefiner/issues/142',
+  },
+  {
+    date: '2026-04-21',
+    title: 'Partition rollback tool',
+    description: 'scripts/revert_partition.py lists and restores soft-deleted generations of any GCS data blob — 7-day safety net for every harvest run. Dry-run default.',
+    url: 'https://github.com/peter-fusek/contactrefiner/pull/170',
+  },
+]
+
 const faqs = [
   { q: 'Is Contact Refiner free?', a: 'Yes. Contact Refiner is open source and free to self-host. Your data stays in your own Google account and infrastructure.' },
   { q: 'Does it delete or modify contacts without my permission?', a: 'No. Every change goes through a review queue. You approve or reject each change before it applies. The system learns from your decisions so rejected changes never come back.' },
   { q: 'What kind of fixes does it make?', a: 'Contact Refiner fixes missing diacritics on Slovak and Czech names, normalizes phone numbers, standardizes titles and company names, flags low-value contacts for deletion, and uses AI to catch edge cases that rules miss.' },
   { q: 'How does the LinkedIn integration work?', a: 'Contact Refiner scans LinkedIn profiles to detect job changes and activity. It scores your contacts for reconnection opportunities and surfaces the best candidates in a personal CRM board.' },
-  { q: 'Does the CRM sync change my Google Contacts?', a: 'Yes — CRM notes sync to contact biographies and tags become contact groups. Changes are additive only: nothing is ever removed from your contacts. You can search CRM data natively on any device.' },
+  { q: 'Does the CRM sync change my Google Contacts?', a: 'Yes — CRM notes and an auto-generated Omnichannel block sync to contact biographies; tags map to your existing contact groups (alias-aware, so "instarea" reuses your "IS" label instead of creating a duplicate). User content is additive-only; the Omnichannel block is metadata-only (no message bodies) and cleanly replaced on each run. You can search all of this natively on any device.' },
+  { q: 'How does the omnichannel harvester work?', a: 'Beeper Desktop (running on your Mac) exposes WhatsApp, Signal, LinkedIn, Messenger, Telegram, and iMessage threads through a localhost API. A session-start harvest pulls recent messages, matches them to your Google Contacts, and writes a metadata-only rollup into each biography — primary channel, last-heard date, 30-day message count, awaiting-reply side. No message content leaves your machine.' },
 ]
 
 useHead({
   title: 'Contact Refiner — AI-Powered Google Contacts Cleanup',
   meta: [
-    { name: 'description', content: 'Fix diacritics, formatting, and duplicates in Google Contacts. 26 rule categories, 6-phase daily pipeline with AI review, LinkedIn signals, personal CRM with bi-directional sync, feedback learning, and a dashboard to approve every change.' },
-    { property: 'og:title', content: 'Contact Refiner — AI-Powered Google Contacts Cleanup' },
-    { property: 'og:description', content: 'Automatically fix diacritics, formatting, and duplicates in your Google Contacts. AI-powered analysis with human review.' },
+    { name: 'description', content: 'Clean up Google Contacts and roll up your omnichannel conversations (WhatsApp, Signal, LinkedIn, iMessage) into each contact\'s biography. AI review, awaiting-reply surfacing, business-first lead scoring, and a 7-day rollback safety net. Self-hosted.' },
+    { property: 'og:title', content: 'Contact Refiner — Google Contacts + Omnichannel Rollups' },
+    { property: 'og:description', content: 'Clean contacts, harvest multi-channel conversations into biographies, surface who owes you a reply. Self-hosted, AI-reviewed, privacy-first.' },
     { property: 'og:type', content: 'website' },
     { property: 'og:url', content: 'https://contactrefiner.com' },
     { property: 'og:image', content: 'https://contactrefiner.com/og-image.png' },
@@ -69,7 +111,7 @@ useHead({
             'author': { '@id': 'https://contactrefiner.com/#organization' },
             'downloadUrl': 'https://github.com/peter-fusek/contactrefiner',
             'screenshot': 'https://contactrefiner.com/og-image.png',
-            'featureList': 'Diacritics restoration, Smart formatting, Contact cleanup, AI review, CRM sync to Google Contacts, Smart hashtag labels, Pipeline health monitoring, Learning system, Daily email digest, Interaction tracking, Privacy-first self-hosted',
+            'featureList': 'Diacritics restoration, Smart formatting, Contact cleanup, AI review, CRM sync to Google Contacts, Omnichannel message harvesting (WhatsApp/Signal/LinkedIn/Telegram/iMessage), Awaiting-reply surfacing on dashboard, Business-first lead scoring, Smart hashtag labels, Pipeline health monitoring, Learning system, Daily email digest, Interaction tracking, 7-day partition rollback, Privacy-first self-hosted',
           },
           {
             '@type': 'HowTo',
@@ -181,6 +223,30 @@ const features = [
     description: 'Runs on your own infrastructure. Security audited. Your contacts never leave your Google account.',
     color: 'text-green-400',
   },
+  {
+    icon: 'i-lucide-messages-square',
+    title: 'Omnichannel Harvester',
+    description: 'Harvests WhatsApp, Signal, LinkedIn, Messenger, Telegram, and iMessage activity into a per-contact rollup. Primary channel, recent-message counts, awaiting-reply side — all attached to the Google Contact, zero message content.',
+    color: 'text-emerald-400',
+  },
+  {
+    icon: 'i-lucide-clock-arrow-up',
+    title: 'Awaiting-Reply Surfaces',
+    description: 'Dashboard CRM shows a red pill on contacts where you owe a reply across any channel, plus dedicated signal type on /signals. Nothing drops through the cracks.',
+    color: 'text-rose-400',
+  },
+  {
+    icon: 'i-lucide-trending-up',
+    title: 'Business-First Scoring',
+    description: 'Exec-title bonus, personal-email penalty, 24-month recency cap, own-company exclusion. Top-of-funnel is business-shaped, not "people who happen to be in my phone".',
+    color: 'text-yellow-400',
+  },
+  {
+    icon: 'i-lucide-rotate-ccw',
+    title: 'Time-Travel Safety Net',
+    description: '7-day soft-delete on every GCS partition plus a one-command revert tool. Any bad harvest run can be rolled back by generation.',
+    color: 'text-cyan-400',
+  },
 ]
 
 </script>
@@ -224,7 +290,7 @@ const features = [
       <div class="max-w-3xl mx-auto text-center space-y-6">
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-neutral-800 bg-neutral-900/50 text-xs text-neutral-400">
           <span class="size-1.5 rounded-full bg-primary-400 animate-pulse-glow" />
-          Open source · Google Contacts native · 6-phase pipeline · AI review · CRM sync · Feedback learning
+          Open source · Omnichannel harvester · Google Contacts native · AI review · CRM sync · Feedback learning
         </div>
 
         <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-neutral-100 leading-tight">
@@ -325,6 +391,62 @@ const features = [
         <div>
           <div class="text-2xl md:text-3xl font-bold text-green-400 tabular-nums">100%</div>
           <div class="label-refined mt-1">Self-hosted</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recently shipped timeline — refresh cadence + proof of momentum -->
+    <section id="recent" class="py-20 px-6 border-t border-neutral-800/50">
+      <div class="max-w-3xl mx-auto">
+        <div class="text-center mb-12">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary-700/40 bg-primary-900/20 text-xs text-primary-300 mb-3">
+            <span class="size-1.5 rounded-full bg-primary-400 animate-pulse-glow" />
+            Active development · Last 2 weeks
+          </div>
+          <h2 class="text-2xl md:text-3xl font-bold text-neutral-100">
+            Recently shipped
+          </h2>
+          <p class="mt-3 text-neutral-400">
+            What's landed since Sprint 3.31. Every line has a PR you can read.
+          </p>
+        </div>
+
+        <ol class="relative border-l border-neutral-800 ml-4 space-y-6">
+          <li
+            v-for="(item, i) in recentlyShipped"
+            :key="item.title"
+            class="pl-6 animate-fade-in"
+            :style="{ animationDelay: `${i * 80}ms` }"
+          >
+            <span class="absolute -left-[5px] size-2.5 rounded-full bg-primary-400 shadow-[0_0_12px_rgba(52,211,153,0.5)]" />
+            <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <time class="font-mono text-xs text-neutral-500 tabular-nums">{{ item.date }}</time>
+              <h3 class="text-sm font-semibold text-neutral-100">{{ item.title }}</h3>
+              <a
+                :href="item.url"
+                target="_blank"
+                rel="noopener"
+                class="text-xs text-primary-400 hover:text-primary-300 transition-colors inline-flex items-center gap-1"
+                :aria-label="`View PR for ${item.title} on GitHub`"
+              >
+                PR
+                <UIcon name="i-lucide-external-link" class="size-3" />
+              </a>
+            </div>
+            <p class="mt-2 text-sm text-neutral-400 leading-relaxed">{{ item.description }}</p>
+          </li>
+        </ol>
+
+        <div class="text-center mt-10">
+          <a
+            href="https://github.com/peter-fusek/contactrefiner/pulls?q=is%3Apr+is%3Amerged"
+            target="_blank"
+            rel="noopener"
+            class="text-xs text-neutral-500 hover:text-neutral-300 transition-colors inline-flex items-center gap-1.5"
+          >
+            See all merged PRs
+            <UIcon name="i-lucide-arrow-right" class="size-3" />
+          </a>
         </div>
       </div>
     </section>
