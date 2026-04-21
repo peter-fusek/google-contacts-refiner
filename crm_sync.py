@@ -42,6 +42,7 @@ from unidecode import unidecode
 logger = logging.getLogger("crm_sync")
 
 CRM_NOTE_MARKER = "── CRM Notes"
+CRM_STAGE_MARKER = "── CRM Stage:"  # single-line marker; see _build_stage_line/_strip_stage_line
 CRM_TAG_PREFIX = CRM_TAG_PREFIX_STRING  # back-compat alias for callers that imported the old name
 
 
@@ -152,6 +153,37 @@ def _build_crm_block(notes: str) -> str:
     date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     header = f"{CRM_NOTE_MARKER} (updated {date_str}) ──"
     return f"{header}\n{notes.strip()}"
+
+
+def _build_stage_line(stage: str) -> str:
+    """Build the single-line CRM Stage marker (Option D for #148).
+
+    Pipeline stage is a workflow attribute, not a stable taxonomy label — so
+    it lives as one searchable line inside the biography rather than as a
+    Google contact group. Greppable on mobile Google Contacts via "CRM
+    Stage:" substring. Rewritten on each change with no group-removal churn.
+    """
+    date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    return f"{CRM_STAGE_MARKER} {stage} (updated {date_str}) ──"
+
+
+def _strip_stage_line(note: str) -> str:
+    """Remove any prior CRM Stage marker line from a biography note."""
+    if CRM_STAGE_MARKER not in note:
+        return note
+    kept = [ln for ln in note.split("\n") if CRM_STAGE_MARKER not in ln]
+    # Collapse any double-blank introduced by removal.
+    out: list[str] = []
+    blank = False
+    for ln in kept:
+        if ln.strip() == "":
+            if blank:
+                continue
+            blank = True
+        else:
+            blank = False
+        out.append(ln)
+    return "\n".join(out).strip()
 
 
 def _insert_crm_block(existing_note: str, crm_block: str) -> str:
@@ -517,6 +549,82 @@ def sync_omnichannel(
     return stats
 
 
+def sync_stages(client, crm_state: dict, dry_run: bool = False) -> dict:
+    """Sync CRM kanban stage to a single-line marker in each contact's biography.
+
+    Implements #148 Option D: rather than mirroring stage as `CRM:stage-*`
+    Google groups (which would require a removal-on-move exception to the
+    global "never remove from groups" policy), stage lives as a searchable
+    line inside the biography:
+
+        ── CRM Stage: opportunity (updated 2026-04-21) ──
+
+    Greppable on mobile Google Contacts; replaced cleanly on each run; no
+    group sidebar clutter; no policy conflict.
+
+    Skips `inbox` (default stage, low-signal) unless env overrides it.
+    """
+    contacts = crm_state.get("contacts", {})
+    synced = 0
+    skipped = 0
+    errors = 0
+    skip_inbox = os.getenv("CRM_STAGE_SYNC_SKIP_INBOX", "true").lower() in ("1", "true", "yes")
+
+    to_sync: list[tuple[str, str]] = []
+    for rn, state in contacts.items():
+        if not rn.startswith("people/c"):
+            continue
+        stage = (state.get("stage") or "").strip()
+        if not stage:
+            continue
+        if skip_inbox and stage == "inbox":
+            continue
+        to_sync.append((rn, stage))
+
+    if not to_sync:
+        logger.info("No CRM stages to sync (or all are inbox + skip enabled)")
+        return {"synced": 0, "skipped": 0, "errors": 0}
+
+    logger.info("Syncing CRM stages for %d contacts (as biography marker line)", len(to_sync))
+
+    for rn, stage in to_sync:
+        try:
+            person = client.get_contact(rn, person_fields="biographies,metadata")
+            etag = person.get("etag", "")
+            existing_note = ""
+            for bio in person.get("biographies", []):
+                if bio.get("contentType") == "TEXT_PLAIN":
+                    existing_note = bio.get("value", "")
+                    break
+
+            # Strip any prior stage line, re-insert a fresh one. The stage
+            # line sits after existing marker blocks for consistency with
+            # the Omnichannel/Notes convention — biographies keep a stable
+            # top-to-bottom reading order.
+            stripped = _strip_stage_line(existing_note)
+            stage_line = _build_stage_line(stage)
+            new_note = _insert_crm_block(stripped, stage_line)
+
+            if new_note == existing_note:
+                skipped += 1
+                continue
+
+            if dry_run:
+                logger.info("  [DRY RUN] Would set stage line on %s → %s", rn, stage)
+                synced += 1
+                continue
+
+            body = {"biographies": [{"value": new_note, "contentType": "TEXT_PLAIN"}]}
+            client.update_contact(rn, etag, body, update_fields="biographies")
+            synced += 1
+            logger.info("  sync_stages: wrote %s → %s", rn, stage)
+        except Exception as e:
+            logger.warning("  Failed to sync stage for %s: %s", rn, e)
+            errors += 1
+
+    return {"synced": synced, "skipped": skipped, "errors": errors}
+
+
 def run_crm_sync(client=None, dry_run: bool = False) -> dict:
     """
     Main entry point for CRM sync.
@@ -538,6 +646,7 @@ def run_crm_sync(client=None, dry_run: bool = False) -> dict:
     notes_result = sync_notes(client, crm_state, dry_run=dry_run)
     omni_result = sync_omnichannel(client, dry_run=dry_run)
     tags_result = sync_tags(client, crm_state, dry_run=dry_run)
+    stages_result = sync_stages(client, crm_state, dry_run=dry_run)
 
     # Save updated state with notesSyncedAt timestamps
     if not dry_run and notes_result["synced"] > 0:
@@ -553,4 +662,5 @@ def run_crm_sync(client=None, dry_run: bool = False) -> dict:
         "notes": notes_result,
         "omnichannel": omni_result,
         "tags": tags_result,
+        "stages": stages_result,
     }
