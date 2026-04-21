@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Template: monthly CRM sync including biography write-back.
+  Diff-based, additive-only, backs up biographies before writes.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.contactrefiner.harvester.monthly</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-c</string>
+    <string>cd /Users/peterfusek1980gmail.com/Projects/contactrefiner &amp;&amp; /opt/homebrew/bin/uv run python main.py crm-sync --include-omnichannel</string>
+  </array>
+
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Day</key>
+    <integer>1</integer>
+    <key>Hour</key>
+    <integer>6</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/peterfusek1980gmail.com/Library/Logs/contactrefiner/harvester-monthly.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/peterfusek1980gmail.com/Library/Logs/contactrefiner/harvester-monthly.err</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+
+  <key>ProcessType</key>
+  <string>Standard</string>
+</dict>
+</plist>

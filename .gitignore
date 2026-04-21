@@ -5,6 +5,9 @@ token*.json
 
 # macOS launchd (contains local paths)
 *.plist
+# Exception: harvester plist templates are tracked. Local paths are rewritten
+# by scripts/install-launchd.sh at install time — see launchagents/README.md.
+!launchagents/*.plist
 
 # Data directory (backups, workplans, changelogs — large, contain PII)
 data/

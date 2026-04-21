@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Template: hourly incremental harvest of Beeper + iMessage + Gmail.
+  Install: ./scripts/install-launchd.sh
+  Status: not yet auto-loaded. Drafted for Sprint 3.33 Session 2.
+
+  NOTE: Paths below assume the user's $HOME. install-launchd.sh rewrites
+  them based on the invoking user at install time.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.contactrefiner.harvester.hourly</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-c</string>
+    <string>cd /Users/peterfusek1980gmail.com/Projects/contactrefiner &amp;&amp; /opt/homebrew/bin/uv run python main.py harvest-messages --incremental</string>
+  </array>
+
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Minute</key>
+    <integer>17</integer>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/peterfusek1980gmail.com/Library/Logs/contactrefiner/harvester-hourly.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/peterfusek1980gmail.com/Library/Logs/contactrefiner/harvester-hourly.err</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>ENABLE_INTERACTION_HARVEST</key>
+    <string>true</string>
+    <key>HARVEST_MODE</key>
+    <string>incremental</string>
+  </dict>
+
+  <!-- Networking guard: if Beeper API not reachable, the CLI exits 0 with a skip log. -->
+  <key>AbandonProcessGroup</key>
+  <true/>
+
+  <key>ProcessType</key>
+  <string>Background</string>
+</dict>
+</plist>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Template: daily 24h reconciliation. Re-pulls last 24h from all readers
+  to catch late-delivery / edits / reactions that hourly missed.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.contactrefiner.harvester.daily</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-c</string>
+    <string>cd /Users/peterfusek1980gmail.com/Projects/contactrefiner &amp;&amp; /opt/homebrew/bin/uv run python main.py harvest-messages --reconcile --since=24h</string>
+  </array>
+
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>4</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/peterfusek1980gmail.com/Library/Logs/contactrefiner/harvester-daily.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/peterfusek1980gmail.com/Library/Logs/contactrefiner/harvester-daily.err</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>ENABLE_INTERACTION_HARVEST</key>
+    <string>true</string>
+    <key>HARVEST_MODE</key>
+    <string>reconcile</string>
+  </dict>
+
+  <key>ProcessType</key>
+  <string>Background</string>
+</dict>
+</plist>

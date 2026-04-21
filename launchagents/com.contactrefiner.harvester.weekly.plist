@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Template: weekly scoring refresh. Recomputes ContactKPI windows
+  (30/90/365d), rewrites data/interactions/contact_kpis.json,
+  rebuilds /signals derivations. Does NOT touch Google Contacts.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.contactrefiner.harvester.weekly</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-c</string>
+    <string>cd /Users/peterfusek1980gmail.com/Projects/contactrefiner &amp;&amp; /opt/homebrew/bin/uv run python main.py score-interactions</string>
+  </array>
+
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Weekday</key>
+    <integer>1</integer>   <!-- Monday -->
+    <key>Hour</key>
+    <integer>5</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/peterfusek1980gmail.com/Library/Logs/contactrefiner/harvester-weekly.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/peterfusek1980gmail.com/Library/Logs/contactrefiner/harvester-weekly.err</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+
+  <key>ProcessType</key>
+  <string>Standard</string>
+</dict>
+</plist>
