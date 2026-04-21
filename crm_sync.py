@@ -217,14 +217,27 @@ def sync_tags(client, crm_state: dict, dry_run: bool = False) -> dict:
     memberships_added = 0
     errors = 0
 
-    # Collect all unique tags across contacts
+    # Collect all unique tags across contacts. Google People API rejects
+    # "profile-only" resourceNames (bare-digit `people/<digits>`) from
+    # contactGroups.members.modify — only `people/c<digits>` (contactId)
+    # is accepted. Filter them out here so the whole tag-group sync doesn't
+    # 400 on a single bad record. See #171.
     tag_contacts: dict[str, list[str]] = {}  # tag -> [resourceName, ...]
+    skipped_legacy = 0
     for rn, state in contacts.items():
+        if not rn.startswith("people/c"):
+            skipped_legacy += 1
+            continue
         for tag in state.get("tags", []):
             if not tag.strip():
                 continue
             group_name = f"{CRM_TAG_PREFIX}{tag.strip()}"
             tag_contacts.setdefault(group_name, []).append(rn)
+    if skipped_legacy:
+        logger.info(
+            "Skipped %d contacts with legacy (non-c) resourceName from tag sync",
+            skipped_legacy,
+        )
 
     if not tag_contacts:
         logger.info("No CRM tags to sync")
