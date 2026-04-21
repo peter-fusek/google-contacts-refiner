@@ -254,6 +254,12 @@ export interface FollowUpScore {
     interaction: number
     linkedin: number
     completeness: number
+    // Optional — present when followup_scorer runs against contact_kpis.json
+    // (Sprint 3.33 S2, Beeper harvester bonus). Older score files don't have
+    // these; consumers must tolerate missing keys.
+    exec_bonus?: number
+    beeper?: number
+    personal_multiplier?: number
   }
   interaction: {
     last_date: string | null
@@ -268,6 +274,17 @@ export interface FollowUpScore {
     scanned_at: string | null
     url: string | null
   } | null
+  // Beeper rollup block — populated when contact_kpis.json carries data for
+  // this resourceName and score_breakdown.beeper !== 0. Aggregate-only
+  // (counts, primary channel, awaiting-reply side) — no message content per
+  // docs/schemas/interaction.md §Privacy defaults.
+  beeper?: {
+    channel_primary: string | null
+    awaiting_reply_side: 'mine' | 'theirs' | null
+    messages_30d_in: number
+    messages_30d_out: number
+    channels_30d: number
+  } | null
   contact: {
     org: string
     title: string
@@ -279,6 +296,10 @@ export interface FollowUpScore {
     emails: string[]
     urls: Array<{ url: string; type: string }>
   }
+  flags?: {
+    is_exec?: boolean
+    is_likely_personal?: boolean
+  }
   followup_prompt: string | null
 }
 
@@ -289,6 +310,10 @@ export interface FollowUpStats {
   no_activity: number
   no_linkedin: number
   avg_completeness: number
+  // Added in Sprint 3.33 S2 alongside the Beeper bonus. Optional so older
+  // stats snapshots still deserialize.
+  beeper_enriched?: number
+  avg_beeper_bonus?: number
 }
 
 export interface FollowUpScoresFile {
@@ -357,6 +382,7 @@ export interface CRMContact {
   score_breakdown: FollowUpScore['score_breakdown']
   interaction: FollowUpScore['interaction']
   linkedin: FollowUpScore['linkedin']
+  beeper: FollowUpScore['beeper']
   contact: FollowUpScore['contact']
   followup_prompt: string | null
 }

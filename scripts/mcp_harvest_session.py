@@ -55,6 +55,7 @@ from harvester.beeper_client import (  # noqa: E402
     NETWORK_CHANNEL_MAP,
     BeeperClient,
     BeeperClientConfig,
+    normalize_network_id,
 )
 from harvester.contact_matcher import (  # noqa: E402
     ContactMatcher,
@@ -63,13 +64,9 @@ from harvester.contact_matcher import (  # noqa: E402
 )
 from harvester.pipeline import (  # noqa: E402
     MATCH_CACHE_FILE,
-    UNKNOWNS_FILE,
-    _append_records,
-    _append_unknown,
-    _existing_ids,
-    _parse_ts,
-    _partition_path,
+    append_records,
     is_harvester_paused,
+    process_record,
 )
 from utils import upload_file_to_gcs  # noqa: E402
 
@@ -108,13 +105,22 @@ def mcp_message_to_record(
 
     sender_handle = ""
     sender_name = message.get("senderName", "")
+    # Fall back to the chat's title for 1:1 chats — LinkedIn DMs hit this path
+    # because Matrix bridge user IDs (@linkedin__a_co_...:beeper.local) carry
+    # no resolvable name, but Beeper renders the chat title as the LinkedIn
+    # display name. That title is the only thing the fuzzy-name matcher can
+    # actually use to hit a Google Contacts record.
+    chat_title = (chat.get("title") or "").strip()
+
     if not is_from_me:
         # Pick the first non-self participant as sender fallback when MCP
         # doesn't surface a raw handle.
         for p in chat.get("participants", []):
             if not p.get("isSelf"):
                 sender_handle = p.get("handle", "")
-                sender_name = sender_name or p.get("name", "")
+                sender_name = sender_name or p.get("name", "") or (
+                    chat_title if not chat.get("isGroup") else ""
+                )
                 break
 
     http_shaped = {
@@ -125,15 +131,30 @@ def mcp_message_to_record(
         "isSender": is_from_me,
     }
 
+    # Ensure chat.participants carry a name for 1:1 LinkedIn chats so the
+    # matcher's fuzzy-name index has something to aim at. Without this,
+    # Beeper's opaque Matrix user IDs flow through with no resolvable
+    # identity and everything goes to the unknowns queue.
+    participants = list(chat.get("participants") or [])
+    if not chat.get("isGroup") and chat_title:
+        participants = [
+            {**p, "name": p.get("name") or chat_title}
+            if not p.get("isSelf") else p
+            for p in participants
+        ]
+
     chat_shaped = {
         "id": chat.get("chatID"),
         "accountID": chat.get("networkHint", "") or "",
         "networkID": chat.get("networkHint", "") or "",
-        "participants": chat.get("participants") or [],
+        "participants": participants,
         "isGroupChat": chat.get("isGroup", False),
+        "title": chat_title or None,
     }
 
-    network_id = (chat.get("networkHint") or "").lower()
+    # Normalize compound network IDs (slackgo.T07… → slack) so records
+    # have a valid channel per docs/schemas/interaction.md vocab.
+    network_id = normalize_network_id(chat.get("networkHint"))
     channel = NETWORK_CHANNEL_MAP.get(network_id, network_id or "beeper")
 
     record = client._message_to_record(
@@ -186,6 +207,9 @@ def harvest(payload: dict, *, dry_run: bool, upload: bool) -> dict:
         "by_channel": {},
     }
 
+    # Dry-run suppresses the unknowns-queue side-effect; pass a no-op.
+    on_unknown = (lambda _: None) if dry_run else None  # None → pipeline default
+
     for chat in payload.get("chats", []):
         for message in chat.get("messages", []):
             stats["messages_in"] += 1
@@ -201,44 +225,43 @@ def harvest(payload: dict, *, dry_run: bool, upload: bool) -> dict:
             ch = record.get("channel") or "unknown"
             stats["by_channel"][ch] = stats["by_channel"].get(ch, 0) + 1
 
-            iid = record["interactionId"]
-            if iid in seen_in_run:
+            # Delegate dedup + match + partition bucketing to the shared
+            # pipeline seam so the MCP path and the HTTP path can't drift.
+            kwargs = dict(
+                matcher=matcher,
+                records_by_partition=records_by_partition,
+                existing_ids_cache=existing_ids_cache,
+                seen_in_run=seen_in_run,
+            )
+            if on_unknown is not None:
+                kwargs["on_unknown"] = on_unknown
+            outcome = process_record(record, **kwargs)
+
+            if outcome == "new":
+                if record.get("contactId"):
+                    stats["matched"] += 1
+                else:
+                    stats["unmatched"] += 1
+            elif outcome == "dupe_in_run":
                 stats["skipped_intra_run_dupe"] += 1
-                continue
-            seen_in_run.add(iid)
-
-            ts = _parse_ts(record["timestamp"])
-            partition = _partition_path(ts)
-            if partition not in existing_ids_cache:
-                existing_ids_cache[partition] = _existing_ids(partition)
-            if iid in existing_ids_cache[partition]:
+            elif outcome == "dupe_on_disk":
                 stats["skipped_already_exists"] += 1
-                continue
-
-            resolved = matcher.match(record)
-            if resolved:
-                record["contactId"] = resolved
-                stats["matched"] += 1
-            else:
-                record["contactId"] = None
-                stats["unmatched"] += 1
-                if not dry_run:
-                    _append_unknown(record)
-
-            records_by_partition.setdefault(partition, []).append(record)
-            existing_ids_cache[partition].add(iid)
+            elif outcome in ("skipped_no_ts", "skipped_no_id"):
+                stats["skipped_missing_ts"] += 1
 
     if dry_run:
         print("\n-- dry-run: not writing or uploading --")
         for partition, records in records_by_partition.items():
             print(f"  would write {len(records)} records to {partition.name}")
-            for r in records[:3]:
+            for r in records[:5]:
                 print(f"    · [{r['channel']}] [{r['direction']}] "
                       f"{r['timestamp'][:19]} → {r.get('contactId') or 'unmatched'}"
                       f"  {r['summary'][:60]!r}")
+            if len(records) > 5:
+                print(f"    · … and {len(records) - 5} more")
         return {"dry_run": True, **stats}
 
-    written = _append_records(records_by_partition)
+    written = append_records(records_by_partition)
     for partition, count in written.items():
         print(f"  wrote {count} records to {partition}")
         if upload:

@@ -72,6 +72,49 @@ NETWORK_CHANNEL_MAP: dict[str, str] = {
 }
 
 
+def normalize_network_id(raw: Optional[str]) -> str:
+    """Strip Beeper's compound network/account prefixes.
+
+    Beeper's /v1/accounts returns accountID values like
+    `slackgo.T07QED922QP-U07R7KZ1Z5X` (workspace + user embedded) or
+    `slackgo.T07QED922QP`. A raw MCP payload's `networkHint` can also
+    carry these. Without normalization they leak past NETWORK_CHANNEL_MAP
+    and produce schema-invalid `channel` values in the InteractionRecord.
+
+    Called from both the HTTP harvester path (BeeperClient.harvest) and
+    the MCP path (scripts/mcp_harvest_session.py) so the two can't
+    diverge on channel vocab.
+
+    Rules are explicit rather than regex to keep the set auditable:
+      - slackgo.* → slack
+      - beepergo.* → strip prefix (Beeper internal bridges)
+      - matrix-* → strip prefix
+      - facebookgo → facebook (Messenger bridge goes by two names)
+      - discordgo → discord
+      - instagramgo → instagram
+    Unknown prefixes pass through lowercased.
+    """
+    raw = (raw or "").strip().lower()
+    if not raw:
+        return ""
+    # Order matters — longest prefix first so slackgo beats slack.
+    for prefix, replacement in (
+        ("slackgo", "slack"),
+        ("facebookgo", "facebook"),
+        ("discordgo", "discord"),
+        ("instagramgo", "instagram"),
+        ("beepergo", ""),
+        ("matrix-", ""),
+    ):
+        if raw.startswith(prefix):
+            rest = raw[len(prefix):].lstrip(".-:")
+            # If there's a canonical replacement, use it (drops the suffix
+            # entirely since workspace/user IDs are not the channel). If
+            # not, keep the tail (e.g. beepergo.sms → sms).
+            return replacement or rest or prefix
+    return raw
+
+
 # ── data shapes ───────────────────────────────────────────────────────────
 
 @dataclass
@@ -193,12 +236,15 @@ class BeeperClient:
             if not chat_id:
                 continue
             account_id = chat.get("accountID") or chat.get("accountId") or ""
-            network_id = (
+            raw_network_id = (
                 chat.get("networkID")
                 or chat.get("network")
                 or accounts_by_id.get(account_id, {}).get("networkID")
+                or account_id  # fallback to accountID so compound IDs still normalize
                 or ""
-            ).lower()
+            )
+            # Normalize compound IDs (slackgo.T07… etc) before map lookup.
+            network_id = normalize_network_id(raw_network_id)
 
             if self.config.skip_imessage and network_id == "imessage":
                 continue

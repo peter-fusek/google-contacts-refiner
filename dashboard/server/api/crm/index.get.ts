@@ -39,6 +39,7 @@ export default defineEventHandler(async (event): Promise<CRMResponse> => {
       score_breakdown: masked.score_breakdown,
       interaction: masked.interaction,
       linkedin: masked.linkedin,
+      beeper: masked.beeper ?? null,
       contact: masked.contact,
       followup_prompt: masked.followup_prompt,
     })
@@ -61,6 +62,7 @@ export default defineEventHandler(async (event): Promise<CRMResponse> => {
         score_breakdown: { interaction: 0, linkedin: 0, completeness: 0 },
         interaction: { last_date: null, count: 0, months_gap: 0 },
         linkedin: null,
+        beeper: null,
         contact: { org: '', title: '', has_email: false, has_phone: false, has_org: false, has_linkedin_url: false, completeness: 0, emails: [], urls: [] },
         followup_prompt: null,
       })

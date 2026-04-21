@@ -209,6 +209,11 @@ export function maskFollowUpScore(score: FollowUpScore): FollowUpScore {
       signal_text: score.linkedin.signal_text ? '[LinkedIn signal — hidden in demo]' : null,
       headline: score.linkedin.headline ? '[Headline — hidden in demo]' : null,
     } : null,
+    // Beeper rollup is aggregate-only per docs/schemas/interaction.md — no
+    // message content or handles — so it passes through unchanged in demo
+    // mode. Explicit rather than relying on object-rest so future additions
+    // (e.g. recent sender names) require a conscious demo-mask decision.
+    beeper: score.beeper ?? null,
     followup_prompt: score.followup_prompt ? '[Reconnect prompt — hidden in demo]' : null,
   }
 }

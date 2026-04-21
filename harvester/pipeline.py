@@ -158,6 +158,12 @@ def is_harvester_paused() -> bool:
 
 # ── partition writer ──────────────────────────────────────────────────────
 
+# Public seam for out-of-module consumers (e.g. scripts/mcp_harvest_session.py).
+# The leading-underscore names below remain the primary implementation so
+# internal call sites don't churn; the public aliases promise a stable
+# contract and show up as importable symbols. If a signature changes, update
+# the alias at the same time or both paths will silently drift.
+
 def _partition_path(ts: datetime, base: Optional[Path] = None) -> Path:
     if base is None:
         base = INTERACTIONS_DIR
@@ -220,6 +226,68 @@ def _append_unknown(record: dict, path: Optional[Path] = None) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+
+# Public re-exports — see block comment at top of section.
+partition_path_for = _partition_path
+existing_partition_ids = _existing_ids
+append_records = _append_records
+append_unknown_record = _append_unknown
+
+
+def process_record(
+    record: dict,
+    *,
+    matcher: ContactMatcher,
+    records_by_partition: dict[Path, list[dict]],
+    existing_ids_cache: dict[Path, set[str]],
+    seen_in_run: set[str],
+    on_unknown: Callable[[dict], None] = _append_unknown,
+) -> Literal["new", "dupe_in_run", "dupe_on_disk", "skipped_no_ts", "skipped_no_id"]:
+    """Process one normalized InteractionRecord into a harvest run.
+
+    Shared by `_run_single_reader` (HTTP path) and scripts/mcp_harvest_session.py
+    (MCP path). Handles: intra-run dedup, disk dedup, timestamp window,
+    contact match, unknown-queue routing, partition bucket append.
+
+    Caller must: (a) count the returned state into its own stats; (b) pass
+    the same `records_by_partition`, `existing_ids_cache`, `seen_in_run`
+    across calls so dedup works; (c) invoke `append_records` at end to
+    flush pending writes.
+
+    This is the one place to change if the normalization→persistence
+    contract evolves — both paths must stay in sync by going through here.
+    """
+    iid = record.get("interactionId")
+    if not iid:
+        return "skipped_no_id"
+    if iid in seen_in_run:
+        return "dupe_in_run"
+    seen_in_run.add(iid)
+
+    ts_raw = record.get("timestamp")
+    if not ts_raw:
+        return "skipped_no_ts"
+    ts = _parse_ts(ts_raw)
+    if ts is None:
+        return "skipped_no_ts"
+
+    partition = _partition_path(ts)
+    if partition not in existing_ids_cache:
+        existing_ids_cache[partition] = _existing_ids(partition)
+    if iid in existing_ids_cache[partition]:
+        return "dupe_on_disk"
+
+    resolved = matcher.match(record)
+    if resolved:
+        record["contactId"] = resolved
+    else:
+        record["contactId"] = None
+        on_unknown(record)
+
+    records_by_partition.setdefault(partition, []).append(record)
+    existing_ids_cache[partition].add(iid)
+    return "new"
 
 
 # ── contact snapshot loader ───────────────────────────────────────────────
@@ -467,51 +535,32 @@ def _run_single_reader(
     """Harvest one reader, match+dedup each record, add to pending writes.
 
     Returns the number of new records (post-dedup) queued for this reader.
+    Delegates per-record handling to the public `process_record` seam so
+    the MCP path in scripts/mcp_harvest_session.py and this HTTP path
+    can't drift on dedup / match / unknowns policy.
     """
     new_count = 0
-    seen_in_run: set[str] = set()  # intra-run dedup (two readers seeing same msg)
+    seen_in_run: set[str] = set()
 
     for record in reader.harvest(since=since, until=until):
         summary.records_seen += 1
         ch = record.get("channel") or reader_name
         summary.records_by_channel[ch] = summary.records_by_channel.get(ch, 0) + 1
 
-        iid = record.get("interactionId")
-        if not iid:
-            continue
-        if iid in seen_in_run:
-            continue
-        seen_in_run.add(iid)
-
-        ts_raw = record.get("timestamp")
-        if not ts_raw:
-            continue
-        ts = _parse_ts(ts_raw)
-        if ts is None:
-            continue
-
-        partition = _partition_path(ts)
-        if partition not in existing_ids_cache:
-            existing_ids_cache[partition] = _existing_ids(partition)
-        if iid in existing_ids_cache[partition]:
-            # Already persisted from a prior run — dedup and move on.
-            continue
-
-        # Contact match — mutate the record in place so the stored row
-        # carries contactId.
-        resolved = matcher.match(record)
-        if resolved:
-            record["contactId"] = resolved
-            summary.records_matched += 1
-        else:
-            record["contactId"] = None
-            summary.records_unmatched += 1
-            _append_unknown(record)
-
-        records_by_partition.setdefault(partition, []).append(record)
-        existing_ids_cache[partition].add(iid)
-        new_count += 1
-        summary.records_new += 1
+        outcome = process_record(
+            record,
+            matcher=matcher,
+            records_by_partition=records_by_partition,
+            existing_ids_cache=existing_ids_cache,
+            seen_in_run=seen_in_run,
+        )
+        if outcome == "new":
+            new_count += 1
+            summary.records_new += 1
+            if record.get("contactId"):
+                summary.records_matched += 1
+            else:
+                summary.records_unmatched += 1
 
     return new_count
 
