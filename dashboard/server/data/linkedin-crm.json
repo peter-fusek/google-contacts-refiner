@@ -278,10 +278,10 @@
       "name": "Juraj Drusc",
       "role": "IT Architect NCZI",
       "linkedinUrl": "",
-      "tier": "T2",
+      "tier": "T0",
       "source": "DM Batch #1",
-      "status": "DM_SENT",
-      "notes": "",
+      "status": "IN_CONVERSATION",
+      "notes": "2026-04-16 substantive thread on NCZI architecture, ISO 13606 reference. DM pending in composer. 30-min call requested.",
       "dmSentDate": "2026-04-14",
       "dmTemplate": "DM-T2-SK-01"
     },
@@ -1168,6 +1168,244 @@
       "camara": "outsider",
       "notes": "DM_SENT 2026-04-21 | EN | e& / etisalat UAE — Aduna-outsider framing + UAE+Maroc+PPF group context. Role verified by Peter before send. | e& = rebranded etisalat. UAE + Maroc Telecom + PPF stake. Aduna-outside. Role at e& not specified in search — verify before send.",
       "lastContactedAt": "2026-04-21"
+    },
+    {
+      "id": "andrea-sevcovicova",
+      "name": "Andrea Sevcovicova",
+      "role": "Professor at Comenius University, Bratislava",
+      "linkedinUrl": "https://www.linkedin.com/in/andrea-sevcovicova-a4374385/",
+      "tier": "T1",
+      "source": "Post reactor (Run #7)",
+      "status": "CONNECTED",
+      "notes": "Accepted in <1h — fastest acceptance ever. DMed same day.",
+      "dmSentDate": "2026-04-16",
+      "dmTemplate": "SK T1 academic (custom)"
+    },
+    {
+      "id": "adam-nichols",
+      "name": "Adam Nichols",
+      "role": "Account Executive, Ataccama",
+      "linkedinUrl": "https://www.linkedin.com/in/adam-nichols-ataccama-account-executive/",
+      "tier": "T1",
+      "source": "Post reactor (Run #7, instarea page)",
+      "status": "REQUEST_SENT",
+      "notes": "Data/SaaS angle."
+    },
+    {
+      "id": "martin-poljak",
+      "name": "Martin Poljak",
+      "role": "Senior Fullstack/Frontend Developer, Finshape (Prague)",
+      "linkedinUrl": "https://www.linkedin.com/in/martinpoljak/",
+      "tier": "T1",
+      "source": "Post reactor (Run #7)",
+      "status": "REQUEST_SENT",
+      "notes": "Tech audience — banking SaaS."
+    },
+    {
+      "id": "jakub-podlesny",
+      "name": "Jakub Podlesný",
+      "role": "Software QA Engineer, ShipMonk (Prague)",
+      "linkedinUrl": "https://www.linkedin.com/in/jakub-podlesny/",
+      "tier": "T1",
+      "source": "Post reactor (Run #7)",
+      "status": "REQUEST_SENT",
+      "notes": "Tech audience."
+    },
+    {
+      "id": "vladimir-rumanko",
+      "name": "Vladimir Rumanko",
+      "role": "IT Technology Analyst, Network Specialist, Cybersecurity",
+      "linkedinUrl": "https://www.linkedin.com/in/rumanko/",
+      "tier": "T2",
+      "source": "Post reactor (Run #7)",
+      "status": "REQUEST_SENT",
+      "notes": "SK, 253 connections."
+    },
+    {
+      "id": "maria-markova",
+      "name": "Mária Marková",
+      "role": "Accountant at DEUS",
+      "linkedinUrl": "https://www.linkedin.com/in/m%C3%A1ria-markov%C3%A1-bb7b3a294/",
+      "tier": "T2",
+      "source": "Post reactor (Run #7)",
+      "status": "REQUEST_SENT",
+      "notes": "Šenkvice, SK."
+    },
+    {
+      "id": "veronika-ocenasova",
+      "name": "Veronika Očenášová",
+      "role": "(check role)",
+      "linkedinUrl": "https://www.linkedin.com/in/veronika-o%C4%8Den%C3%A1%C5%A1ov%C3%A1-062999232/",
+      "tier": "T2",
+      "source": "Post reactor (Run #7)",
+      "status": "REQUEST_SENT",
+      "notes": ""
+    },
+    {
+      "id": "martin-gasperan",
+      "name": "Martin Gašperan",
+      "role": "(check role)",
+      "linkedinUrl": "https://www.linkedin.com/in/gasperan/",
+      "tier": "T2",
+      "source": "Post reactor (Run #7)",
+      "status": "REQUEST_SENT",
+      "notes": ""
+    },
+    {
+      "id": "radim-dodek",
+      "name": "Radim Dodek",
+      "role": "(check role)",
+      "linkedinUrl": "https://www.linkedin.com/in/radimdodek/",
+      "tier": "T2",
+      "source": "Post reactor (Run #7)",
+      "status": "REQUEST_SENT",
+      "notes": ""
+    },
+    {
+      "id": "mikulas-hodovanec",
+      "name": "Mikulas Hodovanec",
+      "role": "(check role)",
+      "linkedinUrl": "https://www.linkedin.com/in/mikulash/",
+      "tier": "T2",
+      "source": "Post reactor (Run #7, Oncologist SK)",
+      "status": "REQUEST_SENT",
+      "notes": ""
+    },
+    {
+      "id": "patrik-furda",
+      "name": "Patrik Furda",
+      "role": "(check role)",
+      "linkedinUrl": "https://www.linkedin.com/in/patrik-furda/",
+      "tier": "T2",
+      "source": "Post reactor (Run #7, Oncologist SK)",
+      "status": "REQUEST_SENT",
+      "notes": ""
+    },
+    {
+      "id": "marcelo-bazani",
+      "name": "Marcelo Bazani",
+      "role": "(check role)",
+      "linkedinUrl": "https://www.linkedin.com/in/marcelo-bazani/",
+      "tier": "T2",
+      "source": "Post reactor (Run #7, instarea page)",
+      "status": "REQUEST_SENT",
+      "notes": "EN-speaking."
+    },
+    {
+      "id": "lauren-ruth",
+      "name": "Lauren Ruth",
+      "role": "(check role)",
+      "linkedinUrl": "https://www.linkedin.com/in/laurenjlloyd/",
+      "tier": "T2",
+      "source": "Post reactor (Run #7, instarea page)",
+      "status": "REQUEST_SENT",
+      "notes": "EN, US-based."
+    },
+    {
+      "id": "tom-pam",
+      "name": "Tom Pam",
+      "role": "(check role)",
+      "linkedinUrl": "https://www.linkedin.com/in/tom-pam-18b1b14/",
+      "tier": "T2",
+      "source": "Post reactor (Run #7, instarea page)",
+      "status": "REQUEST_SENT",
+      "notes": "EN-speaking."
+    },
+    {
+      "id": "ramesh-d",
+      "name": "Ramesh D.",
+      "role": "(check role)",
+      "linkedinUrl": "https://www.linkedin.com/in/ramesh-dusari/",
+      "tier": "T2",
+      "source": "Post reactor (Run #7, instarea page)",
+      "status": "REQUEST_SENT",
+      "notes": "EN-speaking."
+    },
+    {
+      "id": "ivanka-todorova",
+      "name": "Ivanka Todorova",
+      "role": "(check role)",
+      "linkedinUrl": "https://www.linkedin.com/in/ivanka-todorova-18212b1b7/",
+      "tier": "T2",
+      "source": "Post reactor (Run #7, instarea page)",
+      "status": "REQUEST_SENT",
+      "notes": "EN-speaking."
+    },
+    {
+      "id": "martina-mazurkovicova",
+      "name": "Martina Mazurkovičová",
+      "role": "(check role)",
+      "linkedinUrl": "https://www.linkedin.com/in/martina-mazurkovi%C4%8Dov%C3%A1-93a753254/",
+      "tier": "T2",
+      "source": "Post reactor (Run #7, Oncoteam WhatsApp/labky, urn:7449479340993712129)",
+      "status": "CREATOR_MODE_BLOCKED",
+      "notes": "Reacted to Oncoteam WhatsApp/labky (31 reactions). Creator Mode enabled — no Connect option available."
+    },
+    {
+      "id": "oliver-solensky",
+      "name": "Oliver Solenský",
+      "role": "(check role)",
+      "linkedinUrl": "https://www.linkedin.com/in/oliver-solensk%C3%BD-56b255150/",
+      "tier": "T2",
+      "source": "Post reactor (Run #7, Oncoteam WhatsApp/labky, urn:7449479340993712129)",
+      "status": "CREATOR_MODE_BLOCKED",
+      "notes": "Reacted to Oncoteam WhatsApp/labky (31 reactions). Creator Mode blocked."
+    },
+    {
+      "id": "jindrich-kana",
+      "name": "Jindřich Káňa",
+      "role": "(check role)",
+      "linkedinUrl": "https://www.linkedin.com/in/jindrichkana/",
+      "tier": "T2",
+      "source": "Post reactor (Run #7, Sam Altman repost, urn:7449562688424321025)",
+      "status": "CREATOR_MODE_BLOCKED",
+      "notes": "Reacted to Sam Altman repost (8 reactions). Creator Mode blocked."
+    },
+    {
+      "id": "tomas-linhart",
+      "name": "Tomáš Linhart",
+      "role": "(check role)",
+      "linkedinUrl": "https://www.linkedin.com/in/tom%C3%A1%C5%A1-linhart-7b56a8105/",
+      "tier": "T2",
+      "source": "Post reactor (Run #7, Sam Altman repost, urn:7449562688424321025)",
+      "status": "CREATOR_MODE_BLOCKED",
+      "notes": "Reacted to Sam Altman repost (8 reactions). Creator Mode blocked."
+    },
+    {
+      "id": "monika-ondekova",
+      "name": "Monika Ondeková",
+      "role": "Founder & Mentor, POTIFOB — Neuroinclusion in Teams",
+      "linkedinUrl": "https://www.linkedin.com/in/monikaondekova/",
+      "tier": "T1",
+      "source": "Oncofiles 3rd-patient post commenter (Apr 16)",
+      "status": "DM_SENT",
+      "notes": "2026-04-16 DM sent — 3rd-patient milestone response to her comment under Peter's Apr 8 post. 2026-04-21 she replied declining (no capacity). Archive as cold.",
+      "dmSentDate": "2026-04-16",
+      "dmTemplate": "Custom (response to comment)",
+      "dmResponse": "2026-04-21 declined: 'na toto teraz nemám kapacitu takže si to nechám bokom'",
+      "lastContactedAt": "2026-04-21"
+    },
+    {
+      "id": "miroslava-schonborg",
+      "name": "Miroslava Schönborg-Ganzarčíková",
+      "role": "Marketing Director | Cancer Survivor",
+      "linkedinUrl": "https://www.linkedin.com/search/results/people/?keywords=miroslava%20schonborg",
+      "tier": "T0",
+      "source": "Oncofiles 3rd-patient milestone (Apr 16, active demo user)",
+      "status": "IN_CONVERSATION",
+      "notes": "HOT LEAD. 2026-04-16 active demo session — she said 'Uz som nasla demo, idem rovno vyskusat'. Dual identity: Cancer Survivor + Marketing Director = product validation + messaging advisor. Next touch: wait for her demo feedback.",
+      "lastContactedAt": "2026-04-16"
+    },
+    {
+      "id": "jnordentoft-kemper",
+      "name": "J. Nordentoft",
+      "role": "Oncofiles newsletter subscriber (kemper.com)",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "Newsletter signup 2026-04-16 (oncofiles.com form)",
+      "status": "RESPONDED",
+      "notes": "First verified external newsletter subscriber. Email: jnordentoft@kemper.com. Signup 2026-04-16T05:10:36Z, verified 2026-04-16T05:10:57Z. Next: personal intro email.",
+      "lastContactedAt": "2026-04-16"
     }
   ],
   "institutions": [
@@ -1502,6 +1740,15 @@
       "reactions": 0,
       "nonFirst": 20,
       "sent": 14
+    },
+    {
+      "date": "2026-04-16",
+      "run": 7,
+      "post": "Oncofiles 3rd-patient milestone (SK + EN)",
+      "reactions": 0,
+      "nonFirst": 0,
+      "sent": 0,
+      "notes": "Engagement mining hit 4 creator-mode-blocked candidates (tracked as CREATOR_MODE_BLOCKED). 3 milestone DMs drafted in composer — Ondeková SENT, Schönborg IN_CONVERSATION (active demo), Drusc pending (substantive NCZI architecture thread)."
     }
   ],
   "dmLog": [
@@ -1881,6 +2128,16 @@
       "channel": "linkedin_dm",
       "outcome": "sent",
       "notes": "e& UAE. FU 2026-04-28."
+    },
+    {
+      "date": "2026-04-16",
+      "contactName": "Andrea Sevcovicova",
+      "contactId": "andrea-sevcovicova",
+      "tier": "T1",
+      "template": "SK T1 academic (custom)",
+      "status": "SENT",
+      "response": null,
+      "outcome": "pending"
     }
   ],
   "followerSnapshots": [
@@ -1926,6 +2183,11 @@
       "pendingInvites": 145,
       "delta": 8,
       "notes": "Full sweep + 2-week comments + A.5 harvest pulse. +8 followers in 3d (organic). +8 connections (7 new people + Katarina Kruspig CREATOR_MODE→CONNECTED). Archived inbox recovered 5 DM responses: Miroslav Tomáš RESPONDED (meeting scheduled Fri 04-24 w/ wife), Monika Schedlbauerová RESPONDED (busy, deferred), Viktória Jakubovičová RESPONDED (times pending), Robert Babela RESPONDED (soft positive), Lucia Cesnakova RESPONDED (demo Wed 04-23 10:00). Oncofiles \"3 pacienti\" post fully replied to; Miloš Malejčík ethical challenge answered, he committed to DM. Sent new DMs: Miloslava Burikova, Kristína Gomoryová (both Oncofiles T1). Skipped: Anna Kolegová (Swiss Re → HomeGrif too tenuous). Harvest pulse: 145 pending invites (was 150 at Run #7), ~5 accepted in 4 days."
+    },
+    {
+      "date": "2026-04-16",
+      "followers": 18623,
+      "notes": "Run #7 reference — 3rd-patient milestone campaign day."
     }
   ],
   "milestones": [
@@ -1977,7 +2239,13 @@
       "targetDate": "2026-05-15",
       "metric": "1 written",
       "status": "TODO"
+    },
+    {
+      "name": "Oncofiles 3rd patient live",
+      "targetDate": "2026-04-16",
+      "metric": "3 patients onboarded",
+      "status": "DONE"
     }
   ],
-  "updatedAt": "2026-04-21T12:39:08.001264Z"
+  "updatedAt": "2026-04-21T19:30:00Z"
 }
