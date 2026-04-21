@@ -26,6 +26,29 @@ logging.basicConfig(
 logger = logging.getLogger("contacts-refiner")
 
 
+def _fatal_phase_import(phase: str, missing: str, exc: ImportError) -> None:
+    """Exit with a loud red banner when an optional phase can't import its
+    module. A missing module means the container image shipped broken
+    (Dockerfile drift, forgotten COPY, wheel install failure). Swallowing
+    this as "non-fatal" produced the Sprint 3.31–3.33 silent failure where
+    Phase 4 + 5 never ran on ANY scheduled run for three sprints. See #169.
+    """
+    import sys
+    banner = (
+        "\n"
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        f"  FATAL: {phase} cannot import {missing}\n"
+        f"  {exc.__class__.__name__}: {exc}\n"
+        "  The image shipped without a required module. Fix the Dockerfile\n"
+        "  or requirements.txt; do NOT mask this as 'non-fatal'.\n"
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+    )
+    sys.stderr.write(banner)
+    sys.stderr.flush()
+    logger.error("%s ImportError (FATAL): %s", phase, exc)
+    sys.exit(1)
+
+
 def _auto_export_sessions():
     """
     Auto-export review sessions that have decisions but haven't been exported.
@@ -593,12 +616,19 @@ def run():
         logger.info("Phase 3 skipped (ENABLE_ACTIVITY_TAGGING not set)")
 
     # ── Phase 4 (optional): FollowUp Scoring ────────────────────────
+    # Import is split from phase body so ImportError is FATAL (exit 1) — a
+    # missing module means the image shipped broken, which is worse than
+    # a red build (see #169 / the 3-sprint Dockerfile silent failure).
+    # Runtime errors in the phase body stay non-fatal + email-reportable.
     enable_followup = os.getenv("ENABLE_FOLLOWUP_SCORING", "").lower() in ("1", "true", "yes")
     if enable_followup and include_followup_crm:
         logger.info("Phase 4: FollowUp Scoring")
         _p4_start = datetime.now()
         try:
             from main import cmd_followup
+        except ImportError as e:
+            _fatal_phase_import("Phase 4", "main.cmd_followup", e)
+        try:
             cmd_followup(skip_scan=True, dry_run=dry_run, no_prompts=False)
             run_state["phases_completed"].append("phase4")
             run_state["phases"]["phase4"] = {"elapsed_s": int((datetime.now() - _p4_start).total_seconds())}
@@ -612,12 +642,16 @@ def run():
         logger.info("Phase 4 skipped (ENABLE_FOLLOWUP_SCORING not set)")
 
     # ── Phase 5 (optional): CRM Sync ──────────────────────────────
+    # Same split as Phase 4: ImportError → fatal, runtime → non-fatal.
     enable_crm_sync = os.getenv("ENABLE_CRM_SYNC", "").lower() in ("1", "true", "yes")
     if enable_crm_sync and include_followup_crm:
         logger.info("Phase 5: CRM Sync (notes + tags → Google Contacts)")
         _p5_start = datetime.now()
         try:
             from crm_sync import run_crm_sync
+        except ImportError as e:
+            _fatal_phase_import("Phase 5", "crm_sync.run_crm_sync", e)
+        try:
             crm_result = run_crm_sync(dry_run=dry_run)
             run_state["phases_completed"].append("phase5")
             run_state["phases"]["phase5"] = {
