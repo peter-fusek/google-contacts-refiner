@@ -69,10 +69,26 @@ def _classify_api_error(exc: Exception) -> str:
     return "permanent"
 
 
+_PEOPLE_API_MIN_INTERVAL_SECONDS = 1.1
+_last_api_call: list[float] = [0.0]
+
+
+def _throttle() -> None:
+    """Hold to ≤55 QPM — Google People's write cap is 60 QPM and server-side
+    backoff when we exceed it surfaces as transient errors that conflate
+    with real failures. Mirrors `scripts/restore_biographies.py`."""
+    import time as _time
+    elapsed = _time.monotonic() - _last_api_call[0]
+    if elapsed < _PEOPLE_API_MIN_INTERVAL_SECONDS:
+        _time.sleep(_PEOPLE_API_MIN_INTERVAL_SECONDS - elapsed)
+    _last_api_call[0] = _time.monotonic()
+
+
 def strip_one(
     client: PeopleAPIClient, rn: str, *, dry_run: bool,
 ) -> str:
     """Process one contact. Returns status string for aggregation."""
+    _throttle()
     try:
         person = client.get_contact(rn, person_fields="biographies,metadata")
     except Exception as e:
@@ -96,6 +112,7 @@ def strip_one(
     if dry_run:
         return f"would-strip (len {len(current)} → {len(new_bio)})"
 
+    _throttle()
     etag = person.get("etag")
     body = {"biographies": [{"value": new_bio, "contentType": "TEXT_PLAIN"}]}
     client.update_contact(rn, etag, body, update_fields="biographies")

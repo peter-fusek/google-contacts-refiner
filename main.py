@@ -1514,10 +1514,18 @@ def cmd_crm_sync(dry_run=False):
         print("ℹ️  DRY RUN — no contacts or groups will be updated")
         print()
 
+    # Operator clarity — echo env gate for the omnichannel pass so it's
+    # obvious whether the Beeper block will actually be written, without
+    # needing to read the crm_sync source.
+    if not os.getenv("ENABLE_OMNICHANNEL_WRITEBACK"):
+        print("ℹ️  Omnichannel writeback: skipped (ENABLE_OMNICHANNEL_WRITEBACK not set)")
+        print()
+
     result = run_crm_sync(dry_run=dry_run)
 
     notes = result["notes"]
     tags = result["tags"]
+    omni = result.get("omnichannel", {})
 
     print()
     print("📝 Notes sync:")
@@ -1525,6 +1533,21 @@ def cmd_crm_sync(dry_run=False):
     print(f"   Skipped (unchanged): {notes['skipped']}")
     if notes["errors"]:
         print(f"   Errors: {notes['errors']}")
+
+    print()
+    print("📨 Omnichannel writeback:")
+    status = omni.get("status", "unknown")
+    print(f"   Status: {status}")
+    if status in ("ok",):
+        print(f"   {'Would sync' if dry_run else 'Synced'}: {omni.get('synced', 0)}")
+        print(f"   Skipped own-company: {omni.get('skipped_own_co', 0)}")
+        print(f"   Skipped no-change:   {omni.get('skipped_no_change', 0)}")
+        if omni.get("skipped_no_kpi"):
+            print(f"   Skipped missing KPI: {omni['skipped_no_kpi']}")
+        if omni.get("errors"):
+            print(f"   Errors: {omni['errors']}")
+        if omni.get("backup"):
+            print(f"   Backup: {omni['backup']}")
 
     print()
     print("🏷️  Tags sync:")

@@ -106,6 +106,26 @@ def _classify_api_error(exc: Exception) -> str:
     return "permanent"
 
 
+_PEOPLE_API_MIN_INTERVAL_SECONDS = 1.1
+_last_api_call: list[float] = [0.0]  # mutable singleton — avoid a global `nonlocal`-less closure gotcha
+
+
+def _throttle() -> None:
+    """Sleep enough to keep at or under Google People's 60 QPM write ceiling.
+
+    Each `get_contact`/`update_contact` counts as one quota unit. Without
+    a throttle a bulk restore burns the minute-bucket in ~5 seconds, then
+    blocks for the rest of the minute under server-side backoff that
+    looks like transient errors in our logs. 1.1s interval keeps us at
+    ~55 QPM — under the cap with a safety margin.
+    """
+    import time as _time
+    elapsed = _time.monotonic() - _last_api_call[0]
+    if elapsed < _PEOPLE_API_MIN_INTERVAL_SECONDS:
+        _time.sleep(_PEOPLE_API_MIN_INTERVAL_SECONDS - elapsed)
+    _last_api_call[0] = _time.monotonic()
+
+
 def restore_one(
     client: PeopleAPIClient,
     rn: str,
@@ -120,6 +140,7 @@ def restore_one(
     whole run — silently proceeding through auth failures would produce
     thousands of misleading "skipped" rows.
     """
+    _throttle()
     try:
         person = client.get_contact(rn, person_fields="biographies,metadata")
     except Exception as e:
@@ -150,6 +171,7 @@ def restore_one(
     if dry_run:
         return f"would-change (current={len(current)}c → new={len(new_bio)}c)"
 
+    _throttle()
     body = {"biographies": [{"value": new_bio, "contentType": "TEXT_PLAIN"}]}
     client.update_contact(rn, etag, body, update_fields="biographies")
     return "restored"

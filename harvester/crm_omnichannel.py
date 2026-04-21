@@ -263,8 +263,29 @@ def strip_block(biography: str) -> str:
 def merge_into_biography(biography: str, block: str) -> str:
     """Produce a new biography with `block` inserted / replacing prior block.
 
-    Insertion position: after the last existing marker block (same rule as
-    crm_sync._insert_crm_block) so user free-text stays at the bottom.
+    Insertion position: after the content of the last existing marker
+    block, before any user free text. Same intent as
+    crm_sync._insert_crm_block but fixes two bugs the original had
+    when multiple implicit-end blocks are stacked (Sprint 3.33 S3
+    dry-run revealed this against Norbert Nepela's biography, which
+    has Last Interaction + Social Signals without explicit End markers):
+
+    1. The old `in_block = not in_block and ...` toggle collapsed on the
+       second marker (True→False), so all content after it fell outside
+       the block and didn't advance `last_marker_line`. Insertion then
+       landed right after the second header, splitting its block.
+    2. Blank lines need to close implicit-end blocks so user free text
+       below the last block doesn't get swallowed into the block's
+       content span.
+
+    Rules applied here:
+    - Any marker line `── X ──` opens a block (unless it's `── End X ──`
+      which closes one). Previous block is implicitly closed.
+    - A blank line within an implicit-end block closes it — content
+      after the blank is treated as user free text (or the start of the
+      next block, detected on the next marker).
+    - `last_marker_line` tracks the last line we're confident belongs to
+      a marker block's content; insertion goes right after it.
     """
     base = strip_block(biography)
 
@@ -277,16 +298,18 @@ def merge_into_biography(biography: str, block: str) -> str:
     for i, line in enumerate(lines):
         s = line.strip()
         if s.startswith("──"):
-            # A marker header line (or an end marker like "── End X ──").
-            # Track as the last-seen marker line regardless of role.
             last_marker_line = i
-            in_block = not in_block and "End" not in s
+            # "── End X ──" closes the block; any other `── X ──` header
+            # opens a new block (and implicitly closes any prior one).
+            in_block = "End" not in s
         elif in_block:
-            # Content line within a marker block counts as part of it.
-            last_marker_line = i
-        elif s.startswith("──") is False and last_marker_line >= 0 and in_block:
-            # Non-marker line within a block
-            last_marker_line = i
+            if not s:
+                # Blank inside an implicit-end block = end-of-block.
+                # Don't advance past it — lines below belong to user free
+                # text (or the next marker, which re-opens on its own).
+                in_block = False
+            else:
+                last_marker_line = i
 
     if last_marker_line >= 0:
         before = "\n".join(lines[: last_marker_line + 1])
