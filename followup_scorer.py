@@ -19,6 +19,20 @@ from typing import Optional
 
 from config import (
     DATA_DIR,
+    FOLLOWUP_BEEPER_AWAITING_MY_REPLY,
+    FOLLOWUP_BEEPER_BUSINESS_HOURS,
+    FOLLOWUP_BEEPER_BUSINESS_HOURS_RATIO,
+    FOLLOWUP_BEEPER_BUSINESS_KEYWORDS,
+    FOLLOWUP_BEEPER_INBOUND_HEAVY,
+    FOLLOWUP_BEEPER_INBOUND_HEAVY_DELTA,
+    FOLLOWUP_BEEPER_KPI_FILE,
+    FOLLOWUP_BEEPER_LONG_SILENCE_DAYS,
+    FOLLOWUP_BEEPER_LONG_SILENCE_PENALTY,
+    FOLLOWUP_BEEPER_MAX,
+    FOLLOWUP_BEEPER_MIN,
+    FOLLOWUP_BEEPER_MULTICHANNEL,
+    FOLLOWUP_BEEPER_STALE_SENT_MIN_COUNT,
+    FOLLOWUP_BEEPER_STALE_SENT_PENALTY,
     FOLLOWUP_COMPLETENESS_WEIGHT,
     FOLLOWUP_EXEC_TITLE_BONUS,
     FOLLOWUP_EXEC_TITLE_KEYWORDS,
@@ -34,6 +48,12 @@ from config import (
     FOLLOWUP_PERSONAL_PENALTY,
     FOLLOWUP_SCORES_FILE,
     FOLLOWUP_TOP_N,
+)
+from harvester.scoring_signals import (
+    BeeperWeights,
+    ContactKPI,
+    compute_beeper_bonus,
+    load_kpis_from_json,
 )
 from interaction_scanner import _classify_url
 
@@ -53,6 +73,44 @@ def load_linkedin_signals(path: Optional[Path] = None) -> dict[str, dict]:
     except (json.JSONDecodeError, KeyError) as e:
         logger.warning(f"FollowUp: Failed to parse linkedin_signals.json: {e}")
         return {}
+
+
+def load_contact_kpis(path: Optional[Path] = None) -> dict[str, ContactKPI]:
+    """Load ContactKPI rollups from local JSON file, keyed by resourceName.
+
+    Returns empty dict if file missing or schema_version mismatches —
+    scoring falls back gracefully to pre-Beeper behaviour with
+    score_beeper=0 for every contact. Harvester hasn't run yet → no
+    regression; harvester ran but crashed mid-write → we ignore the
+    broken file rather than scoring on half-baked data.
+    """
+    if path is None:
+        path = FOLLOWUP_BEEPER_KPI_FILE
+    try:
+        kpis = load_kpis_from_json(path)
+        if kpis:
+            logger.info(f"FollowUp: loaded {len(kpis)} ContactKPI records from {path}")
+        return kpis
+    except Exception as e:
+        logger.warning(f"FollowUp: failed to load contact_kpis.json: {e}")
+        return {}
+
+
+_BEEPER_WEIGHTS = BeeperWeights(
+    awaiting_my_reply=FOLLOWUP_BEEPER_AWAITING_MY_REPLY,
+    multichannel=FOLLOWUP_BEEPER_MULTICHANNEL,
+    business_keywords=FOLLOWUP_BEEPER_BUSINESS_KEYWORDS,
+    business_hours=FOLLOWUP_BEEPER_BUSINESS_HOURS,
+    inbound_heavy=FOLLOWUP_BEEPER_INBOUND_HEAVY,
+    stale_sent_penalty=FOLLOWUP_BEEPER_STALE_SENT_PENALTY,
+    long_silence_penalty=FOLLOWUP_BEEPER_LONG_SILENCE_PENALTY,
+    cap_max=FOLLOWUP_BEEPER_MAX,
+    cap_min=FOLLOWUP_BEEPER_MIN,
+    business_hours_ratio_threshold=FOLLOWUP_BEEPER_BUSINESS_HOURS_RATIO,
+    inbound_heavy_delta=FOLLOWUP_BEEPER_INBOUND_HEAVY_DELTA,
+    stale_sent_min_count=FOLLOWUP_BEEPER_STALE_SENT_MIN_COUNT,
+    long_silence_days=FOLLOWUP_BEEPER_LONG_SILENCE_DAYS,
+)
 
 
 @dataclass
@@ -85,6 +143,7 @@ class FollowUpScore:
     score_completeness: float
     score_exec: float
     personal_multiplier: float
+    score_beeper: float                        # ContactKPI-driven bonus (#150), capped [FOLLOWUP_BEEPER_MIN, FOLLOWUP_BEEPER_MAX]
     score_total: float
     # Contact metadata
     org: str
@@ -94,6 +153,13 @@ class FollowUpScore:
     # Set after scoring
     rank: int = 0
     followup_prompt: Optional[str] = None
+    # Beeper metadata (defaults = "no Beeper signal") — placed at end to preserve
+    # the dataclass non-default-then-default ordering.
+    beeper_channel_primary: Optional[str] = None
+    beeper_awaiting_reply_side: Optional[str] = None
+    beeper_messages_30d_in: int = 0
+    beeper_messages_30d_out: int = 0
+    beeper_channels_30d: int = 0
 
 
 def _is_exec_title(title: str, headline: str, current_role: str) -> bool:
@@ -192,6 +258,7 @@ def score_contacts(
     interactions: dict[str, dict],
     contact_emails: dict[str, set[str]],
     linkedin_signals: dict[str, dict],
+    contact_kpis: Optional[dict[str, ContactKPI]] = None,
     top_n: int = FOLLOWUP_TOP_N,
     min_interactions: int = FOLLOWUP_MIN_INTERACTIONS,
     min_months: float = FOLLOWUP_MIN_MONTHS,
@@ -199,7 +266,10 @@ def score_contacts(
     """Score all contacts and return top_n sorted by score_total descending.
 
     LinkedIn job_change signals bypass the min_months and min_interactions filters.
+    If contact_kpis is provided, each contact's multi-channel Beeper activity
+    contributes an additive bonus via compute_beeper_bonus() (#150).
     """
+    contact_kpis = contact_kpis or {}
     today = datetime.now(timezone.utc)
     contacts_by_rn = {c.get("resourceName", ""): c for c in contacts}
     candidates: list[FollowUpScore] = []
@@ -277,7 +347,29 @@ def score_contacts(
         score_exec = FOLLOWUP_EXEC_TITLE_BONUS if is_exec else 0.0
         personal_multiplier = FOLLOWUP_PERSONAL_PENALTY if is_likely_personal else 1.0
 
-        base_score = score_interaction + score_linkedin + score_completeness + score_exec
+        # Beeper bonus — 0 if no KPI data (graceful fallback when harvester
+        # hasn't run yet or contact has no cross-channel activity)
+        kpi = contact_kpis.get(rn)
+        if kpi:
+            score_beeper = compute_beeper_bonus(kpi, _BEEPER_WEIGHTS, as_of=today)
+            w30 = kpi.windows.get("30d")
+            beeper_channel_primary = kpi.channel_primary
+            beeper_awaiting_side = kpi.last_awaiting_reply_side
+            beeper_msgs_in = w30.messages_in if w30 else 0
+            beeper_msgs_out = w30.messages_out if w30 else 0
+            beeper_channels = len(w30.channels) if w30 else 0
+        else:
+            score_beeper = 0.0
+            beeper_channel_primary = None
+            beeper_awaiting_side = None
+            beeper_msgs_in = 0
+            beeper_msgs_out = 0
+            beeper_channels = 0
+
+        base_score = (
+            score_interaction + score_linkedin + score_completeness
+            + score_exec + score_beeper
+        )
         score_total = base_score * personal_multiplier
 
         # LinkedIn metadata
@@ -310,11 +402,17 @@ def score_contacts(
             score_completeness=score_completeness,
             score_exec=score_exec,
             personal_multiplier=personal_multiplier,
+            score_beeper=round(score_beeper, 1),
             score_total=round(score_total, 1),
             org=org,
             title=title,
             emails=list(emails),
             urls=urls,
+            beeper_channel_primary=beeper_channel_primary,
+            beeper_awaiting_reply_side=beeper_awaiting_side,
+            beeper_messages_30d_in=beeper_msgs_in,
+            beeper_messages_30d_out=beeper_msgs_out,
+            beeper_channels_30d=beeper_channels,
         ))
 
     # Sort by score descending, take top N
@@ -346,12 +444,20 @@ def build_followup_scores_json(scored_list: list[FollowUpScore]) -> dict:
                 "linkedin": s.score_linkedin,
                 "completeness": s.score_completeness,
                 "exec_bonus": s.score_exec,
+                "beeper": s.score_beeper,
                 "personal_multiplier": s.personal_multiplier,
             },
             "flags": {
                 "is_exec": s.is_exec,
                 "is_likely_personal": s.is_likely_personal,
             },
+            "beeper": {
+                "channel_primary": s.beeper_channel_primary,
+                "awaiting_reply_side": s.beeper_awaiting_reply_side,
+                "messages_30d_in": s.beeper_messages_30d_in,
+                "messages_30d_out": s.beeper_messages_30d_out,
+                "channels_30d": s.beeper_channels_30d,
+            } if s.score_beeper != 0 else None,
             "interaction": {
                 "last_date": s.last_date,
                 "months_gap": s.months_gap,
@@ -389,6 +495,10 @@ def build_followup_scores_json(scored_list: list[FollowUpScore]) -> dict:
         "no_linkedin": sum(1 for s in scored_list if not s.linkedin_signal),
         "avg_completeness": round(
             sum(s.completeness for s in scored_list) / len(scored_list), 1
+        ) if scored_list else 0,
+        "beeper_enriched": sum(1 for s in scored_list if s.score_beeper != 0),
+        "avg_beeper_bonus": round(
+            sum(s.score_beeper for s in scored_list) / len(scored_list), 1
         ) if scored_list else 0,
     }
 
