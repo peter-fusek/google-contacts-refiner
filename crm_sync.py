@@ -22,6 +22,10 @@ from typing import Optional
 
 from config import (
     DATA_DIR,
+    CRM_TAG_ALIASES,
+    CRM_TAG_FUZZY_THRESHOLD,
+    CRM_TAG_PREFIX_STRING,
+    CRM_TAG_USE_PREFIX,
     FOLLOWUP_BEEPER_KPI_FILE,
     FOLLOWUP_OWN_COMPANY_DOMAINS,
     FOLLOWUP_OWN_COMPANY_ORG_KEYWORDS,
@@ -33,11 +37,64 @@ from harvester.crm_omnichannel import (
     should_update,
 )
 from harvester.scoring_signals import load_kpis_from_json
+from unidecode import unidecode
 
 logger = logging.getLogger("crm_sync")
 
 CRM_NOTE_MARKER = "── CRM Notes"
-CRM_TAG_PREFIX = "CRM:"
+CRM_TAG_PREFIX = CRM_TAG_PREFIX_STRING  # back-compat alias for callers that imported the old name
+
+
+def _fold(name: str) -> str:
+    """ASCII-fold + lowercase a label name for diacritic-insensitive matching."""
+    return unidecode(name).strip().lower()
+
+
+def _resolve_tag_to_group_name(
+    raw_tag: str,
+    existing_names: list[str],
+) -> tuple[str, str]:
+    """Map a raw CRM tag to the Google contact group name to use.
+
+    Resolution order (first match wins):
+      1. Explicit alias (`CRM_TAG_ALIASES[fold(raw)]`) — honours Peter's shorthand.
+      2. Exact match on existing group name — case/diacritic-insensitive.
+      3. Fuzzy match against existing group names (rapidfuzz token_sort_ratio).
+      4. Fallback: create a new group (prefixed if `CRM_TAG_USE_PREFIX`, else bare).
+
+    Returns (group_name, route) where `route` names which rule fired
+    (for logging).
+    """
+    raw = raw_tag.strip()
+    folded = _fold(raw)
+
+    # 1. Alias
+    if folded in CRM_TAG_ALIASES:
+        return CRM_TAG_ALIASES[folded], "alias"
+
+    # 2. Exact (case/diacritic-insensitive) match against Peter's existing labels
+    for name in existing_names:
+        if _fold(name) == folded:
+            return name, "fold-exact"
+
+    # 3. Fuzzy — rapidfuzz is already a project dependency (followup scorer).
+    try:
+        from rapidfuzz import fuzz, process
+    except ImportError:
+        fuzz = process = None  # type: ignore[assignment]
+    if process is not None and existing_names:
+        match = process.extractOne(
+            folded,
+            [_fold(n) for n in existing_names],
+            scorer=fuzz.token_sort_ratio,
+        )
+        if match and match[1] >= CRM_TAG_FUZZY_THRESHOLD:
+            return existing_names[match[2]], f"fuzzy@{int(match[1])}"
+
+    # 4. Create fresh — bare by default (#172), prefixed only if env flag set
+    if CRM_TAG_USE_PREFIX:
+        return f"{CRM_TAG_PREFIX_STRING}{raw}", "create-prefixed"
+    return raw, "create-bare"
 
 # Google People API write rate cap is 60 QPM (documented on the quotas page).
 # We keep a local floor to avoid bursts that can trigger backoff — matches the
@@ -217,37 +274,53 @@ def sync_tags(client, crm_state: dict, dry_run: bool = False) -> dict:
     memberships_added = 0
     errors = 0
 
-    # Collect all unique tags across contacts. Google People API rejects
-    # "profile-only" resourceNames (bare-digit `people/<digits>`) from
-    # contactGroups.members.modify — only `people/c<digits>` (contactId)
-    # is accepted. Filter them out here so the whole tag-group sync doesn't
-    # 400 on a single bad record. See #171.
-    tag_contacts: dict[str, list[str]] = {}  # tag -> [resourceName, ...]
+    # Filter out "profile-only" (bare-digit) resourceNames up front — Google
+    # People API rejects them from contactGroups.members.modify (see #171).
+    filtered: list[tuple[str, list[str]]] = []
     skipped_legacy = 0
+    raw_by_contact: dict[str, list[str]] = {}
     for rn, state in contacts.items():
         if not rn.startswith("people/c"):
             skipped_legacy += 1
             continue
-        for tag in state.get("tags", []):
-            if not tag.strip():
-                continue
-            group_name = f"{CRM_TAG_PREFIX}{tag.strip()}"
-            tag_contacts.setdefault(group_name, []).append(rn)
+        tags = [t.strip() for t in state.get("tags", []) if t.strip()]
+        if tags:
+            raw_by_contact[rn] = tags
     if skipped_legacy:
         logger.info(
             "Skipped %d contacts with legacy (non-c) resourceName from tag sync",
             skipped_legacy,
         )
-
-    if not tag_contacts:
+    if not raw_by_contact:
         logger.info("No CRM tags to sync")
         return {"groups_created": 0, "memberships_added": 0, "errors": 0}
 
-    logger.info("Syncing %d CRM tag groups", len(tag_contacts))
-
-    # Fetch existing groups
+    # Fetch existing groups once so alias/fold/fuzzy resolution has a universe
+    # to match against (user-created groups only — system groups like
+    # "myContacts" aren't candidates).
     existing_groups = client.get_all_contact_groups()
+    user_groups = [
+        g for g in existing_groups
+        if g.get("groupType") in (None, "USER_CONTACT_GROUP")
+    ]
+    existing_names = [g["name"] for g in user_groups]
     group_map = {g["name"]: g["resourceName"] for g in existing_groups}
+
+    # Resolve raw tag → canonical group name (reuse existing labels where
+    # possible, per #172). Cache resolution to keep the log concise.
+    resolve_cache: dict[str, tuple[str, str]] = {}
+    tag_contacts: dict[str, list[str]] = {}
+    for rn, tags in raw_by_contact.items():
+        for raw in tags:
+            if raw not in resolve_cache:
+                resolve_cache[raw] = _resolve_tag_to_group_name(raw, existing_names)
+            group_name, route = resolve_cache[raw]
+            tag_contacts.setdefault(group_name, []).append(rn)
+    for raw, (group_name, route) in sorted(resolve_cache.items()):
+        if raw != group_name:
+            logger.info("  tag %r → %r (%s)", raw, group_name, route)
+
+    logger.info("Syncing %d CRM tag groups", len(tag_contacts))
 
     for group_name, resource_names in tag_contacts.items():
         try:

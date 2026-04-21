@@ -690,6 +690,20 @@ FOLLOWUP_OWN_COMPANY_DOMAINS = ("instarea.com", "instarea.sk")  # Peter's own �
 FOLLOWUP_OWN_COMPANY_ORG_KEYWORDS = ("instarea",)
 FOLLOWUP_MAX_AGE_MONTHS = 60.0  # Drop contacts whose last interaction is older than 5 years
 
+# ── CRM Tag Sync (#172) ──────────────────────────────────────────────────
+# Controls how crm_sync.sync_tags routes raw CRM tags to Google contact groups.
+# Default (post-#172): reuse Peter's existing bare labels ("IS", "TB", "Ďatelinka")
+# instead of creating parallel CRM:* duplicates. See #172 for full rationale.
+CRM_TAG_USE_PREFIX = os.getenv("CRM_TAG_USE_PREFIX", "false").lower() in ("1", "true", "yes")
+CRM_TAG_PREFIX_STRING = "CRM:"  # only used if CRM_TAG_USE_PREFIX is true
+CRM_TAG_FUZZY_THRESHOLD = 90    # rapidfuzz token_sort_ratio: >= this → reuse existing group
+# Canonical alias map: raw tag (lowercased, ASCII-folded) → existing Google label
+# Extend here as Peter establishes more shorthand conventions.
+CRM_TAG_ALIASES: dict[str, str] = {
+    "instarea": "IS",
+    "datelinka": "Ďatelinka",
+}
+
 # ── Multi-channel Beeper scoring (#150) ─────────────────────────────────────
 # Weights applied to ContactKPI rollups computed by harvester/scoring_signals.py
 # from data/interactions/*.jsonl. See docs/schemas/scoring-signals.md for derivation.
