@@ -2,12 +2,22 @@
 # Install harvester launchd agents on macOS.
 #
 # Copies launchagents/*.plist → ~/Library/LaunchAgents/ with user-specific
-# path rewrites, then loads them via launchctl.
+# path rewrites, loads them via launchctl, and drops a newsyslog.d entry
+# to rotate harvester logs (keeps ~/Library/Logs/contactrefiner bounded).
 #
-# Idempotent: unload any existing agent before reinstalling.
+# SAFETY — dry-run by default.
+#   ./scripts/install-launchd.sh            → prints what it WOULD do, no changes
+#   ./scripts/install-launchd.sh --apply    → actually copies, loads, rotates
+#   ./scripts/install-launchd.sh --uninstall → unload + remove plists (no trash)
 #
-# Status: template. Relies on main.py harvest-messages / backfill-beeper /
-# score-interactions / crm-sync subcommands landing in Sprint 3.33.
+# Idempotent under --apply: unload existing agents before reinstalling.
+#
+# Deferred review items from #151 rolled in here:
+#   - reachability probe: harvester/beeper_oauth.is_beeper_reachable() is called
+#     at every harvester entry point; this script doesn't need an extra hook
+#   - pipeline_paused check: harvester/pipeline.is_harvester_paused() fires on
+#     every run; no script-level work needed
+#   - log rotation via newsyslog.d — handled below
 
 set -euo pipefail
 
@@ -15,6 +25,8 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LAUNCH_DIR="${HOME}/Library/LaunchAgents"
 LOG_DIR="${HOME}/Library/Logs/contactrefiner"
 UV_BIN="$(command -v uv || echo /opt/homebrew/bin/uv)"
+NEWSYSLOG_DIR="/etc/newsyslog.d"
+NEWSYSLOG_FILE="${NEWSYSLOG_DIR}/contactrefiner-harvester.conf"
 
 AGENTS=(
   "com.contactrefiner.harvester.hourly"
@@ -23,15 +35,84 @@ AGENTS=(
   "com.contactrefiner.harvester.monthly"
 )
 
+MODE="dry-run"
+for arg in "$@"; do
+  case "$arg" in
+    --apply)    MODE="apply" ;;
+    --uninstall) MODE="uninstall" ;;
+    --help|-h)
+      echo "Usage: $0 [--apply | --uninstall | --help]" >&2
+      exit 0 ;;
+    *)
+      echo "error: unknown flag: $arg" >&2
+      echo "run with --help for usage" >&2
+      exit 2 ;;
+  esac
+done
+
+log() { echo "[install-launchd] $*"; }
+
+# Pre-flight checks — run even in dry-run so the user sees real blockers upfront.
 if [[ ! -x "${UV_BIN}" ]]; then
-  echo "error: uv not found. Install with: brew install uv" >&2
+  log "error: uv not found. Install with: brew install uv"
   exit 1
 fi
 
 if [[ ! -f "${REPO_ROOT}/main.py" ]]; then
-  echo "error: main.py not found at ${REPO_ROOT}/main.py" >&2
+  log "error: main.py not found at ${REPO_ROOT}/main.py"
   exit 1
 fi
+
+# Verify all plists exist BEFORE claiming we're ready.
+MISSING=()
+for agent in "${AGENTS[@]}"; do
+  if [[ ! -f "${REPO_ROOT}/launchagents/${agent}.plist" ]]; then
+    MISSING+=("${agent}.plist")
+  fi
+done
+if (( ${#MISSING[@]} > 0 )); then
+  log "error: missing plist templates: ${MISSING[*]}"
+  exit 1
+fi
+
+# ── uninstall path ────────────────────────────────────────────────────────
+if [[ "${MODE}" == "uninstall" ]]; then
+  for agent in "${AGENTS[@]}"; do
+    dst="${LAUNCH_DIR}/${agent}.plist"
+    if [[ -f "${dst}" ]]; then
+      launchctl unload "${dst}" 2>/dev/null || true
+      rm -f "${dst}"
+      log "✓ removed ${agent}"
+    else
+      log "  ${agent} not installed — skipping"
+    fi
+  done
+  log "Uninstall complete. newsyslog entry left in place at ${NEWSYSLOG_FILE}"
+  log "  (remove manually if desired — requires sudo)"
+  exit 0
+fi
+
+# ── plan / dry-run output ─────────────────────────────────────────────────
+log "mode: ${MODE}"
+log "repo: ${REPO_ROOT}"
+log "uv:   ${UV_BIN}"
+log "logs: ${LOG_DIR}"
+log ""
+log "would install these agents into ${LAUNCH_DIR}:"
+for agent in "${AGENTS[@]}"; do
+  log "  - ${agent}.plist"
+done
+log ""
+log "would write newsyslog.d rotation config to:"
+log "  ${NEWSYSLOG_FILE}  (requires sudo)"
+log ""
+
+if [[ "${MODE}" == "dry-run" ]]; then
+  log "dry-run only — re-run with --apply to actually install."
+  exit 0
+fi
+
+# ── apply path ────────────────────────────────────────────────────────────
 
 mkdir -p "${LAUNCH_DIR}"
 mkdir -p "${LOG_DIR}"
@@ -48,11 +129,6 @@ for agent in "${AGENTS[@]}"; do
   src="${REPO_ROOT}/launchagents/${agent}.plist"
   dst="${LAUNCH_DIR}/${agent}.plist"
 
-  if [[ ! -f "${src}" ]]; then
-    echo "warn: ${src} missing, skipping" >&2
-    continue
-  fi
-
   # Unload if already loaded (idempotent reinstall)
   launchctl unload "${dst}" 2>/dev/null || true
 
@@ -64,10 +140,35 @@ for agent in "${AGENTS[@]}"; do
       "${src}" > "${dst}"
 
   launchctl load "${dst}"
-  echo "✓ loaded ${agent}"
+  log "✓ loaded ${agent}"
 done
 
-echo ""
-echo "Installed ${#AGENTS[@]} launch agents."
-echo "Logs: ${LOG_DIR}/harvester-*.log"
-echo "Uninstall: ./scripts/uninstall-launchd.sh"
+# ── log rotation (newsyslog.d) ────────────────────────────────────────────
+# Rotate each .log when it hits 5MB, keep 4 rotations gzipped. Uses * in path
+# so both .log (stdout) and .err (stderr) get rotated.
+#
+# Requires sudo because /etc/newsyslog.d is root-owned. We write to a temp
+# file first and use `sudo install` so failure leaves no half-configured state.
+TMP_NS="$(mktemp -t contactrefiner-newsyslog.XXXXXX)"
+cat > "${TMP_NS}" <<EOF
+# Rotate ContactRefiner harvester logs.
+# Installed by scripts/install-launchd.sh — edit there, not here.
+# Format: logfile_name  [owner:group]  mode  count  size  when  flags
+${LOG_DIR}/harvester-*.log   $(whoami):staff  644   4    5120    *     GZ
+${LOG_DIR}/harvester-*.err   $(whoami):staff  644   4    5120    *     GZ
+EOF
+
+if sudo -n true 2>/dev/null; then
+  sudo install -m 0644 "${TMP_NS}" "${NEWSYSLOG_FILE}"
+  log "✓ wrote ${NEWSYSLOG_FILE}"
+else
+  log "ℹ  newsyslog.d config prepared at ${TMP_NS}"
+  log "   run: sudo install -m 0644 ${TMP_NS} ${NEWSYSLOG_FILE}"
+  log "   (sudo not available non-interactively; skipped)"
+fi
+rm -f "${TMP_NS}"
+
+log ""
+log "Installed ${#AGENTS[@]} launch agents."
+log "Logs: ${LOG_DIR}/harvester-*.log (rotated via newsyslog.d)"
+log "Uninstall: ./scripts/install-launchd.sh --uninstall"
