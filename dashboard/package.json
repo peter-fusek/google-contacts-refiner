@@ -29,5 +29,8 @@
       "defu": ">=6.1.5",
       "brace-expansion": ">=2.0.3"
     }
+  },
+  "devDependencies": {
+    "playwright": "^1.59.1"
   }
 }

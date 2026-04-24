@@ -9,18 +9,26 @@ const steps = [
 
 // Recently shipped — last ~2 weeks, surfaced on the landing page so visitors see momentum.
 // Dates are real; each item links to the PR / issue that landed it.
+// `screenshot` points to a live dashboard capture in /screenshots/ (see
+// scripts/capture_landing_screenshots.mjs to regenerate).
 const recentlyShipped = [
   {
     date: '2026-04-21',
     title: 'Omnichannel biography writeback',
     description: 'WhatsApp / Signal / LinkedIn / iMessage activity rolls up into a fenced "Omnichannel" block on each Google Contact — primary channel, 30-day message count, awaiting-reply side. Zero message content, metadata only.',
     url: 'https://github.com/peter-fusek/contactrefiner/pull/161',
+    screenshot: '/screenshots/crm.desktop.jpg',
+    screenshotAlt: 'CRM kanban showing omnichannel pills on contact cards',
+    screenshotHref: '/crm',
   },
   {
     date: '2026-04-21',
     title: 'Dashboard awaiting-reply pills + harvest chip',
     description: 'CRM kanban cards now show a red "you owe reply" pill when a contact is waiting on your response via any channel. Sidebar harvest chip shows freshness at a glance.',
     url: 'https://github.com/peter-fusek/contactrefiner/pull/165',
+    screenshot: '/screenshots/crm.desktop.jpg',
+    screenshotAlt: 'CRM kanban board with awaiting-reply pills',
+    screenshotHref: '/crm',
   },
   {
     date: '2026-04-21',
@@ -33,18 +41,64 @@ const recentlyShipped = [
     title: 'Business-first lead scoring',
     description: 'Lead scorer promotes executive titles (+15), penalises personal-email-only contacts (×0.3), caps the silent-period window at 24mo, and excludes your own company. Top-of-funnel is now actually business-shaped.',
     url: 'https://github.com/peter-fusek/contactrefiner/pull/141',
+    screenshot: '/screenshots/signals.desktop.jpg',
+    screenshotAlt: 'Signals page showing business-first ranked candidates',
+    screenshotHref: '/signals',
   },
   {
     date: '2026-04-17',
     title: 'Signals page: 7 derived signal types',
     description: 'New /signals view groups leads by signal type (job change, new C-level, dm-awaiting-reply, …) and caps actionable batch at 100/week. Candidates / backlog / dismissed tabs.',
     url: 'https://github.com/peter-fusek/contactrefiner/issues/142',
+    screenshot: '/screenshots/signals.desktop.jpg',
+    screenshotAlt: 'Signals page with signal-type filter chips',
+    screenshotHref: '/signals',
   },
   {
     date: '2026-04-21',
     title: 'Partition rollback tool',
     description: 'scripts/revert_partition.py lists and restores soft-deleted generations of any GCS data blob — 7-day safety net for every harvest run. Dry-run default.',
     url: 'https://github.com/peter-fusek/contactrefiner/pull/170',
+    screenshot: '/screenshots/pipeline.desktop.jpg',
+    screenshotAlt: 'Pipeline page showing run history and phase completion',
+    screenshotHref: '/pipeline',
+  },
+]
+
+// "See it in action" showcase — the 4 dashboard surfaces most worth showing
+// on the landing. Each links through to the live demo page.
+const showcase = [
+  {
+    slug: 'crm',
+    title: 'Personal CRM',
+    description: 'Kanban board with awaiting-reply pills, LinkedIn signal context, and the Omnichannel rollup on every card.',
+    path: '/crm',
+    img: '/screenshots/crm.desktop.jpg',
+    color: 'purple',
+  },
+  {
+    slug: 'signals',
+    title: 'Lead Signals',
+    description: '7 signal types — promoted CEOs, new C-levels, awaiting-reply, job changes. Business-first scoring; 100/week cap.',
+    path: '/signals',
+    img: '/screenshots/signals.desktop.jpg',
+    color: 'blue',
+  },
+  {
+    slug: 'linkedin-crm',
+    title: 'LinkedIn Growth',
+    description: 'Tiered outreach tracker — T0/T1/T2/T3, mining runs, DM log, follower snapshots. Ships with the dashboard.',
+    path: '/linkedin-crm',
+    img: '/screenshots/linkedin-crm.desktop.jpg',
+    color: 'cyan',
+  },
+  {
+    slug: 'pipeline',
+    title: 'Pipeline Health',
+    description: 'Run history, phase completion, errors, and live cost tracking — see exactly what the 6-phase pipeline did and what\'s coming next.',
+    path: '/pipeline',
+    img: '/screenshots/pipeline.desktop.jpg',
+    color: 'green',
   },
 ]
 
@@ -369,29 +423,10 @@ const features = [
       </div>
     </section>
 
-    <!-- Stats -->
+    <!-- Stats (live from /api/health, falls back to hardcoded) -->
     <section class="py-12 px-6 border-t border-neutral-800/50">
-      <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-6 text-center">
-        <div>
-          <div class="text-2xl md:text-3xl font-bold text-primary-400 tabular-nums">6</div>
-          <div class="label-refined mt-1">Pipeline phases</div>
-        </div>
-        <div>
-          <div class="text-2xl md:text-3xl font-bold text-neutral-100 tabular-nums">26</div>
-          <div class="label-refined mt-1">Rule categories</div>
-        </div>
-        <div>
-          <div class="text-2xl md:text-3xl font-bold text-neutral-100 tabular-nums">5,500+</div>
-          <div class="label-refined mt-1">Contacts managed</div>
-        </div>
-        <div>
-          <div class="text-2xl md:text-3xl font-bold text-cyan-400 tabular-nums">&lt;$0.02</div>
-          <div class="label-refined mt-1">Daily AI cost</div>
-        </div>
-        <div>
-          <div class="text-2xl md:text-3xl font-bold text-green-400 tabular-nums">100%</div>
-          <div class="label-refined mt-1">Self-hosted</div>
-        </div>
+      <div class="max-w-5xl mx-auto">
+        <LiveStats />
       </div>
     </section>
 
@@ -411,7 +446,7 @@ const features = [
           </p>
         </div>
 
-        <ol class="relative border-l border-neutral-800 ml-4 space-y-6">
+        <ol class="relative border-l border-neutral-800 ml-4 space-y-8">
           <li
             v-for="(item, i) in recentlyShipped"
             :key="item.title"
@@ -434,6 +469,21 @@ const features = [
               </a>
             </div>
             <p class="mt-2 text-sm text-neutral-400 leading-relaxed">{{ item.description }}</p>
+            <!-- Embedded screenshot (when available) -->
+            <NuxtLink
+              v-if="item.screenshot"
+              :to="item.screenshotHref || '/dashboard'"
+              class="block mt-3 rounded-lg border border-neutral-800 overflow-hidden hover:border-primary-500/40 transition-colors group"
+              :aria-label="`Open ${item.screenshotHref || 'dashboard'} live demo`"
+            >
+              <img
+                :src="item.screenshot"
+                :alt="item.screenshotAlt"
+                class="w-full h-auto max-h-72 object-cover object-top opacity-90 group-hover:opacity-100 transition-opacity"
+                loading="lazy"
+                decoding="async"
+              />
+            </NuxtLink>
           </li>
         </ol>
 
@@ -508,7 +558,7 @@ const features = [
       </div>
     </section>
 
-    <!-- Dashboard Preview / Use Cases -->
+    <!-- See it in action — real screenshots, click through to the live demo -->
     <section class="py-20 px-6 border-t border-neutral-800/50">
       <div class="max-w-5xl mx-auto">
         <div class="text-center mb-14">
@@ -516,81 +566,70 @@ const features = [
             See it in action
           </h2>
           <p class="mt-3 text-neutral-400">
-            Try the live demo — real data, masked for privacy. No login required.
+            Real screenshots of the live demo — masked data, no login required.
           </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <NuxtLink
+            v-for="(item, i) in showcase"
+            :key="item.slug"
+            :to="item.path"
+            class="rounded-xl border border-neutral-800 bg-neutral-900/50 overflow-hidden hover:border-primary-500/40 transition-colors group animate-fade-in flex flex-col"
+            :style="{ animationDelay: `${i * 80}ms` }"
+            :aria-label="`Open ${item.title} live demo`"
+          >
+            <div class="aspect-video bg-neutral-900 overflow-hidden border-b border-neutral-800/50">
+              <img
+                :src="item.img"
+                :alt="`${item.title} — live dashboard screenshot`"
+                class="w-full h-full object-cover object-top opacity-90 group-hover:opacity-100 group-hover:scale-[1.02] transition-all duration-500"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <div class="p-5 space-y-2 flex-1 flex flex-col">
+              <h3 class="text-sm font-semibold text-neutral-100">{{ item.title }}</h3>
+              <p class="text-sm text-neutral-400 leading-relaxed flex-1">{{ item.description }}</p>
+              <span class="text-xs text-primary-400 group-hover:text-primary-300 inline-flex items-center gap-1 mt-2">
+                Open demo
+                <UIcon name="i-lucide-arrow-right" class="size-3 group-hover:translate-x-0.5 transition-transform" />
+              </span>
+            </div>
+          </NuxtLink>
+        </div>
+
+        <!-- Secondary surfaces — Review/Changelog/Analytics — kept compact -->
+        <div class="mt-8 grid grid-cols-2 md:grid-cols-3 gap-3">
           <NuxtLink
             to="/review"
-            class="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 space-y-3 hover:border-primary-500/40 transition-colors group"
+            class="rounded-lg border border-neutral-800 bg-neutral-900/40 px-4 py-3 text-xs text-neutral-400 hover:text-neutral-200 hover:border-neutral-700 transition-colors flex items-center justify-between"
           >
-            <div class="flex items-center gap-2">
-              <UIcon name="i-lucide-check-circle" class="size-5 text-primary-400" />
-              <h3 class="text-sm font-semibold text-neutral-100">Review Queue</h3>
-            </div>
-            <p class="text-sm text-neutral-400 leading-relaxed">Approve or reject contact changes one by one, or use bulk actions. Filter by field, rule category, or confidence level.</p>
-            <span class="text-xs text-primary-400 group-hover:text-primary-300">View demo &rarr;</span>
+            <span class="flex items-center gap-2">
+              <UIcon name="i-lucide-check-circle" class="size-3.5 text-primary-400" />
+              Review Queue
+            </span>
+            <UIcon name="i-lucide-arrow-right" class="size-3" />
           </NuxtLink>
-
           <NuxtLink
             to="/changelog"
-            class="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 space-y-3 hover:border-cyan-500/40 transition-colors group"
+            class="rounded-lg border border-neutral-800 bg-neutral-900/40 px-4 py-3 text-xs text-neutral-400 hover:text-neutral-200 hover:border-neutral-700 transition-colors flex items-center justify-between"
           >
-            <div class="flex items-center gap-2">
-              <UIcon name="i-lucide-history" class="size-5 text-cyan-400" />
-              <h3 class="text-sm font-semibold text-neutral-100">Changelog</h3>
-            </div>
-            <p class="text-sm text-neutral-400 leading-relaxed">Full audit trail of every change applied to your contacts. Searchable, filterable, and paginated.</p>
-            <span class="text-xs text-cyan-400 group-hover:text-cyan-300">View demo &rarr;</span>
+            <span class="flex items-center gap-2">
+              <UIcon name="i-lucide-history" class="size-3.5 text-cyan-400" />
+              Changelog
+            </span>
+            <UIcon name="i-lucide-arrow-right" class="size-3" />
           </NuxtLink>
-
           <NuxtLink
             to="/analytics"
-            class="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 space-y-3 hover:border-amber-500/40 transition-colors group"
+            class="rounded-lg border border-neutral-800 bg-neutral-900/40 px-4 py-3 text-xs text-neutral-400 hover:text-neutral-200 hover:border-neutral-700 transition-colors flex items-center justify-between"
           >
-            <div class="flex items-center gap-2">
-              <UIcon name="i-lucide-bar-chart-3" class="size-5 text-amber-400" />
-              <h3 class="text-sm font-semibold text-neutral-100">Analytics</h3>
-            </div>
-            <p class="text-sm text-neutral-400 leading-relaxed">Changes by field, confidence distribution, daily run history, top-changed contacts, and pipeline cost tracking.</p>
-            <span class="text-xs text-amber-400 group-hover:text-amber-300">View demo &rarr;</span>
-          </NuxtLink>
-
-          <NuxtLink
-            to="/social-signals"
-            class="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 space-y-3 hover:border-blue-500/40 transition-colors group"
-          >
-            <div class="flex items-center gap-2">
-              <UIcon name="i-lucide-radar" class="size-5 text-blue-400" />
-              <h3 class="text-sm font-semibold text-neutral-100">LinkedIn Signals</h3>
-            </div>
-            <p class="text-sm text-neutral-400 leading-relaxed">See job changes, active profiles, and reconnection opportunities across your network. Scanned and scored automatically.</p>
-            <span class="text-xs text-blue-400 group-hover:text-blue-300">View demo &rarr;</span>
-          </NuxtLink>
-
-          <NuxtLink
-            to="/crm"
-            class="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 space-y-3 hover:border-purple-500/40 transition-colors group"
-          >
-            <div class="flex items-center gap-2">
-              <UIcon name="i-lucide-kanban" class="size-5 text-purple-400" />
-              <h3 class="text-sm font-semibold text-neutral-100">Personal CRM</h3>
-            </div>
-            <p class="text-sm text-neutral-400 leading-relaxed">Kanban board for managing reconnections. AI-generated reach-out prompts, notes, tags, and stage tracking across your network.</p>
-            <span class="text-xs text-purple-400 group-hover:text-purple-300">View demo &rarr;</span>
-          </NuxtLink>
-
-          <NuxtLink
-            to="/pipeline"
-            class="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 space-y-3 hover:border-green-500/40 transition-colors group"
-          >
-            <div class="flex items-center gap-2">
-              <UIcon name="i-lucide-workflow" class="size-5 text-green-400" />
-              <h3 class="text-sm font-semibold text-neutral-100">Pipeline</h3>
-            </div>
-            <p class="text-sm text-neutral-400 leading-relaxed">See all 5 phases, normalizer rules, AI prompts, learning system details, and live run stats in one place.</p>
-            <span class="text-xs text-green-400 group-hover:text-green-300">View demo &rarr;</span>
+            <span class="flex items-center gap-2">
+              <UIcon name="i-lucide-bar-chart-3" class="size-3.5 text-amber-400" />
+              Analytics
+            </span>
+            <UIcon name="i-lucide-arrow-right" class="size-3" />
           </NuxtLink>
         </div>
       </div>

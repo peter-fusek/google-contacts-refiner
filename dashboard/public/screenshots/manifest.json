@@ -1,0 +1,78 @@
+{
+  "base": "https://contactrefiner.com",
+  "capturedAt": "2026-04-24T12:29:15.168Z",
+  "shots": [
+    {
+      "slug": "crm",
+      "viewport": "desktop",
+      "file": "crm.desktop.jpg",
+      "url": "https://contactrefiner.com/crm"
+    },
+    {
+      "slug": "crm",
+      "viewport": "mobile",
+      "file": "crm.mobile.jpg",
+      "url": "https://contactrefiner.com/crm"
+    },
+    {
+      "slug": "signals",
+      "viewport": "desktop",
+      "file": "signals.desktop.jpg",
+      "url": "https://contactrefiner.com/signals"
+    },
+    {
+      "slug": "signals",
+      "viewport": "mobile",
+      "file": "signals.mobile.jpg",
+      "url": "https://contactrefiner.com/signals"
+    },
+    {
+      "slug": "linkedin-crm",
+      "viewport": "desktop",
+      "file": "linkedin-crm.desktop.jpg",
+      "url": "https://contactrefiner.com/linkedin-crm"
+    },
+    {
+      "slug": "linkedin-crm",
+      "viewport": "mobile",
+      "file": "linkedin-crm.mobile.jpg",
+      "url": "https://contactrefiner.com/linkedin-crm"
+    },
+    {
+      "slug": "pipeline",
+      "viewport": "desktop",
+      "file": "pipeline.desktop.jpg",
+      "url": "https://contactrefiner.com/pipeline"
+    },
+    {
+      "slug": "pipeline",
+      "viewport": "mobile",
+      "file": "pipeline.mobile.jpg",
+      "url": "https://contactrefiner.com/pipeline"
+    },
+    {
+      "slug": "changelog",
+      "viewport": "desktop",
+      "file": "changelog.desktop.jpg",
+      "url": "https://contactrefiner.com/changelog"
+    },
+    {
+      "slug": "changelog",
+      "viewport": "mobile",
+      "file": "changelog.mobile.jpg",
+      "url": "https://contactrefiner.com/changelog"
+    },
+    {
+      "slug": "analytics",
+      "viewport": "desktop",
+      "file": "analytics.desktop.jpg",
+      "url": "https://contactrefiner.com/analytics"
+    },
+    {
+      "slug": "analytics",
+      "viewport": "mobile",
+      "file": "analytics.mobile.jpg",
+      "url": "https://contactrefiner.com/analytics"
+    }
+  ]
+}
