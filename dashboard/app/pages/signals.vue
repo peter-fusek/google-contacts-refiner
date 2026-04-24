@@ -14,6 +14,28 @@ const filterType = ref<LeadSignalType | 'all'>('all')
 const view = ref<'candidates' | 'backlog' | 'dismissed'>('candidates')
 const searchQuery = ref('')
 const busyIds = ref<Set<string>>(new Set())
+// Fix #182: <details>/<summary> with a nested <button> never toggles in
+// Chromium — the inner button captures the click. Manage the reason dropdown
+// open state manually so the menu actually appears.
+const openDismissFor = ref<string | null>(null)
+
+function toggleDismissMenu(resourceName: string) {
+  openDismissFor.value = openDismissFor.value === resourceName ? null : resourceName
+}
+
+function handleDocumentPointer(e: MouseEvent) {
+  const target = e.target as HTMLElement | null
+  if (!target?.closest('[data-dismiss-menu]')) {
+    openDismissFor.value = null
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('mousedown', handleDocumentPointer)
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('mousedown', handleDocumentPointer)
+})
 
 const activeList = computed<LeadSignal[]>(() => {
   const d = data.value
@@ -140,6 +162,7 @@ async function dismiss(signal: LeadSignal, reason: LeadDismissalReason) {
     if (snapshot) data.value = snapshot
   } finally {
     busyIds.value.delete(signal.resourceName)
+    openDismissFor.value = null
   }
 }
 </script>
@@ -307,13 +330,21 @@ async function dismiss(signal: LeadSignal, reason: LeadDismissalReason) {
               {{ sig.stage === 'accepted' ? 'In CRM' : 'Accept → CRM' }}
             </UButton>
 
-            <details class="relative">
-              <summary class="cursor-pointer list-none">
-                <UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-x">
-                  Dismiss
-                </UButton>
-              </summary>
-              <div class="absolute right-0 mt-1 w-40 z-10 bg-neutral-900 border border-neutral-800 rounded-lg shadow-xl p-1 space-y-0.5">
+            <div class="relative" data-dismiss-menu>
+              <UButton
+                size="xs"
+                color="neutral"
+                variant="ghost"
+                icon="i-lucide-x"
+                :loading="busyIds.has(sig.resourceName)"
+                @click="toggleDismissMenu(sig.resourceName)"
+              >
+                Dismiss
+              </UButton>
+              <div
+                v-if="openDismissFor === sig.resourceName"
+                class="absolute right-0 mt-1 w-40 z-10 bg-neutral-900 border border-neutral-800 rounded-lg shadow-xl p-1 space-y-0.5"
+              >
                 <button
                   v-for="opt in DISMISSAL_OPTIONS"
                   :key="opt.value"
@@ -323,7 +354,7 @@ async function dismiss(signal: LeadSignal, reason: LeadDismissalReason) {
                   {{ opt.label }}
                 </button>
               </div>
-            </details>
+            </div>
           </div>
         </div>
       </div>
