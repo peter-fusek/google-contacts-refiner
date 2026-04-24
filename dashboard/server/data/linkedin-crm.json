@@ -123,8 +123,8 @@
       "linkedinUrl": "https://www.linkedin.com/in/aremias",
       "tier": "T1",
       "source": "Post reactor (Run #2)",
-      "status": "CREATOR_MODE",
-      "notes": "Security angle for health data"
+      "status": "CONNECTED",
+      "notes": "Security angle for health data | 2026-04-24: transitioned to CONNECTED after inbound accept."
     },
     {
       "id": "dominika-vermirovska",
@@ -362,8 +362,8 @@
       "linkedinUrl": "",
       "tier": "T1",
       "source": "Reactor scan (#108)",
-      "status": "DEMO_SCHEDULED",
-      "notes": "DM sent 2026-04-12 (Template A). 2026-04-20: active discussion — Peter described Oncoteam demo. **DEMO SCHEDULED: Wednesday 2026-04-23 at 10:00.** DiMe program lead — strong Digital Medicine Society channel.",
+      "status": "CONNECTED",
+      "notes": "DM sent 2026-04-12 (Template A). 2026-04-20: active discussion — Peter described Oncoteam demo. **DEMO SCHEDULED: Wednesday 2026-04-23 at 10:00.** DiMe program lead — strong Digital Medicine Society channel. | 2026-04-24 outcome: demo 04-23 happened but direct relationship dormant. HOWEVER — she did a warm intro in 'Medtech AI idea' WhatsApp group with Karol Balco (KPMG M&A) + Marek Makovník (NOÚ radiologist). Possible video call today 2026-04-24. She's a connector asset, not a direct user.",
       "dmSentDate": "2026-04-12",
       "dmTemplate": "Template A",
       "dmResponse": "2026-04-20: active discussion, Oncoteam demo shared",
@@ -1406,6 +1406,129 @@
       "status": "RESPONDED",
       "notes": "First verified external newsletter subscriber. Email: jnordentoft@kemper.com. Signup 2026-04-16T05:10:36Z, verified 2026-04-16T05:10:57Z. Next: personal intro email.",
       "lastContactedAt": "2026-04-16"
+    },
+    {
+      "id": "zdenka-tomaidesova",
+      "name": "Zdenka Tomaidesová",
+      "role": "Consultant at EDUX s.r.o. — Vizuální AI systémy, NotebookLM, řád v datech",
+      "linkedinUrl": "https://www.linkedin.com/in/zdenkatomaidesova",
+      "tier": "T2",
+      "source": "Apr-24 Oncoteam post commenter",
+      "status": "REQUEST_SENT",
+      "notes": "CZ. Positive comment on Apr-24 phone-in-hand post — sensitive topic due to her parents, resonated with 'pile of papers' vs 'usable information' framing. Mentioned a man using NotebookLM for family anamnesis. She works with AI workflows + NotebookLM. Peter sent connection request 2026-04-24 ~14:00 CEST.",
+      "dmSentDate": null,
+      "dmTemplate": null,
+      "dmResponse": null
+    },
+    {
+      "id": "matus-sladecek",
+      "name": "Matúš Sládeček",
+      "role": "Associate Data Analytics Director",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "Apr-22 carousel commenter (2nd-degree)",
+      "status": "PENDING",
+      "notes": "2nd-degree. Commented on Apr-22 pile-to-dashboard carousel asking about final structure + folder categorization (ORL, Ortho). Practical product interest. Peter already replied on thread. Candidate for connection request next sweep."
+    },
+    {
+      "id": "kateryna-kovalova",
+      "name": "Kateryna Kovaľová",
+      "role": "PR & Communication Strategist, Managing Director Konektor Slovakia",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "Inbound connection 2026-04-24",
+      "status": "CONNECTED",
+      "notes": "Connected 2026-04-24. Also viewed profile (seen in notifications). PR/comms angle — future media/PR play."
+    },
+    {
+      "id": "peter-gavlider",
+      "name": "Peter Gavlider",
+      "role": "B2B SaaS Sales — Senior Stakeholder Discovery",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "Inbound connection 2026-04-23",
+      "status": "CONNECTED",
+      "notes": "Connected 2026-04-23. B2B SaaS sales angle — potential contactrefiner fit."
+    },
+    {
+      "id": "michaela-malaskova",
+      "name": "Michaela Malaskova",
+      "role": "Project Manager Science and Technology at Health Hub Tirol",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "Inbound connection 2026-04-23",
+      "status": "CONNECTED",
+      "notes": "Connected 2026-04-23. Health Hub Tirol — direct healthtech fit for Oncofiles. PRIORITY DM CANDIDATE."
+    },
+    {
+      "id": "matej-gyarfas",
+      "name": "Matej Gyárfáš",
+      "role": "CCO at Insynaps — Building applied AI, Brand & Creative Direction",
+      "linkedinUrl": "",
+      "tier": "T1",
+      "source": "Inbound connection 2026-04-22",
+      "status": "CONNECTED",
+      "notes": "Connected 2026-04-22. Applied AI peer — peer-network angle, not product pitch."
+    },
+    {
+      "id": "robert-hostak",
+      "name": "Róbert Hošták",
+      "role": "Finance Banking & Investment student",
+      "linkedinUrl": "",
+      "tier": "T3",
+      "source": "Inbound connection 2026-04-23",
+      "status": "RESPONDED",
+      "notes": "Connected 2026-04-23. DM thread: had a meeting scheduled, moved later because he's sick. Needs a quick 'get well' acknowledgment reply. | 2026-04-24: Peter acknowledged his sick/moved meeting via DM — no pressure, let him come back when fit."
+    },
+    {
+      "id": "michal-jakabcic",
+      "name": "Michal Jakabčic",
+      "role": "CEO at Evolution37 — AI-driven automation & IT | ASAI AI Osobnosť roka",
+      "linkedinUrl": "",
+      "tier": "T2",
+      "source": "Outbound connection request 2026-04-23",
+      "status": "REQUEST_SENT",
+      "notes": "Peter sent connection request 2026-04-23. AI CEO peer — potential peer network / referral angle."
+    },
+    {
+      "id": "eva-wedra-kackova",
+      "name": "Eva Wedra Kačková",
+      "role": "CEO at Zamas masérska škola",
+      "linkedinUrl": "",
+      "tier": "T3",
+      "source": "Outbound connection request 2026-04-23",
+      "status": "REQUEST_SENT",
+      "notes": "Peter sent connection request 2026-04-23. Context unclear — masseur school CEO. No obvious product fit; log as relationship-only if accepted."
+    },
+    {
+      "id": "lucia-plavakova",
+      "name": "Lucia Plavakova",
+      "role": "Lawyer",
+      "linkedinUrl": "",
+      "tier": "T3",
+      "source": "Outbound connection request 2026-04-21",
+      "status": "REQUEST_SENT",
+      "notes": "Peter sent connection request 2026-04-21. Still pending 3 days later. Lawyer — relationship-only fit."
+    },
+    {
+      "id": "marek-makovnik",
+      "name": "Marek Makovník",
+      "role": "Radiologist, zástupca primára at Národný onkologický ústav Bratislava",
+      "linkedinUrl": "https://www.linkedin.com/in/marek-makovnik-472023178/",
+      "tier": "T0",
+      "source": "Warm intro via Lucia Cesnakova in 'Medtech AI idea' WhatsApp group 2026-04-24",
+      "status": "PENDING",
+      "notes": "NOÚ Bratislava (same institution as Miroslav Tomáš). Has a medtech idea discussed with Karol Balco on holiday — looking for tech partner. HIGH LEVERAGE: radiologist at SK's top cancer institute + deputy chief. Paired with Karol (KPMG M&A) for business/funding side. Video call possibly today 2026-04-24."
+    },
+    {
+      "id": "karol-balco",
+      "name": "Karol Balco",
+      "role": "Director, M&A at KPMG (FCCA, MRICS)",
+      "linkedinUrl": "https://www.linkedin.com/in/karol-balco-fcca-mrics-04495223/",
+      "tier": "T1",
+      "source": "Warm intro via Lucia Cesnakova in 'Medtech AI idea' WhatsApp group 2026-04-24",
+      "status": "PENDING",
+      "notes": "KPMG M&A Director, FCCA + MRICS. Business/finance partner to Marek Makovník (NOÚ radiologist) on their medtech idea. Sees business elements: scalable, real problem, sector with fundable model. Wants tech aspect covered before execution. Proposed video call next week via WhatsApp group. Potential fundraising ally for Oncofiles/Oncoteam independent of his own idea."
     }
   ],
   "institutions": [
@@ -2188,6 +2311,14 @@
       "date": "2026-04-16",
       "followers": 18623,
       "notes": "Run #7 reference — 3rd-patient milestone campaign day."
+    },
+    {
+      "date": "2026-04-24",
+      "followers": 18664,
+      "connections": 18664,
+      "pendingInvites": 10,
+      "delta": 10,
+      "notes": "Sweep after Apr-24 Oncoteam 'phone in hand' post publish. Post T+~1h: 7 reactions / 1 comment (Zdenka Tomaidesová CZ positive) / 403 impressions. Apr-22 carousel grew to 63 reactions / 15 comments / 1 repost / 4,145 impressions — all commenters replied. New 2nd-degree commenter: Matúš Sládeček (Data Analytics Director) — practical folder-structure question. Archived inbox Apr 21-23 captures: Tomas Bel (meeting invited), Róbert Hošták (sick, moved meeting), Martin Váross (coffee next week request), RGL batch (Franklin/Anand/Pravesh/Adeel/Jiri/Tomáš Elbl/Badr) awaiting. Peter sent connection request to Zdenka Tomaidesová 14min before sweep — beating CRM entry. Adam Remias CREATOR_MODE → CONNECTED. No Miloš Malejčík DM yet."
     }
   ],
   "milestones": [
@@ -2247,5 +2378,5 @@
       "status": "DONE"
     }
   ],
-  "updatedAt": "2026-04-21T19:30:00Z"
+  "updatedAt": "2026-04-24T11:15:15.720224Z"
 }
