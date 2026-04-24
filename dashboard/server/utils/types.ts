@@ -586,3 +586,15 @@ export interface LeadSignalsResponse {
     bySignalType: Record<string, number>
   }
 }
+
+// --- Contact Details (shared by /signals, /crm row expansion) ---
+
+export interface ContactDetailsResponse {
+  resourceName: string
+  name: string
+  googleContactsUrl: string
+  crmState: CRMContactState | null
+  leadSignalRecord: LeadSignalRecord | null
+  followupScore: FollowUpScore | null
+  linkedinSignal: LinkedInSignal | null
+}

@@ -6,7 +6,7 @@ useHead({
   ],
 })
 
-import type { LeadSignalsResponse, LeadSignal, LeadSignalType, LeadDismissalReason } from '~/server/utils/types'
+import type { LeadSignalsResponse, LeadSignal, LeadSignalType, LeadDismissalReason, ContactDetailsResponse } from '~/server/utils/types'
 
 const { data, status, refresh } = useFetch<LeadSignalsResponse>('/api/signals')
 
@@ -14,6 +14,69 @@ const filterType = ref<LeadSignalType | 'all'>('all')
 const view = ref<'candidates' | 'backlog' | 'dismissed'>('candidates')
 const searchQuery = ref('')
 const busyIds = ref<Set<string>>(new Set())
+// Fix #182: <details>/<summary> with a nested <button> never toggles in
+// Chromium — the inner button captures the click. Manage the reason dropdown
+// open state manually so the menu actually appears.
+const openDismissFor = ref<string | null>(null)
+
+// #183: row-expansion details panel. Fetched lazily; cached per resourceName so
+// re-expanding is instant.
+const expandedFor = ref<string | null>(null)
+const detailsCache = ref<Record<string, ContactDetailsResponse>>({})
+const detailsLoading = ref<Set<string>>(new Set())
+const detailsError = ref<Record<string, string>>({})
+
+async function toggleExpand(resourceName: string) {
+  if (expandedFor.value === resourceName) {
+    expandedFor.value = null
+    return
+  }
+  expandedFor.value = resourceName
+  if (detailsCache.value[resourceName] || detailsLoading.value.has(resourceName)) return
+
+  detailsLoading.value.add(resourceName)
+  delete detailsError.value[resourceName]
+  try {
+    const d = await $fetch<ContactDetailsResponse>('/api/contact-details', {
+      query: { resourceName },
+    })
+    detailsCache.value = { ...detailsCache.value, [resourceName]: d }
+  } catch (e) {
+    const msg = (e as { statusMessage?: string; message?: string })?.statusMessage
+      || (e as Error)?.message
+      || 'Failed to load'
+    detailsError.value = { ...detailsError.value, [resourceName]: msg }
+  } finally {
+    detailsLoading.value.delete(resourceName)
+  }
+}
+
+function formatDate(iso: string | null | undefined): string {
+  if (!iso) return '—'
+  try {
+    return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+  } catch {
+    return iso
+  }
+}
+
+function toggleDismissMenu(resourceName: string) {
+  openDismissFor.value = openDismissFor.value === resourceName ? null : resourceName
+}
+
+function handleDocumentPointer(e: MouseEvent) {
+  const target = e.target as HTMLElement | null
+  if (!target?.closest('[data-dismiss-menu]')) {
+    openDismissFor.value = null
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('mousedown', handleDocumentPointer)
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('mousedown', handleDocumentPointer)
+})
 
 const activeList = computed<LeadSignal[]>(() => {
   const d = data.value
@@ -140,6 +203,7 @@ async function dismiss(signal: LeadSignal, reason: LeadDismissalReason) {
     if (snapshot) data.value = snapshot
   } finally {
     busyIds.value.delete(signal.resourceName)
+    openDismissFor.value = null
   }
 }
 </script>
@@ -245,8 +309,18 @@ async function dismiss(signal: LeadSignal, reason: LeadDismissalReason) {
         class="border border-neutral-800 rounded-lg p-3 bg-neutral-900/30 hover:bg-neutral-900/60 transition-colors"
       >
         <div class="flex flex-wrap items-start justify-between gap-3">
-          <div class="flex-1 min-w-0">
+          <button
+            type="button"
+            class="flex-1 min-w-0 text-left"
+            :aria-expanded="expandedFor === sig.resourceName"
+            :aria-controls="`details-${sig.resourceName.replace('/', '-')}`"
+            @click="toggleExpand(sig.resourceName)"
+          >
             <div class="flex items-center gap-2 flex-wrap">
+              <UIcon
+                :name="expandedFor === sig.resourceName ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
+                class="size-3.5 text-neutral-500"
+              />
               <span class="text-[10px] text-neutral-500 font-mono">#{{ sig.rank }}</span>
               <span class="text-sm font-medium text-neutral-100 truncate">{{ sig.name }}</span>
               <span class="text-sm font-semibold text-primary-400">{{ sig.score.toFixed(1) }}</span>
@@ -282,7 +356,7 @@ async function dismiss(signal: LeadSignal, reason: LeadDismissalReason) {
               Dismissed: {{ sig.dismissal.reason.replace('_', ' ') }}
               <span v-if="sig.dismissal.note">— {{ sig.dismissal.note }}</span>
             </div>
-          </div>
+          </button>
 
           <div v-if="view !== 'dismissed'" class="flex items-center gap-1 flex-wrap justify-end">
             <a
@@ -307,13 +381,21 @@ async function dismiss(signal: LeadSignal, reason: LeadDismissalReason) {
               {{ sig.stage === 'accepted' ? 'In CRM' : 'Accept → CRM' }}
             </UButton>
 
-            <details class="relative">
-              <summary class="cursor-pointer list-none">
-                <UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-x">
-                  Dismiss
-                </UButton>
-              </summary>
-              <div class="absolute right-0 mt-1 w-40 z-10 bg-neutral-900 border border-neutral-800 rounded-lg shadow-xl p-1 space-y-0.5">
+            <div class="relative" data-dismiss-menu>
+              <UButton
+                size="xs"
+                color="neutral"
+                variant="ghost"
+                icon="i-lucide-x"
+                :loading="busyIds.has(sig.resourceName)"
+                @click="toggleDismissMenu(sig.resourceName)"
+              >
+                Dismiss
+              </UButton>
+              <div
+                v-if="openDismissFor === sig.resourceName"
+                class="absolute right-0 mt-1 w-40 z-10 bg-neutral-900 border border-neutral-800 rounded-lg shadow-xl p-1 space-y-0.5"
+              >
                 <button
                   v-for="opt in DISMISSAL_OPTIONS"
                   :key="opt.value"
@@ -323,8 +405,177 @@ async function dismiss(signal: LeadSignal, reason: LeadDismissalReason) {
                   {{ opt.label }}
                 </button>
               </div>
-            </details>
+            </div>
           </div>
+        </div>
+
+        <!-- #183: expanded details panel -->
+        <div
+          v-if="expandedFor === sig.resourceName"
+          :id="`details-${sig.resourceName.replace('/', '-')}`"
+          class="mt-3 pt-3 border-t border-neutral-800 space-y-3"
+        >
+          <div v-if="detailsLoading.has(sig.resourceName)" class="text-xs text-neutral-500">
+            Loading details…
+          </div>
+          <div v-else-if="detailsError[sig.resourceName]" class="text-xs text-red-400">
+            Failed to load details: {{ detailsError[sig.resourceName] }}
+          </div>
+          <template v-else-if="detailsCache[sig.resourceName]">
+            <!-- External links row -->
+            <div class="flex flex-wrap gap-2">
+              <a
+                :href="detailsCache[sig.resourceName]!.googleContactsUrl"
+                target="_blank"
+                rel="noopener"
+                class="inline-flex items-center gap-1.5 px-2 py-1 text-[11px] rounded border border-neutral-700 bg-neutral-900 text-neutral-200 hover:border-primary-600 hover:text-primary-300"
+              >
+                <UIcon name="i-lucide-user" class="size-3.5" />
+                Open in Google Contacts
+                <UIcon name="i-lucide-external-link" class="size-3" />
+              </a>
+              <a
+                v-if="detailsCache[sig.resourceName]!.linkedinSignal?.linkedin_url || sig.linkedinUrl"
+                :href="detailsCache[sig.resourceName]!.linkedinSignal?.linkedin_url || sig.linkedinUrl!"
+                target="_blank"
+                rel="noopener"
+                class="inline-flex items-center gap-1.5 px-2 py-1 text-[11px] rounded border border-neutral-700 bg-neutral-900 text-neutral-200 hover:border-blue-600 hover:text-blue-300"
+              >
+                <UIcon name="i-lucide-linkedin" class="size-3.5" />
+                Open LinkedIn
+                <UIcon name="i-lucide-external-link" class="size-3" />
+              </a>
+            </div>
+
+            <!-- CRM / Score / Interaction grid -->
+            <div class="grid md:grid-cols-2 gap-3 text-xs">
+              <!-- CRM state -->
+              <div class="border border-neutral-800 rounded-md p-2 bg-neutral-900/50">
+                <div class="text-[10px] uppercase text-neutral-500 mb-1">CRM</div>
+                <div v-if="detailsCache[sig.resourceName]!.crmState" class="space-y-1">
+                  <div>
+                    Stage:
+                    <span class="text-neutral-200 font-medium">{{ detailsCache[sig.resourceName]!.crmState!.stage }}</span>
+                    <span v-if="detailsCache[sig.resourceName]!.crmState!.stageChangedAt" class="text-neutral-600 ml-1">
+                      ({{ formatDate(detailsCache[sig.resourceName]!.crmState!.stageChangedAt) }})
+                    </span>
+                  </div>
+                  <div v-if="detailsCache[sig.resourceName]!.crmState!.tags?.length" class="flex flex-wrap gap-1">
+                    <span
+                      v-for="t in detailsCache[sig.resourceName]!.crmState!.tags"
+                      :key="t"
+                      class="px-1.5 py-0.5 rounded bg-neutral-800 text-[10px] text-neutral-300"
+                    >{{ t }}</span>
+                  </div>
+                  <div v-if="detailsCache[sig.resourceName]!.crmState!.notes" class="text-neutral-400 whitespace-pre-wrap">
+                    {{ detailsCache[sig.resourceName]!.crmState!.notes }}
+                  </div>
+                </div>
+                <div v-else class="text-neutral-500 italic">Not in CRM yet</div>
+              </div>
+
+              <!-- FollowUp score breakdown -->
+              <div class="border border-neutral-800 rounded-md p-2 bg-neutral-900/50">
+                <div class="text-[10px] uppercase text-neutral-500 mb-1">FollowUp score</div>
+                <div v-if="detailsCache[sig.resourceName]!.followupScore" class="space-y-0.5">
+                  <div>
+                    Total: <span class="text-primary-400 font-semibold">{{ detailsCache[sig.resourceName]!.followupScore!.score_total.toFixed(1) }}</span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-x-2 text-neutral-400">
+                    <div>Interaction: {{ detailsCache[sig.resourceName]!.followupScore!.score_breakdown.interaction.toFixed(1) }}</div>
+                    <div>LinkedIn: {{ detailsCache[sig.resourceName]!.followupScore!.score_breakdown.linkedin.toFixed(1) }}</div>
+                    <div>Completeness: {{ detailsCache[sig.resourceName]!.followupScore!.score_breakdown.completeness.toFixed(1) }}</div>
+                    <div v-if="detailsCache[sig.resourceName]!.followupScore!.score_breakdown.exec_bonus">
+                      Exec bonus: +{{ detailsCache[sig.resourceName]!.followupScore!.score_breakdown.exec_bonus!.toFixed(1) }}
+                    </div>
+                    <div v-if="detailsCache[sig.resourceName]!.followupScore!.score_breakdown.beeper">
+                      Beeper: {{ detailsCache[sig.resourceName]!.followupScore!.score_breakdown.beeper!.toFixed(1) }}
+                    </div>
+                    <div v-if="(detailsCache[sig.resourceName]!.followupScore!.score_breakdown.personal_multiplier ?? 1) !== 1">
+                      Personal ×{{ detailsCache[sig.resourceName]!.followupScore!.score_breakdown.personal_multiplier }}
+                    </div>
+                  </div>
+                </div>
+                <div v-else class="text-neutral-500 italic">No score record</div>
+              </div>
+
+              <!-- Interaction -->
+              <div class="border border-neutral-800 rounded-md p-2 bg-neutral-900/50">
+                <div class="text-[10px] uppercase text-neutral-500 mb-1">Interaction</div>
+                <div v-if="detailsCache[sig.resourceName]!.followupScore?.interaction" class="space-y-0.5 text-neutral-300">
+                  <div>Last: {{ formatDate(detailsCache[sig.resourceName]!.followupScore!.interaction.last_date) }}</div>
+                  <div>Months gap: {{ detailsCache[sig.resourceName]!.followupScore!.interaction.months_gap }}</div>
+                  <div>Count: {{ detailsCache[sig.resourceName]!.followupScore!.interaction.count }}</div>
+                </div>
+                <div v-else class="text-neutral-500 italic">No interaction history</div>
+              </div>
+
+              <!-- LinkedIn -->
+              <div class="border border-neutral-800 rounded-md p-2 bg-neutral-900/50">
+                <div class="text-[10px] uppercase text-neutral-500 mb-1">LinkedIn</div>
+                <div v-if="detailsCache[sig.resourceName]!.linkedinSignal" class="space-y-0.5">
+                  <div class="text-neutral-300 font-medium">{{ detailsCache[sig.resourceName]!.linkedinSignal!.current_role || detailsCache[sig.resourceName]!.linkedinSignal!.headline }}</div>
+                  <div v-if="detailsCache[sig.resourceName]!.linkedinSignal!.signal_text" class="text-neutral-400 italic">
+                    "{{ detailsCache[sig.resourceName]!.linkedinSignal!.signal_text }}"
+                  </div>
+                  <div class="text-neutral-500 text-[10px]">
+                    Signal: {{ detailsCache[sig.resourceName]!.linkedinSignal!.signal_type }} · scanned {{ formatDate(detailsCache[sig.resourceName]!.linkedinSignal!.scanned_at) }}
+                  </div>
+                </div>
+                <div v-else class="text-neutral-500 italic">No LinkedIn scan</div>
+              </div>
+
+              <!-- Beeper / omnichannel KPIs -->
+              <div v-if="detailsCache[sig.resourceName]!.followupScore?.beeper" class="border border-neutral-800 rounded-md p-2 bg-neutral-900/50 md:col-span-2">
+                <div class="text-[10px] uppercase text-neutral-500 mb-1">Omnichannel (Beeper)</div>
+                <div class="flex flex-wrap gap-x-4 gap-y-1 text-neutral-300">
+                  <div>Primary: {{ detailsCache[sig.resourceName]!.followupScore!.beeper!.channel_primary || '—' }}</div>
+                  <div>Awaiting reply: {{ detailsCache[sig.resourceName]!.followupScore!.beeper!.awaiting_reply_side || '—' }}</div>
+                  <div>30d in: {{ detailsCache[sig.resourceName]!.followupScore!.beeper!.messages_30d_in }}</div>
+                  <div>30d out: {{ detailsCache[sig.resourceName]!.followupScore!.beeper!.messages_30d_out }}</div>
+                  <div>Channels 30d: {{ detailsCache[sig.resourceName]!.followupScore!.beeper!.channels_30d }}</div>
+                </div>
+              </div>
+
+              <!-- Contact completeness (emails, urls) -->
+              <div v-if="detailsCache[sig.resourceName]!.followupScore?.contact" class="border border-neutral-800 rounded-md p-2 bg-neutral-900/50 md:col-span-2">
+                <div class="text-[10px] uppercase text-neutral-500 mb-1">Contact fields</div>
+                <div class="flex flex-wrap gap-x-4 gap-y-1 text-neutral-300">
+                  <div v-if="detailsCache[sig.resourceName]!.followupScore!.contact.emails?.length">
+                    Emails: <span class="font-mono text-[11px]">{{ detailsCache[sig.resourceName]!.followupScore!.contact.emails.join(', ') }}</span>
+                  </div>
+                  <div>Phone on file: {{ detailsCache[sig.resourceName]!.followupScore!.contact.has_phone ? 'yes' : 'no' }}</div>
+                  <div>Completeness: {{ detailsCache[sig.resourceName]!.followupScore!.contact.completeness }}%</div>
+                </div>
+                <div v-if="detailsCache[sig.resourceName]!.followupScore!.contact.urls?.length" class="mt-1 flex flex-wrap gap-2 text-[11px]">
+                  <a
+                    v-for="u in detailsCache[sig.resourceName]!.followupScore!.contact.urls"
+                    :key="u.url"
+                    :href="u.url"
+                    target="_blank"
+                    rel="noopener"
+                    class="text-neutral-400 hover:text-primary-400 underline-offset-2 hover:underline"
+                  >
+                    {{ u.type || 'link' }}
+                  </a>
+                </div>
+              </div>
+
+              <!-- Lead signal record (dismissal context) -->
+              <div v-if="detailsCache[sig.resourceName]!.leadSignalRecord?.dismissal" class="border border-neutral-800 rounded-md p-2 bg-neutral-900/50 md:col-span-2">
+                <div class="text-[10px] uppercase text-neutral-500 mb-1">Dismissal</div>
+                <div class="text-neutral-300">
+                  Reason: {{ detailsCache[sig.resourceName]!.leadSignalRecord!.dismissal!.reason.replace('_', ' ') }}
+                  <span v-if="detailsCache[sig.resourceName]!.leadSignalRecord!.dismissal!.note" class="text-neutral-400">
+                    — {{ detailsCache[sig.resourceName]!.leadSignalRecord!.dismissal!.note }}
+                  </span>
+                </div>
+                <div class="text-neutral-500 text-[10px]">
+                  {{ formatDate(detailsCache[sig.resourceName]!.leadSignalRecord!.dismissal!.dismissedAt) }}
+                </div>
+              </div>
+            </div>
+          </template>
         </div>
       </div>
     </div>
